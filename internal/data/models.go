@@ -15,16 +15,35 @@ var (
 	ErrEditConflict = errors.New("edit conflict")
 )
 
+type StatusEnum string
+
+const (
+	StatusPending   StatusEnum = "pending"
+	StatusCompleted StatusEnum = "completed"
+	StatusFailed    StatusEnum = "failed"
+)
+
+type TypeEnum string
+
+const (
+	TypeDeposit    TypeEnum = "deposit"
+	TypeWithdrawal TypeEnum = "withdrawal"
+	TypeTransfer   TypeEnum = "transfer"
+)
+
 // Create a Models struct which wraps the MovieModel. We'll add other models to this,
 // like a UserModel and PermissionModel, as our build progresses.
+
 type Models struct {
-	//AModel MyModel
+	RegistrationModel RegistrationModel
+	AccountModel      *AccountModel
 }
 
 // For ease of use, we also add a New() method which returns a Models struct containing
-// the intitialized MovieModel.
+// the intitialized savings_accountModel.
 func NewModels(db *sql.DB) Models {
 	return Models{
-		//	AModel: MyModel{DB: db},
+		RegistrationModel: RegistrationModel{DB: db},
+		AccountModel:      &AccountModel{DB: db},
 	}
 }

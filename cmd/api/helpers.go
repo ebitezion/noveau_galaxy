@@ -5,10 +5,13 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math"
+	"math/rand"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/ebitezion/backend-framework/internal/validator"
 	"github.com/julienschmidt/httprouter"
@@ -206,4 +209,38 @@ func (app *application) readInt(qs url.Values, key string, defaultValue int, v *
 
 	// Otherwise return the converted integer value.
 	return i
+}
+
+// generateRandomNumber gives a random number of a given length
+func (app *application) generateRandomNumber(length int) (int, error) {
+	if length < 1 {
+		return 0, fmt.Errorf("length should be at least 1")
+	}
+
+	// Calculate the minimum and maximum values for the specified length
+	min := int(math.Pow10(length - 1))
+	max := int(math.Pow10(length)) - 1
+
+	if min >= max {
+		return 0, fmt.Errorf("invalid length")
+	}
+
+	// Initialize the random number generator with a seed based on the current time
+	rand.Seed(time.Now().UnixNano())
+
+	// Generate a random number between min and max (inclusive)
+	return rand.Intn(max-min+1) + min, nil
+}
+
+// generateRandomString makes a random character of a given length
+func (app *application) generateRandomString(length int) string {
+	var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()")
+
+	rand.Seed(time.Now().UnixNano())
+
+	randomString := make([]rune, length)
+	for i := range randomString {
+		randomString[i] = letters[rand.Intn(len(letters))]
+	}
+	return string(randomString)
 }
