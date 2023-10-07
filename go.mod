@@ -1,4 +1,4 @@
-module github.com/ebitezion/backend-framework
+module github.com/ebitezion/noveau_galxaxy
 
 go 1.20
 
