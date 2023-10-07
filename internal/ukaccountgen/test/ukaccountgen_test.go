@@ -3,7 +3,7 @@ package test
 import (
 	"testing"
 
-	"github.com/ebitezion/noveau_galaxy/internal/ukaccountgen"
+	"github.com/ebitezion/backend-framework/internal/ukaccountgen"
 )
 
 func TestGenerateUKAccountNumber(t *testing.T) {
