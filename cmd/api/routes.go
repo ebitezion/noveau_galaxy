@@ -23,12 +23,7 @@ func (app *application) routes() *httprouter.Router {
 	// endpoints using the HandlerFunc() method.
 	router.HandlerFunc(http.MethodGet, "/v1/healthcheck", app.healthcheckHandler)
 
-	//Below is an example to help properly form your routes(You can remove when you are done)
-	// router.HandlerFunc(http.MethodGet, "/v1/animals", app.listAnimalsHandler)
-	// router.HandlerFunc(http.MethodPost, "/v1/animals", app.createAnimalHandler)
-	// router.HandlerFunc(http.MethodGet, "/v1/animals/:id", app.showAnimalHandler)
-	// router.HandlerFunc(http.MethodPatch, "/v1/animals/:id", app.updateAnimalHandler)
-	// router.HandlerFunc(http.MethodDelete, "/v1/animals/:id", app.deleteAnimalHandler)
+	router.HandlerFunc(http.MethodPost, "/v1/createAccount", app.CreateAccount)
 
 	// Return the httprouter instance.
 	return router
