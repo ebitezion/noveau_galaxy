@@ -89,3 +89,28 @@ timestamp TIMESTAMP,
 details TEXT,
 FOREIGN KEY (user_id) REFERENCES Users(user_id)
 );
+
+
+## Account Generation Service
+**`Background`**:In the context of banking in the United Kingdom (UK), an account number and a sort code are two crucial pieces of information associated with a bank account.
+
+- Account Number:
+
+The account number is a unique identifier assigned to an individual or entity's bank account. It is used to distinguish one account from another within a specific bank or financial institution.
+In the UK, traditional account numbers typically consist of six digits. These numbers are usually assigned sequentially, starting from a specific range.
+The account number helps in routing transactions to the correct account within the bank.
+
+- Sort Code:
+
+The sort code is another essential element in the UK banking system. It identifies the specific branch or office of a bank where an account is held.
+Sort codes consist of six digits as well.
+The sort code is used in conjunction with the account number to ensure that a transaction is directed to the correct branch and account.
+Together, the account number and sort code work in tandem to facilitate various financial transactions, including deposits, withdrawals, and transfers. When combined, they provide a unique address for each bank account within the UK banking system. This combination is used by the banking infrastructure to accurately route payments and transfers to the intended recipient.
+
+- **About our directory structure**
+
+```
+- ukaccountgen
+      - ukaccountgen.go
+- main.go(Execution or test file)
+```
