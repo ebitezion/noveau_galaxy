@@ -114,3 +114,8 @@ Together, the account number and sort code work in tandem to facilitate various 
       - ukaccountgen.go
 - main.go(Execution or test file)
 ```
+- To Use:
+```
+generator := ukaccountgen.New()
+accountNumber := generator.GenerateUKAccountNumber()
+```
