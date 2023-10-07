@@ -112,6 +112,8 @@ Together, the account number and sort code work in tandem to facilitate various 
 ```
 - ukaccountgen
       - ukaccountgen.go
+      -test
+        -ukaccountgen_test.go
 - main.go(Execution or test file)
 ```
 - To Use:
