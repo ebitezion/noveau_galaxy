@@ -1,0 +1,197 @@
+package data
+
+import (
+	"context"
+	"database/sql"
+	"errors"
+	"time"
+)
+
+type AccountDetails struct {
+	FirstName     string `json:"firstName"`
+	LastName      string `json:"lastName"`
+	AccountNumber string `json:"accountNumber"`
+	AccountType   string `json:"accountType"`
+	LedgerBalance string `json:"ledgerBalance"`
+	CurrencyCode  string `json:"currencyCode"`
+	PhoneNumber   string `json:"phoneNumber"`
+	BVN           string `json:"bvn"`
+}
+type BalanceEnquiry struct {
+	FirstName     string `json:"firstName"`
+	LastName      string `json:"lastName"`
+	AccountNumber string `json:"accountNumber"`
+	LedgerBalance string `json:"ledgerBalance"`
+	CurrencyCode  string `json:"currencyCode"`
+}
+
+type AccountBioData struct {
+	Surname     string `json:"surname"`
+	FirstName   string `json:"firstName"`
+	HomeAddress string `json:"homeAddress"`
+	City        string `json:"city"`
+	PhoneNumber string `json:"phoneNumber"`
+	Picture     string `json:"picture"`
+	DateOfBirth string `json:"dateOfBirth"`
+	Identity    struct {
+		BVN         string `json:"bvn"`
+		Passport    string `json:"passport"`
+		UtilityBill string `json:"utilityBill"`
+		Country     string `json:"country"`
+	} `json:"identity"`
+}
+
+type User struct {
+	AccountNumber string `json:"accountNumber"`
+}
+type Beneficiary struct {
+	UserAccountNumber string `json:"userAccountNumber"`
+	BeneficiaryID     int64  `json:"beneficiaryId"`
+	UserID            int64  `json:"userId"`
+	FullName          string `json:"fullName"`
+	BankName          string `json:"bankName"`
+	BankAccountNumber string `json:"bankAccountNumber"`
+	BankRoutingNumber string `json:"bankRoutingNumber"`
+	SwiftCode         string `json:"swiftCode"`
+}
+
+type Transaction struct {
+	TransactionID     int64   `json:"transactionId"`
+	SenderAccountID   int64   `json:"senderAccountId"`
+	ReceiverAccountID int64   `json:"receiverAccountId"`
+	Amount            float64 `json:"amount"`
+	CurrencyCode      string  `json:"currencyCode"`
+	Status            string  `json:"status"`
+	TransactionType   string  `json:"transactionType"`
+	Timestamp         string  `json:"timestamp"`
+	CreatedBy         int64   `json:"createdBy"`
+	CreatedAt         string  `json:"createdAt"`
+	UpdatedBy         int64   `json:"updatedBy"`
+	UpdatedAt         string  `json:"updatedAt"`
+}
+
+// connection to DB resources
+type AccountModel struct {
+	DB *sql.DB
+}
+
+// Insert method for inserting a new record in a table.
+func (a AccountModel) Insert(Query string, Args []interface{}) (sql.Result, error) {
+	// Create a context with a 3-second timeout.
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	// Execute the database query using the provided context and arguments.
+	result, err := a.DB.ExecContext(ctx, Query, Args...)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+// Update method for updating a specific record from a table.
+func (a AccountModel) Update(Args []interface{}, Query string) error {
+
+	// Create a context with a 3-second timeout.
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	_, err := a.DB.ExecContext(ctx, Query, Args...)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return ErrEditConflict
+		default:
+			return err
+		}
+	}
+
+	return nil
+}
+
+// Get method for fetching a specific record from the users table.
+func (a AccountModel) GetAccountDetails(accountNumber string) (*AccountDetails, error) {
+	//To avoid making an unnecessary database call, we take a shortcut
+	// and return an ErrRecordNotFound error straight away.
+	if len(accountNumber) < 1 {
+		return nil, ErrRecordNotFound
+	}
+
+	query := `
+    SELECT b.firstname, b.surname, b.phoneNumber, a.account_number, a.type, a.balance, a.currency_code, c.bvn
+    FROM accounts AS a
+    INNER JOIN biodata AS b ON a.user_id = b.id
+    INNER JOIN identity AS c ON a.user_id = c.user_id
+    WHERE a.account_number = ?;
+`
+
+	// Declare a Users struct to hold the data returned by the query.
+	var accountDetails AccountDetails
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	// Use the QueryRowContext() method to execute the query, passing in the context
+	// with the deadline as the first argument.
+	err := a.DB.QueryRowContext(ctx, query, accountNumber).Scan(&accountDetails.FirstName, &accountDetails.LastName, &accountDetails.PhoneNumber, &accountDetails.AccountNumber, &accountDetails.AccountType, &accountDetails.LedgerBalance, &accountDetails.CurrencyCode, &accountDetails.BVN)
+
+	// Handle any errors. If there was no matching referralcode found, Scan() will return
+	// a sql.ErrNoRows error. We check for this and return our custom ErrRecordNotFound
+	// error instead.
+
+	if err != nil {
+		// Check specifically for the ErrRecordNotFound error.
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrRecordNotFound
+		}
+		// Handle other errors.
+		return nil, err
+	}
+
+	// Otherwise, return a pointer to the referrer struct.
+	return &accountDetails, nil
+}
+
+// Get method for fetching a specific record from the users table.
+func (a AccountModel) GetBalanceDetails(accountNumber string) (*BalanceEnquiry, error) {
+	//To avoid making an unnecessary database call, we take a shortcut
+	// and return an ErrRecordNotFound error straight away.
+	if len(accountNumber) < 1 {
+		return nil, ErrRecordNotFound
+	}
+
+	query := `
+    SELECT b.firstname, b.surname, a.account_number, a.balance, a.currency_code
+    FROM accounts AS a
+    INNER JOIN biodata AS b ON a.user_id = b.id
+    INNER JOIN identity AS c ON a.user_id = c.user_id
+    WHERE a.account_number = ?;
+`
+
+	// Declare a Users struct to hold the data returned by the query.
+	var BalanceEnquiry BalanceEnquiry
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	// Use the QueryRowContext() method to execute the query, passing in the context
+	// with the deadline as the first argument.
+	err := a.DB.QueryRowContext(ctx, query, accountNumber).Scan(&BalanceEnquiry.FirstName, &BalanceEnquiry.LastName, &BalanceEnquiry.AccountNumber, &BalanceEnquiry.LedgerBalance, &BalanceEnquiry.CurrencyCode)
+
+	// Handle any errors. If there was no matching referralcode found, Scan() will return
+	// a sql.ErrNoRows error. We check for this and return our custom ErrRecordNotFound
+	// error instead.
+
+	if err != nil {
+		// Check specifically for the ErrRecordNotFound error.
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrRecordNotFound
+		}
+		// Handle other errors.
+		return nil, err
+	}
+
+	// Otherwise, return a pointer to the referrer struct.
+	return &BalanceEnquiry, nil
+}

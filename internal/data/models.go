@@ -15,6 +15,22 @@ var (
 	ErrEditConflict = errors.New("edit conflict")
 )
 
+type CurrencyCode string
+
+const (
+	Nigeria CurrencyCode = "NGN"
+	Uk      CurrencyCode = "GBP"
+	Euro    CurrencyCode = "EUR"
+)
+
+type AccountType string
+
+const (
+	InternalAccount AccountType = "internal"
+	UkAccount       AccountType = "uk"
+	EuroAccount     AccountType = "euro"
+)
+
 type StatusEnum string
 
 const (
@@ -35,15 +51,14 @@ const (
 // like a UserModel and PermissionModel, as our build progresses.
 
 type Models struct {
-	RegistrationModel RegistrationModel
-	AccountModel      *AccountModel
+	AccountModel *AccountModel
 }
 
 // For ease of use, we also add a New() method which returns a Models struct containing
 // the intitialized savings_accountModel.
 func NewModels(db *sql.DB) Models {
 	return Models{
-		RegistrationModel: RegistrationModel{DB: db},
-		AccountModel:      &AccountModel{DB: db},
+
+		AccountModel: &AccountModel{DB: db},
 	}
 }

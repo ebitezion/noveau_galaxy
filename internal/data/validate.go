@@ -5,7 +5,7 @@ import (
 )
 
 // user registration validation functions
-func ValidateUserInformation(v *validator.Validator, data *AccountBioData) {
+func ValidateAccountBioData(v *validator.Validator, data *AccountBioData) {
 	v.Check(data.FirstName != "", "firstName", "must be provided")
 	v.Check(data.Surname != "", "surname", "must be provided")
 	v.Check(data.HomeAddress != "", "homeAddress", "must be provided")
@@ -18,4 +18,10 @@ func ValidateUserInformation(v *validator.Validator, data *AccountBioData) {
 	v.Check(data.Identity.UtilityBill != "", "identity.utilityBill", "must be provided")
 	v.Check(data.Identity.Country != "", "identity.country", "must be provided")
 	v.Check(data.Picture != "", "picture", "must be provided")
+}
+func ValidateUserInformation(v *validator.Validator, data *User) {
+
+}
+func ValidateBeneficiaryData(v *validator.Validator, data *Beneficiary) {
+
 }
