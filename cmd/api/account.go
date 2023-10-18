@@ -113,7 +113,49 @@ func (app *application) BalanceEnquiry(w http.ResponseWriter, r *http.Request) {
 
 // RetreiveAccounts retrieves all accounts associated with a user
 func (app *application) RetreiveAccounts(w http.ResponseWriter, r *http.Request) {
+	Request := data.User{}
+	// read the incoming request body
+	err := app.readJSON(w, r, &Request)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+	// Validate the request data
+	v := validator.New()
+	data.ValidateUserInformation(v, &Request)
+	if !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		return
+	}
 
+	//get user_id
+	user_id, err := app.models.AccountModel.GetUserId(Request.AccountNumber)
+	if err != nil {
+		if err == data.ErrRecordNotFound {
+			app.writeJSON(w, http.StatusOK, envelope{"message": "No records found"}, nil)
+		} else {
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	//fetch account details
+	accounts, err := app.models.AccountModel.GetAccounts(user_id)
+	if err != nil {
+		if err == data.ErrRecordNotFound {
+			app.writeJSON(w, http.StatusOK, envelope{"message": "No records found"}, nil)
+		} else {
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	// Return a success response or an error message
+	err = app.writeJSON(w, http.StatusOK, envelope{"responseMessage": "Successful", "accounts": accounts}, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
 }
 
 // NewBeneficiary creates a new beneficiary tied to an account
@@ -132,10 +174,19 @@ func (app *application) NewBeneficiary(w http.ResponseWriter, r *http.Request) {
 		app.failedValidationResponse(w, r, v.Errors)
 		return
 	}
-	//get user_id of account_number
+	//get user_id
+	userId, err := app.models.AccountModel.GetUserId(Request.UserAccountNumber)
+	if err != nil {
+		if err == data.ErrRecordNotFound {
+			app.writeJSON(w, http.StatusOK, envelope{"message": "No records found"}, nil)
+		} else {
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
 
 	//create new beneficiary
-	err = app.StoreBeneficiary(&Request, 6)
+	err = app.StoreBeneficiary(&Request, userId)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
@@ -151,9 +202,44 @@ func (app *application) NewBeneficiary(w http.ResponseWriter, r *http.Request) {
 
 // GetBeneficiaries gets all the beneficiaries tied to an account
 func (app *application) GetBeneficiaries(w http.ResponseWriter, r *http.Request) {
+	Request := data.User{}
+	// read the incoming request body
+	err := app.readJSON(w, r, &Request)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+	// Validate the request data
+	v := validator.New()
+	data.ValidateUserInformation(v, &Request)
+	if !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		return
+	}
 
+	//get user_id
+	user_id := "6"
+
+	//fetch account details
+	beneficiaries, err := app.models.AccountModel.GetBenefciaries(user_id)
+	if err != nil {
+		if err == data.ErrRecordNotFound {
+			app.writeJSON(w, http.StatusOK, envelope{"message": "No records found"}, nil)
+		} else {
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	// Return a success response or an error message
+	err = app.writeJSON(w, http.StatusOK, envelope{"responseMessage": "Successful", "beneficiaries": beneficiaries}, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
 }
-func (app *application) StoreBeneficiary(Data *data.Beneficiary, UserId int) error {
+
+func (app *application) StoreBeneficiary(Data *data.Beneficiary, UserId string) error {
 	//Insert Identity data to DB
 	query := `
      INSERT INTO beneficiaries ( user_id, full_name, bank_name, bank_account_number, bank_routing_number, swift_code)
@@ -232,4 +318,19 @@ func (app *application) Register(biodata data.AccountBioData) (accountNumber str
 
 	// return the generated account
 	return accountNumber, nil
+}
+
+// CreateTransaction stores a transaction that occured in the database
+func (app *application) CreateTransaction(transaction *data.Transaction) error {
+	//Insert Identity data to DB
+	query := `INSERT INTO transactions (sender_account_id, receiver_account_id, amount, currency_code, status, transaction_type, timestamp) VALUES (?, ?, ?, ?, ?, ?,?)`
+
+	args := []interface{}{transaction.SenderAccountID, transaction.ReceiverAccountID, transaction.Amount, transaction.CurrencyCode, transaction.Status, transaction.TransactionType}
+
+	// Insert Identity data to DB, use LAST_INSERT_ID() to get the last generated ID
+	_, err := app.models.AccountModel.Insert(query, args)
+	if err != nil {
+		return err
+	}
+	return nil
 }

@@ -24,9 +24,11 @@ func (app *application) routes() *httprouter.Router {
 	router.HandlerFunc(http.MethodGet, "/v1/healthcheck", app.healthcheckHandler)
 	router.HandlerFunc(http.MethodPost, "/v1/createAccount", app.CreateAccount)
 	router.HandlerFunc(http.MethodPost, "/v1/accountDetails", app.AccountDetails)
+	router.HandlerFunc(http.MethodPost, "/v1/accounts", app.RetreiveAccounts)
 	router.HandlerFunc(http.MethodPost, "/v1/balanceEnquiry", app.BalanceEnquiry)
 	router.HandlerFunc(http.MethodPost, "/v1/retrieveAccounts", app.RetreiveAccounts)
 	router.HandlerFunc(http.MethodPost, "/v1/beneficiary/new", app.NewBeneficiary)
+	router.HandlerFunc(http.MethodPost, "/v1/beneficiary", app.GetBeneficiaries)
 
 	// Return the httprouter instance.
 	return router

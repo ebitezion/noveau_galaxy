@@ -45,9 +45,9 @@ type User struct {
 	AccountNumber string `json:"accountNumber"`
 }
 type Beneficiary struct {
-	UserAccountNumber string `json:"userAccountNumber"`
-	BeneficiaryID     int64  `json:"beneficiaryId"`
-	UserID            int64  `json:"userId"`
+	UserAccountNumber string `json:"userAccountNumber,omitempty"`
+	BeneficiaryID     int64  `json:"beneficiaryId,omitempty"`
+	UserID            int64  `json:"userId,omitempty"`
 	FullName          string `json:"fullName"`
 	BankName          string `json:"bankName"`
 	BankAccountNumber string `json:"bankAccountNumber"`
@@ -64,15 +64,57 @@ type Transaction struct {
 	Status            string  `json:"status"`
 	TransactionType   string  `json:"transactionType"`
 	Timestamp         string  `json:"timestamp"`
-	CreatedBy         int64   `json:"createdBy"`
-	CreatedAt         string  `json:"createdAt"`
-	UpdatedBy         int64   `json:"updatedBy"`
-	UpdatedAt         string  `json:"updatedAt"`
+}
+type Account struct {
+	AccountNumber string  `json:"accountNumber"`
+	Type          string  `json:"type"`
+	CurrencyCode  string  `json:"currencyCode"`
+	Balance       float64 `json:"balance"`
+	SortCode      string  `json:"sortCode"`
+	SwiftCode     string  `json:"swiftCode"`
+	IBAN          string  `json:"iban"`
+	RoutingNumber string  `json:"routingNumber"`
+	Other         string  `json:"other"`
 }
 
 // connection to DB resources
 type AccountModel struct {
 	DB *sql.DB
+}
+
+// GetUserId gets the userid from a particular account_number
+func (a AccountModel) GetUserId(accountNumber string) (UserId string, err error) {
+
+	query := `SELECT user_id FROM accounts WHERE account_number = ? `
+	//To avoid making an unnecessary database call, we take a shortcut
+	// and return an ErrRecordNotFound error straight away.
+	if len(accountNumber) < 1 {
+		return "", ErrRecordNotFound
+	}
+
+	// Declare a Users struct to hold the data returned by the query.
+	var userid string
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+
+	defer cancel()
+
+	err = a.DB.QueryRowContext(ctx, query, accountNumber).Scan(&userid)
+	// Handle any errors. If there was no matching referralcode found, Scan() will return
+	// a sql.ErrNoRows error. We check for this and return our custom ErrRecordNotFound
+	// error instead.
+
+	if err != nil {
+		// Check specifically for the ErrRecordNotFound error.
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", ErrRecordNotFound
+		}
+		// Handle other errors.
+		return "", err
+	}
+
+	// Otherwise, return a pointer to the referrer struct.
+	return userid, nil
 }
 
 // Insert method for inserting a new record in a table.
@@ -194,4 +236,92 @@ func (a AccountModel) GetBalanceDetails(accountNumber string) (*BalanceEnquiry, 
 
 	// Otherwise, return a pointer to the referrer struct.
 	return &BalanceEnquiry, nil
+}
+
+// GetBenefciaries  gets all the beneficiaries of a user
+func (a AccountModel) GetBenefciaries(UserId string) ([]Beneficiary, error) {
+
+	query := `SELECT  full_name, bank_name, bank_account_number, bank_routing_number, swift_code 	FROM beneficiaries WHERE user_id  = ?`
+	// Use the context.WithTimeout() function to create a context.Context with a timeout.
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	// Use the Query() method to execute the query, passing in the context
+	// with the deadline as the first argument.
+	rows, err := a.DB.QueryContext(ctx, query, UserId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var Beneficiaries []Beneficiary
+
+	//loop through to store each row gotten in the Beneficiary array
+	for rows.Next() {
+		var B Beneficiary
+		err := rows.Scan(&B.FullName, &B.BankName, &B.BankAccountNumber, &B.BankRoutingNumber, &B.SwiftCode)
+		if err != nil {
+			return nil, err
+		}
+		Beneficiaries = append(Beneficiaries, B)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	if len(Beneficiaries) == 0 {
+		return nil, ErrRecordNotFound
+	}
+
+	return Beneficiaries, nil
+}
+
+// GetAccounts  gets all the accounts of a user
+func (a AccountModel) GetAccounts(UserId string) ([]Account, error) {
+
+	query := "SELECT account_number, type, currency_code, balance, sort_code, swift_code, iban, routing_number, other FROM accounts WHERE user_id = ?"
+
+	// Use the context.WithTimeout() function to create a context.Context with a timeout.
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	// Use the Query() method to execute the query, passing in the context
+	// with the deadline as the first argument.
+	rows, err := a.DB.QueryContext(ctx, query, UserId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var Accounts []Account
+
+	//loop through to store each row gotten in the Beneficiary array
+	for rows.Next() {
+		var account Account
+		err := rows.Scan(
+			&account.AccountNumber,
+			&account.Type,
+			&account.CurrencyCode,
+			&account.Balance,
+			&account.SortCode,
+			&account.SwiftCode,
+			&account.IBAN,
+			&account.RoutingNumber,
+			&account.Other)
+		if err != nil {
+			return nil, err
+		}
+		Accounts = append(Accounts, account)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	if len(Accounts) == 0 {
+		return nil, ErrRecordNotFound
+	}
+
+	return Accounts, nil
 }
