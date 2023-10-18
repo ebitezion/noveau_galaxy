@@ -121,3 +121,46 @@ Together, the account number and sort code work in tandem to facilitate various 
 generator := ukaccountgen.New()
 accountNumber := generator.GenerateUKAccountNumber()
 ```
+
+# PGP Encryption Package
+
+This package provides functions for PGP encryption and decryption.
+
+## Usage
+
+```
+go
+package main
+
+import (
+	"fmt"
+	"github.com/yourusername/projectname/pgp"
+)
+
+const pubkey = `-----BEGIN PGP PUBLIC KEY BLOCK-----
+...
+-----END PGP PUBLIC KEY BLOCK-----`
+
+const privkey = `-----BEGIN PGP PRIVATE KEY BLOCK-----
+...
+-----END PGP PRIVATE KEY BLOCK-----`
+
+const passphrase = []byte(`the passphrase of the private key`)
+
+func main() {
+	armor, err := pgp.EncryptMessageArmored(pubkey, "plain text")
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+
+	decrypted, err := pgp.DecryptMessageArmored(privkey, passphrase, armor)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+
+	fmt.Println("Decrypted:", decrypted)
+}
+
+```
