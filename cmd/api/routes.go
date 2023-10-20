@@ -21,6 +21,8 @@ func (app *application) routes() *httprouter.Router {
 
 	// Register relevant methods, URL patterns and handler functions for our
 	// endpoints using the HandlerFunc() method.
+
+	//ACCOUNTS
 	router.HandlerFunc(http.MethodGet, "/v1/healthcheck", app.healthcheckHandler)
 	router.HandlerFunc(http.MethodPost, "/v1/createAccount", app.CreateAccount)
 	router.HandlerFunc(http.MethodPost, "/v1/accountDetails", app.AccountDetails)
@@ -29,6 +31,9 @@ func (app *application) routes() *httprouter.Router {
 	router.HandlerFunc(http.MethodPost, "/v1/retrieveAccounts", app.RetreiveAccounts)
 	router.HandlerFunc(http.MethodPost, "/v1/beneficiary/new", app.NewBeneficiary)
 	router.HandlerFunc(http.MethodPost, "/v1/beneficiary", app.GetBeneficiaries)
+
+	//Currency Exchange
+	router.HandlerFunc(http.MethodGet, "v1/", app.AvailableCurrenciesHandler)
 
 	// Return the httprouter instance.
 	return router
