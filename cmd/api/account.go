@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/ebitezion/backend-framework/internal/accounts"
 	"github.com/ebitezion/backend-framework/internal/data"
 	"github.com/ebitezion/backend-framework/internal/ukaccountgen"
 	"github.com/ebitezion/backend-framework/internal/validator"
+	"github.com/gorilla/mux"
 )
 
 func (app *application) CreateAccount(w http.ResponseWriter, r *http.Request) {
@@ -333,4 +335,160 @@ func (app *application) CreateTransaction(transaction *data.Transaction) error {
 		return err
 	}
 	return nil
+}
+
+// /////////////////////////////////////////////////////
+// Version 2.0
+// @author Ebite Ogochukwu Zion
+// Team Lead
+// Provides accounts management features
+// ////////////////////////////////////////////////////
+func (app *application) AccountIndex(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Account Index")
+	token, err := app.getTokenFromHeader(w, r)
+	if err != nil {
+		//there was error
+		data := envelope{
+			"responseCode": "06",
+			"status":       "Failed",
+			"message":      err,
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+	}
+
+	response, err := accounts.ProcessAccount([]string{token, "acmt", "1001"})
+	if err != nil {
+		//there was error
+		data := envelope{
+			"responseCode": "06",
+			"status":       "Failed",
+			"message":      err,
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+	}
+	//Response(response, err, w, r)
+	app.logger.Println(response)
+	data := envelope{
+		"responseCode": "00",
+		"status":       "Success",
+		"message":      response,
+	}
+	app.writeJSON(w, http.StatusOK, data, nil)
+
+}
+
+func (app *application) AccountCreate(w http.ResponseWriter, r *http.Request) {
+	// Get values from POST
+	accountHolderGivenName := r.FormValue("AccountHolderGivenName")
+	accountHolderFamilyName := r.FormValue("AccountHolderFamilyName")
+	accountHolderDateOfBirth := r.FormValue("AccountHolderDateOfBirth")
+	accountHolderIdentificationNumber := r.FormValue("AccountHolderIdentificationNumber")
+	accountHolderContactNumber1 := r.FormValue("AccountHolderContactNumber1")
+	accountHolderContactNumber2 := r.FormValue("AccountHolderContactNumber2")
+	accountHolderEmailAddress := r.FormValue("AccountHolderEmailAddress")
+	accountHolderAddressLine1 := r.FormValue("AccountHolderAddressLine1")
+	accountHolderAddressLine2 := r.FormValue("AccountHolderAddressLine2")
+	accountHolderAddressLine3 := r.FormValue("AccountHolderAddressLine3")
+	accountHolderPostalCode := r.FormValue("AccountHolderPostalCode")
+
+	req := []string{
+		"0",
+		"acmt",
+		"1",
+		accountHolderGivenName,
+		accountHolderFamilyName,
+		accountHolderDateOfBirth,
+		accountHolderIdentificationNumber,
+		accountHolderContactNumber1,
+		accountHolderContactNumber2,
+		accountHolderEmailAddress,
+		accountHolderAddressLine1,
+		accountHolderAddressLine2,
+		accountHolderAddressLine3,
+		accountHolderPostalCode,
+	}
+
+	response, err := accounts.ProcessAccount(req)
+	if err != nil {
+		//there was error
+		data := envelope{
+			"responseCode": "06",
+			"status":       "Failed",
+			"message":      err,
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+	}
+	//Response(response, err, w, r)
+	app.logger.Println(response)
+	data := envelope{
+		"responseCode": "00",
+		"status":       "Success",
+		"message":      response,
+	}
+	app.writeJSON(w, http.StatusOK, data, nil)
+}
+
+func (app *application) AccountGet(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Account Get")
+	token, err := app.getTokenFromHeader(w, r)
+	if err != nil {
+		// there was error
+		data := envelope{
+			"responseCode": "06",
+			"status":       "Failed",
+			"message":      err,
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+	}
+
+	vars := mux.Vars(r)
+	accountId := vars["accountId"]
+
+	response, err := accounts.ProcessAccount([]string{token, "acmt", "1002", accountId})
+	if err != nil {
+		//there was error
+		data := envelope{
+			"responseCode": "06",
+			"status":       "Failed",
+			"message":      err,
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+	}
+	//Response(response, err, w, r)
+	app.logger.Println(response)
+	data := envelope{
+		"responseCode": "00",
+		"status":       "Success",
+		"message":      response,
+	}
+	app.writeJSON(w, http.StatusOK, data, nil)
+}
+
+func (app *application) AccountGetAll(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Account GetAll")
+	token, err := app.getTokenFromHeader(w, r)
+	if err != nil {
+		//there was error
+		data := envelope{
+			"responseCode": "06",
+			"status":       "Failed",
+			"message":      err,
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+	}
+
+	response, err := accounts.ProcessAccount([]string{token, "acmt", "1000"})
+	app.logger.Println(response)
+	data := envelope{
+		"responseCode": "00",
+		"status":       "Success",
+		"message":      response,
+	}
+	app.writeJSON(w, http.StatusOK, data, nil)
 }
