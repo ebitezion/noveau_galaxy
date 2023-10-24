@@ -9,7 +9,8 @@ import (
 	"errors"
 	"time"
 
-	"github.com/ebitezion/backend-framework/internal/bank/configuration"
+	"github.com/ebitezion/backend-framework/internal/configuration"
+	"github.com/twinj/uuid"
 )
 
 var Config configuration.Configuration

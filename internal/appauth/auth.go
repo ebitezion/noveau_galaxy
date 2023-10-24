@@ -8,7 +8,8 @@ import (
 
 	"gopkg.in/redis.v3"
 
-	"github.com/ebitezion/backend-framework/internal/bank/configuration"
+	"github.com/ebitezion/backend-framework/internal/configuration"
+	"github.com/twinj/uuid"
 )
 
 const (

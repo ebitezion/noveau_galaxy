@@ -5,7 +5,7 @@ import (
 	"encoding/hex"
 	"testing"
 
-	"github.com/ebitezion/backend-framework/internal/bank/configuration"
+	"github.com/ebitezion/backend-framework/internal/configuration"
 )
 
 func AccountsSetConfig(t *testing.T) {

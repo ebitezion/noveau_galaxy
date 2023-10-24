@@ -25,7 +25,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/ebitezion/backend-framework/internal/bank/appauth"
+	"github.com/ebitezion/backend-framework/internal/appauth"
 	"github.com/shopspring/decimal"
 )
 

@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ebitezion/backend-framework/internal/bank/configuration"
+	"github.com/ebitezion/backend-framework/internal/configuration"
 	"github.com/shopspring/decimal"
 )
 
