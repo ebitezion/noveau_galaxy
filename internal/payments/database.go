@@ -185,7 +185,9 @@ func processDepositInitiation(transaction PAINTrans, sqlTime int32, feeAmount de
 	// The total received amount is the deposited amount minus the fee
 	depositTransactionAmount := transaction.Amount.Sub(feeAmount)
 	// Only update if account local
+
 	if transaction.Receiver.BankNumber == "" {
+
 		updateStatementReceiver := "UPDATE accounts SET `accountBalance` = (`accountBalance` + ?), `availableBalance` = (`availableBalance` + ?), `timestamp` = ? WHERE `accountNumber` = ? "
 		stmtUpdReceiver, err := Config.Db.Prepare(updateStatementReceiver)
 		if err != nil {

@@ -24,7 +24,7 @@ type Configuration struct {
 	Redis        *redis.Client
 }
 
-var configPath = "./config.json"
+var configPath = "C:/Users/Admin/noveau_galaxy/internal/configuration/config.sample.json"
 
 func LoadConfig() (configuration Configuration, err error) {
 	// Get config

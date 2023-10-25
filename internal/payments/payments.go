@@ -160,23 +160,26 @@ func parseAccountHolder(account string) (accountHolder AccountHolder, err error)
 	}
 
 	accountHolder = AccountHolder{accountStr[0], accountStr[1]}
+
 	return
 }
 
 func customerDepositInitiation(painType int64, data []string) (result string, err error) {
 	// Validate input
 	// Sender is bank
-	sender, err := parseAccountHolder("0@0")
+
+	//senders account number and bank number
+	sender, err := parseAccountHolder(data[3])
 	if err != nil {
 		return "", errors.New("payments.CustomerDepositInitiation: " + err.Error())
 	}
 
-	receiver, err := parseAccountHolder(data[3])
+	receiver, err := parseAccountHolder(data[4])
 	if err != nil {
 		return "", errors.New("payments.CustomerDepositInitiation: " + err.Error())
 	}
 
-	trAmt := strings.TrimRight(data[4], "\x00")
+	trAmt := strings.TrimRight(data[5], "\x00")
 	transactionAmountDecimal, err := decimal.NewFromString(trAmt)
 	if err != nil {
 		return "", errors.New("payments.customerDepositInitiation: Could not convert transaction amount to decimal. " + err.Error())
@@ -187,7 +190,7 @@ func customerDepositInitiation(painType int64, data []string) (result string, er
 	if err != nil {
 		return "", errors.New("payments.customerDepositInitiation: " + err.Error())
 	}
-	if tokenUser != receiver.AccountNumber {
+	if tokenUser != sender.AccountNumber {
 		return "", errors.New("payments.customerDepositInitiation: Sender not valid")
 	}
 
