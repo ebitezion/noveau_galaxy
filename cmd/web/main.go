@@ -43,6 +43,8 @@ type application struct {
 	models data.Models
 }
 
+//var store = sessions.NewCookieStore([]byte(os.Getenv("SESSIONSTORE")))
+
 func main() {
 	err := godotenv.Load()
 	if err != nil {

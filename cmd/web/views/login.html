@@ -42,7 +42,7 @@
                                     <div class="text-center">
                                         <h1 class="h4 text-gray-900 mb-4">Welcome Back!</h1>
                                     </div> 
-                                    <form class="user" id="loginForm" onsubmit="submitForm(event)"  action="http://localhost:4000/v1/login" method="POST" >
+                                    <form class="user" id="loginForm" >
                                         <div class="form-group">
                                             <input type="text" class="form-control form-control-user" name="User"
                                                 id="exampleInputEmail" aria-describedby="emailHelp"
@@ -96,6 +96,71 @@
     <!-- Custom scripts for all pages-->
     <script src="/js/sb-admin-2.min.js"></script>
 
+    <script>
+        // Get the form element by its ID
+        var form = document.getElementById('loginForm');
+    
+        // Add an event listener for form submission
+        form.addEventListener('submit', function (event) {
+            event.preventDefault(); // Prevent the form from submitting normally
+    
+            // Create a new FormData object from the form
+            var formdata = new FormData(form);
+    
+            var requestOptions = {
+                method: 'POST',
+                body: formdata,
+                redirect: 'follow'
+            };
+    
+            // Use the fetch API to send the form data
+            fetch("http://localhost:4000/v1/login", requestOptions)
+            .then(response => response.json()) // Parse the response as JSON
+            .then(data => {
+                // Access and manipulate the JSON properties
+                var message = data.message;
+                var responseCode = data.responseCode;
+                var status = data.status;
+
+                // You can now use these values as needed
+                console.log("Message: " + message);
+                console.log("Response Code: " + responseCode);
+                console.log("Status: " + status);
+
+                // Example manipulation: Check if the status is "Success"
+                if (status === "Success") {
+                    makeAuthenticatedApiCall(message)
+                }
+            })
+            .catch(error => console.log('error', error));
+
+        });
+    </script>
+    <script>
+        // Function to make an API call with X-Auth-Token header
+        function makeAuthenticatedApiCall(authorization) {
+            var myHeaders = new Headers();
+            myHeaders.append("X-Auth-Token", authorization);
+
+            var requestOptions = {
+                method: 'POST',
+                headers: myHeaders,
+                redirect: 'follow'
+            };
+
+            fetch("http://localhost:4000/v1/authindex", requestOptions)
+            .then(response => {
+                if (response.status === 200) { 
+                    window.location.href = "http://localhost:4000/v1/index"; 
+                } else {
+                    // Handle other responses or errors here
+                    console.log('API call failed with status:', response.status);
+                }
+            })
+                .catch(error => console.log('error', error));
+        }
+    </script>
+    
    
 
 </body>

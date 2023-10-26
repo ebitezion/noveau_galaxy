@@ -54,6 +54,7 @@ func (app *application) AuthIndex(w http.ResponseWriter, r *http.Request) {
 		}
 
 		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
 
 	}
 
@@ -63,6 +64,7 @@ func (app *application) AuthIndex(w http.ResponseWriter, r *http.Request) {
 		"status":       "Success",
 		"message":      response,
 	}
+
 	app.writeJSON(w, http.StatusOK, data, nil)
 
 }
@@ -86,6 +88,10 @@ func (app *application) AuthLogin(w http.ResponseWriter, r *http.Request) {
 
 		app.writeJSON(w, http.StatusBadRequest, data, nil)
 		return
+	}
+	//err = app.SetJwtSession(w, r, user)
+	if err != nil {
+		fmt.Println(err)
 	}
 	app.logger.Println(response)
 	data := envelope{

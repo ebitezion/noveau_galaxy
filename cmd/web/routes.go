@@ -12,8 +12,9 @@ func (app *application) routes() *httprouter.Router {
 	fs := http.FileServer((http.Dir("./cmd/web/static")))
 	router.Handler("GET", "/", fs)
 
-	router.HandlerFunc(http.MethodPost, "/v1/login", app.AuthLogin)
-	router.HandlerFunc(http.MethodGet, "/v1/index", app.RenderLoginPage)
+	//RENDERED PAGES
+
+	router.HandlerFunc(http.MethodGet, "/v1/index", app.RenderIndexPage)
 	router.HandlerFunc(http.MethodGet, "/v1/loginpage", app.RenderLoginPage)
 	router.HandlerFunc(http.MethodGet, "/v1/signuppage", app.RenderSignUpPage)
 
@@ -34,6 +35,7 @@ func (app *application) routes() *httprouter.Router {
 	//LOGIN
 	router.HandlerFunc(http.MethodPost, "/v1/login", app.AuthLogin)
 	router.HandlerFunc(http.MethodPost, "/v1/create", app.AuthCreate)
+	router.HandlerFunc(http.MethodPost, "/v1/authindex", app.AuthIndex)
 	router.HandlerFunc(http.MethodPost, "/v1/deposit", app.PaymentDepositInitiation)
 	router.HandlerFunc(http.MethodPost, "/v1/credit", app.PaymentCreditInitiation)
 
