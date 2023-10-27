@@ -14,6 +14,7 @@ import (
 	"github.com/ebitezion/backend-framework/internal/appauth"
 	"github.com/ebitezion/backend-framework/internal/configuration"
 	"github.com/ebitezion/backend-framework/internal/data"
+	"github.com/gorilla/sessions"
 	"github.com/joho/godotenv"
 
 	//_ "github.com/lib/pq"
@@ -43,7 +44,7 @@ type application struct {
 	models data.Models
 }
 
-//var store = sessions.NewCookieStore([]byte(os.Getenv("SESSIONSTORE")))
+var store = sessions.NewCookieStore([]byte(os.Getenv("SESSIONSTORE")))
 
 func main() {
 	err := godotenv.Load()

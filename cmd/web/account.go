@@ -451,10 +451,11 @@ func (app *application) AccountGet(w http.ResponseWriter, r *http.Request) {
 		data := envelope{
 			"responseCode": "06",
 			"status":       "Failed",
-			"message":      err,
+			"message":      err.Error(),
 		}
 
 		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
 	}
 
 	vars := mux.Vars(r)
@@ -466,10 +467,11 @@ func (app *application) AccountGet(w http.ResponseWriter, r *http.Request) {
 		data := envelope{
 			"responseCode": "06",
 			"status":       "Failed",
-			"message":      err,
+			"message":      err.Error(),
 		}
 
 		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
 	}
 	//Response(response, err, w, r)
 	app.logger.Println(response)
@@ -493,6 +495,7 @@ func (app *application) AccountGetAll(w http.ResponseWriter, r *http.Request) {
 		}
 
 		app.writeJSON(w, http.StatusBadRequest, data, nil)
+
 	}
 
 	response, err := accounts.ProcessAccount([]string{token, "acmt", "1000"})

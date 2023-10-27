@@ -89,7 +89,8 @@ func (app *application) AuthLogin(w http.ResponseWriter, r *http.Request) {
 		app.writeJSON(w, http.StatusBadRequest, data, nil)
 		return
 	}
-	//err = app.SetJwtSession(w, r, user)
+	//set jwt token
+	err = app.SetJwtSession(w, r, user)
 	if err != nil {
 		fmt.Println(err)
 	}

@@ -9,7 +9,7 @@ import (
 func (app *application) routes() *httprouter.Router {
 	// Initialize a new httprouter router instance.
 	router := httprouter.New()
-	fs := http.FileServer((http.Dir("./cmd/web/static")))
+	fs := http.FileServer((http.Dir("/cmd/web/static")))
 	router.Handler("GET", "/", fs)
 
 	//RENDERED PAGES
@@ -23,14 +23,15 @@ func (app *application) routes() *httprouter.Router {
 	router.MethodNotAllowed = http.HandlerFunc(app.methodNotAllowedResponse)
 
 	//ACCOUNTS v1
-	router.HandlerFunc(http.MethodGet, "/v1/healthcheck", app.healthcheckHandler)
-	router.HandlerFunc(http.MethodPost, "/v1/createAccount", app.CreateAccount)
-	router.HandlerFunc(http.MethodPost, "/v1/accountDetails", app.AccountDetails)
-	router.HandlerFunc(http.MethodPost, "/v1/accounts", app.RetreiveAccounts)
-	router.HandlerFunc(http.MethodPost, "/v1/balanceEnquiry", app.BalanceEnquiry)
-	router.HandlerFunc(http.MethodPost, "/v1/retrieveAccounts", app.RetreiveAccounts)
-	router.HandlerFunc(http.MethodPost, "/v1/beneficiary/new", app.NewBeneficiary)
-	router.HandlerFunc(http.MethodPost, "/v1/beneficiary", app.GetBeneficiaries)
+	// router.HandlerFunc(http.MethodGet, "/v1/healthcheck", app.healthcheckHandler)
+	// router.HandlerFunc(http.MethodPost, "/v1/createAccount", app.CreateAccount)
+	// router.HandlerFunc(http.MethodPost, "/v1/accountDetails", app.AccountDetails)
+	// router.HandlerFunc(http.MethodPost, "/v1/accounts", app.RetreiveAccounts)
+	// router.HandlerFunc(http.MethodPost, "/v1/balanceEnquiry", app.BalanceEnquiry)
+	// router.HandlerFunc(http.MethodPost, "/v1/retrieveAccounts", app.RetreiveAccounts)
+	// router.HandlerFunc(http.MethodPost, "/v1/beneficiary/new", app.NewBeneficiary)
+	// router.HandlerFunc(http.MethodPost, "/v1/beneficiary", app.GetBeneficiaries)
+	router.HandlerFunc(http.MethodGet, "/v1/accounts", app.AccountGet)
 
 	//LOGIN
 	router.HandlerFunc(http.MethodPost, "/v1/login", app.AuthLogin)
