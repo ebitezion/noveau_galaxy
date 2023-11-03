@@ -5,6 +5,7 @@ package accounts
 */
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"time"
@@ -266,4 +267,67 @@ func getSingleAccountNumberByID(userID string) (accountID string, err error) {
 	}
 
 	return
+}
+
+// Get method for fetching a specific record from the users table.
+func GetBalanceDetails(accountNumber string) (BalanceEnquiry, error) {
+
+	query := "SELECT `accountHolderName`, `accountNumber`, `accountBalance` FROM `accounts` WHERE `accountNumber` = ?"
+
+	// Declare a Users struct to hold the data returned by the query.
+	var BalanceEnquiry BalanceEnquiry
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	// Use the QueryRowContext() method to execute the query, passing in the context
+	// with the deadline as the first argument.
+	err := Config.Db.QueryRowContext(ctx, query, accountNumber).Scan(&BalanceEnquiry.AccountHolderName, &BalanceEnquiry.AccountNumber, &BalanceEnquiry.LedgerBalance)
+
+	// Handle any errors. If there was no matching referralcode found, Scan() will return
+	// a sql.ErrNoRows error. We check for this and return our custom ErrRecordNotFound
+	// error instead.
+
+	if err != nil {
+		// Check specifically for the ErrRecordNotFound error.
+		if errors.Is(err, sql.ErrNoRows) {
+			return BalanceEnquiry, errors.New("accounts.getSingleAccountNumberByID: Account not found")
+		}
+		// Handle other errors.
+		return BalanceEnquiry, err
+	}
+
+	// Otherwise, return a pointer to the referrer struct.
+	return BalanceEnquiry, nil
+}
+
+// Get method for fetching a specific record from the users table.
+func GetAccountHistory(accountNumber string) (Transaction, error) {
+
+	query := "SELECT  transaction, type, senderAccountNumber, senderBankNumber, receiverAccountNumber, receiverBankNumber, transactionAmount, feeAmount, timestamp FROM `transactions` WHERE `senderAccountNumber` = ?"
+	// Declare a Users struct to hold the data returned by the query.
+	var Transaction Transaction
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	// Use the QueryRowContext() method to execute the query, passing in the context
+	// with the deadline as the first argument.
+	err := Config.Db.QueryRowContext(ctx, query, accountNumber).Scan(&Transaction.Transaction, &Transaction.Type, &Transaction.SenderAccountNumber, &Transaction.SenderBankNumber, &Transaction.ReceiverAccountNumber, &Transaction.ReceiverBankNumber, &Transaction.TransactionAmount, &Transaction.FeeAmount, &Transaction.Timestamp)
+
+	// Handle any errors. If there was no matching referralcode found, Scan() will return
+	// a sql.ErrNoRows error. We check for this and return our custom ErrRecordNotFound
+	// error instead.
+
+	if err != nil {
+		// Check specifically for the ErrRecordNotFound error.
+		if errors.Is(err, sql.ErrNoRows) {
+			return Transaction, errors.New("accounts.getSingleAccountNumberByID: Account not found")
+		}
+		// Handle other errors.
+		return Transaction, err
+	}
+
+	// Otherwise, return a pointer to the referrer struct.
+	return Transaction, nil
 }

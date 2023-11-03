@@ -8,7 +8,6 @@ import (
 	"github.com/ebitezion/backend-framework/internal/data"
 	"github.com/ebitezion/backend-framework/internal/ukaccountgen"
 	"github.com/ebitezion/backend-framework/internal/validator"
-	"github.com/gorilla/mux"
 )
 
 func (app *application) CreateAccount(w http.ResponseWriter, r *http.Request) {
@@ -60,42 +59,6 @@ func (app *application) AccountDetails(w http.ResponseWriter, r *http.Request) {
 
 	//fetch account details
 	result, err := app.models.AccountModel.GetAccountDetails(Request.AccountNumber)
-	if err != nil {
-		if err == data.ErrRecordNotFound {
-			app.writeJSON(w, http.StatusOK, envelope{"message": "No records found"}, nil)
-		} else {
-			app.serverErrorResponse(w, r, err)
-		}
-		return
-	}
-
-	// Return a success response or an error message
-	err = app.writeJSON(w, http.StatusOK, envelope{"responseMessage": "Successful", "accountDetails": result}, nil)
-	if err != nil {
-		app.serverErrorResponse(w, r, err)
-		return
-	}
-}
-
-// BalanceEnquiry gets the balance details of a user provided a valid accountNumber
-func (app *application) BalanceEnquiry(w http.ResponseWriter, r *http.Request) {
-	Request := data.User{}
-	// read the incoming request body
-	err := app.readJSON(w, r, &Request)
-	if err != nil {
-		app.badRequestResponse(w, r, err)
-		return
-	}
-	// Validate the request data
-	v := validator.New()
-	data.ValidateUserInformation(v, &Request)
-	if !v.Valid() {
-		app.failedValidationResponse(w, r, v.Errors)
-		return
-	}
-
-	//fetch account details
-	result, err := app.models.AccountModel.GetBalanceDetails(Request.AccountNumber)
 	if err != nil {
 		if err == data.ErrRecordNotFound {
 			app.writeJSON(w, http.StatusOK, envelope{"message": "No records found"}, nil)
@@ -393,10 +356,10 @@ func (app *application) AccountCreate(w http.ResponseWriter, r *http.Request) {
 	// accountHolderAddressLine3 := r.FormValue("AccountHolderAddressLine3")
 	// accountHolderPostalCode := r.FormValue("AccountHolderPostalCode")
 	// Initialize variables with actual data
-	accountHolderGivenName := "adeoluwa"
-	accountHolderFamilyName := "adenugba"
+	accountHolderGivenName := "segun"
+	accountHolderFamilyName := "martins"
 	accountHolderDateOfBirth := "1990-01-15"
-	accountHolderIdentificationNumber := "123456789"
+	accountHolderIdentificationNumber := "123456555"
 	accountHolderContactNumber1 := "555-555-5555"
 	accountHolderContactNumber2 := "444-444-4444"
 	accountHolderEmailAddress := "johndoe@example.com"
@@ -428,10 +391,11 @@ func (app *application) AccountCreate(w http.ResponseWriter, r *http.Request) {
 		data := envelope{
 			"responseCode": "06",
 			"status":       "Failed",
-			"message":      err,
+			"message":      err.Error(),
 		}
 
 		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
 	}
 	//Response(response, err, w, r)
 	app.logger.Println(response)
@@ -458,8 +422,8 @@ func (app *application) AccountGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	vars := mux.Vars(r)
-	accountId := vars["accountId"]
+	//	vars := mux.Vars(r)
+	accountId := "123456789"
 
 	response, err := accounts.ProcessAccount([]string{token, "acmt", "1002", accountId})
 	if err != nil {
@@ -500,6 +464,87 @@ func (app *application) AccountGetAll(w http.ResponseWriter, r *http.Request) {
 
 	response, err := accounts.ProcessAccount([]string{token, "acmt", "1000"})
 	app.logger.Println(response)
+	data := envelope{
+		"responseCode": "00",
+		"status":       "Success",
+		"message":      response,
+	}
+	app.writeJSON(w, http.StatusOK, data, nil)
+}
+
+// BalanceEnquiry gets the balance details of a user provided a valid accountNumber
+func (app *application) BalanceEnquiry(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Account GetAll")
+	token, err := app.getTokenFromHeader(w, r)
+	if err != nil {
+		//there was error
+		data := envelope{
+			"responseCode": "06",
+			"status":       "Failed",
+			"message":      err,
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+
+	}
+	accountNumber := r.FormValue("accountNumber")
+
+	response, err := accounts.ProcessAccount([]string{token, "acmt", "1003", accountNumber})
+
+	if err != nil {
+		//there was error
+		data := envelope{
+			"responseCode": "06",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+	//Response(response, err, w, r)
+	app.logger.Println(response)
+	data := envelope{
+		"responseCode": "00",
+		"status":       "Success",
+		"message":      response,
+	}
+	app.writeJSON(w, http.StatusOK, data, nil)
+
+}
+
+// AccountHistory retrieves the account history of a user
+func (app *application) AccountHistory(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Account GetAll")
+	token, err := app.getTokenFromHeader(w, r)
+	if err != nil {
+		//there was error
+		data := envelope{
+			"responseCode": "06",
+			"status":       "Failed",
+			"message":      err,
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+
+	}
+	accountNumber := r.FormValue("accountNumber")
+
+	response, err := accounts.ProcessAccount([]string{token, "acmt", "1004", accountNumber})
+
+	if err != nil {
+		//there was error
+		data := envelope{
+			"responseCode": "06",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+	//Response(response, err, w, r)
+
 	data := envelope{
 		"responseCode": "00",
 		"status":       "Success",

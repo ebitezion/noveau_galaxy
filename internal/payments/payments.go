@@ -22,6 +22,7 @@ Payments mandates:
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -178,7 +179,7 @@ func customerDepositInitiation(painType int64, data []string) (result string, er
 	if err != nil {
 		return "", errors.New("payments.CustomerDepositInitiation: " + err.Error())
 	}
-
+	fmt.Println(sender, receiver)
 	trAmt := strings.TrimRight(data[5], "\x00")
 	transactionAmountDecimal, err := decimal.NewFromString(trAmt)
 	if err != nil {

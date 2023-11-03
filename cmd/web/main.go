@@ -11,9 +11,11 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/ebitezion/backend-framework/internal/accounts"
 	"github.com/ebitezion/backend-framework/internal/appauth"
 	"github.com/ebitezion/backend-framework/internal/configuration"
 	"github.com/ebitezion/backend-framework/internal/data"
+	"github.com/ebitezion/backend-framework/internal/payments"
 	"github.com/gorilla/sessions"
 	"github.com/joho/godotenv"
 
@@ -92,6 +94,8 @@ func main() {
 
 	}
 	appauth.SetConfig(&con)
+	payments.SetConfig(&con)
+	accounts.SetConfig(&con)
 
 	// Call the openDB() helper function (see below) to create the connection pool,
 	// passing in the config struct. If this returns an error, we log it and exit the

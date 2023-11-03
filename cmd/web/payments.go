@@ -23,10 +23,13 @@ func (app *application) PaymentCreditInitiation(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	// senderDetails := r.FormValue("SenderDetails")
-	// recipientDetails := r.FormValue("RecipientDetails")
-	sendersDetails := "befcedbd-0f53-48f4-8219-60477bffb9d6@"
-	receiversDetails := "befcedbd-0f53-48f4-8219-60477bffb9d6@"
+	//for credit only  receivers account number and sender account number is required
+	//which is the number before the @ sign
+
+	sendersAccountNumber := r.FormValue("sendersAccountNumber")
+	receiversAccountNumber := r.FormValue("receiversAccountNumber")
+	sendersDetails := sendersAccountNumber + "@"
+	receiversDetails := receiversAccountNumber + "@"
 	amount := r.FormValue("Amount")
 
 	response, err := payments.ProcessPAIN([]string{token, "pain", "1", sendersDetails, receiversDetails, amount})
@@ -57,11 +60,16 @@ func (app *application) PaymentDepositInitiation(w http.ResponseWriter, r *http.
 		return
 	}
 
-	//accountDetails := r.FormValue("AccountDetails")
 	//receivers account number and bank number
-	sendersDetails := "befcedbd-0f53-48f4-8219-60477bffb9d6@a0299975-b8e2-4358-8f1a-911ee12dbaac"
-	receiversDetails := "befcedbd-0f53-48f4-8219-60477bffb9d6@"
-	//accountDetails := fmt.Sprintf("%s@%s", sendersDetails, receiversDetails)
+	//for deposit only credit is receivers account number is required
+	//which is the number before the @ sign
+
+	sendersAccountNumber := r.FormValue("sendersAccountNumber")
+	sendersBankNumber := r.FormValue("sendersBankNumber")
+	receiversAccountNumber := r.FormValue("receiversAccountNumber")
+
+	sendersDetails := fmt.Sprintf("%s@%s", sendersAccountNumber, sendersBankNumber)
+	receiversDetails := receiversAccountNumber + "@"
 
 	//senders account number and bank number
 	amount := r.FormValue("Amount")

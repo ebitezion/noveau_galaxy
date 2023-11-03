@@ -48,6 +48,8 @@ Accounts (acmt) transactions are as follows:
 1000 - ListAllAccounts (@FIXME Used for now by anyone, close down later)
 1001 - ListSingleAccount
 1002 - CheckAccountByID
+1003 -  BalanceEnquiry
+1004 - AccountHistory
 
 */
 
@@ -95,6 +97,25 @@ type AccountDetails struct {
 	Overdraft         decimal.Decimal
 	AvailableBalance  decimal.Decimal
 	Timestamp         int
+}
+
+type BalanceEnquiry struct {
+	AccountHolderName string `json:"accountHolderName"`
+	AccountNumber     string `json:"accountNumber"`
+	LedgerBalance     string `json:"ledgerBalance"`
+}
+
+type Transaction struct {
+	ID                    int     `json:"id"`
+	Transaction           string  `json:"transaction"`
+	Type                  int     `json:"type"`
+	SenderAccountNumber   string  `json:"senderAccountNumber"`
+	SenderBankNumber      string  `json:"senderBankNumber"`
+	ReceiverAccountNumber string  `json:"receiverAccountNumber"`
+	ReceiverBankNumber    string  `json:"receiverBankNumber"`
+	TransactionAmount     float64 `json:"transactionAmount"`
+	FeeAmount             float64 `json:"feeAmount"`
+	Timestamp             int     `json:"timestamp"`
 }
 
 // Set up some defaults
@@ -148,6 +169,27 @@ func ProcessAccount(data []string) (result string, err error) {
 			return "", errors.New("accounts.ProcessAccount: " + err.Error())
 		}
 		break
+	case 1003:
+		if len(data) < 3 {
+			err = errors.New("accounts.ProcessAccount: Not all fields present")
+			return
+		}
+		result, err = fetchAccountBalance(data)
+		if err != nil {
+			return "", errors.New("accounts.ProcessAccount: " + err.Error())
+		}
+		break
+	case 1004:
+		if len(data) < 3 {
+			err = errors.New("accounts.ProcessAccount: Not all fields present")
+			return
+		}
+		result, err = fetchAccountHistory(data)
+		if err != nil {
+			return "", errors.New("accounts.ProcessAccount: " + err.Error())
+		}
+		break
+
 	default:
 		err = errors.New("accounts.ProcessAccount: ACMT transaction code invalid")
 		break
@@ -324,5 +366,49 @@ func fetchSingleAccountByID(data []string) (result string, err error) {
 	}
 
 	result = userAccountNumber
+	return
+}
+func fetchAccountBalance(data []string) (result string, err error) {
+
+	// Format: token~acmt~1002~USERID
+	accountNumber := data[3]
+	if accountNumber == "" {
+		return "", errors.New("accounts.fetchSingleAccountByID: Account number not present")
+	}
+
+	balanceEnquiry, err := GetBalanceDetails(accountNumber)
+	if err != nil {
+		return "", errors.New("accounts.fetchSingleAccountByID: " + err.Error())
+	}
+
+	// Parse into nice result string
+	jsonAccountBalance, err := json.Marshal(balanceEnquiry)
+	if err != nil {
+		return "", errors.New("accounts.fetchSingleAccount: " + err.Error())
+	}
+
+	result = string(jsonAccountBalance)
+	return
+}
+func fetchAccountHistory(data []string) (result string, err error) {
+
+	// Format: token~acmt~1002~USERID
+	accountNumber := data[3]
+	if accountNumber == "" {
+		return "", errors.New("accounts.fetchSingleAccountByID: Account number not present")
+	}
+
+	balanceEnquiry, err := GetAccountHistory(accountNumber)
+	if err != nil {
+		return "", errors.New("accounts.fetchSingleAccountByID: " + err.Error())
+	}
+
+	// Parse into nice result string
+	jsonAccountBalance, err := json.Marshal(balanceEnquiry)
+	if err != nil {
+		return "", errors.New("accounts.fetchSingleAccount: " + err.Error())
+	}
+
+	result = string(jsonAccountBalance)
 	return
 }
