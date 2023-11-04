@@ -423,7 +423,8 @@ func (app *application) AccountGet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//	vars := mux.Vars(r)
-	accountId := "123456789"
+
+	accountId := r.FormValue("accountId")
 
 	response, err := accounts.ProcessAccount([]string{token, "acmt", "1002", accountId})
 	if err != nil {
@@ -485,6 +486,7 @@ func (app *application) BalanceEnquiry(w http.ResponseWriter, r *http.Request) {
 		}
 
 		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
 
 	}
 	accountNumber := r.FormValue("accountNumber")
@@ -526,6 +528,7 @@ func (app *application) AccountHistory(w http.ResponseWriter, r *http.Request) {
 		}
 
 		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
 
 	}
 	accountNumber := r.FormValue("accountNumber")
