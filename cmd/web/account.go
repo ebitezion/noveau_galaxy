@@ -343,30 +343,32 @@ func (app *application) AccountIndex(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) AccountCreate(w http.ResponseWriter, r *http.Request) {
-	// // Get values from POST
-	// accountHolderGivenName := r.FormValue("AccountHolderGivenName")
-	// accountHolderFamilyName := r.FormValue("AccountHolderFamilyName")
-	// accountHolderDateOfBirth := r.FormValue("AccountHolderDateOfBirth")
-	// accountHolderIdentificationNumber := r.FormValue("AccountHolderIdentificationNumber")
-	// accountHolderContactNumber1 := r.FormValue("AccountHolderContactNumber1")
-	// accountHolderContactNumber2 := r.FormValue("AccountHolderContactNumber2")
-	// accountHolderEmailAddress := r.FormValue("AccountHolderEmailAddress")
-	// accountHolderAddressLine1 := r.FormValue("AccountHolderAddressLine1")
-	// accountHolderAddressLine2 := r.FormValue("AccountHolderAddressLine2")
-	// accountHolderAddressLine3 := r.FormValue("AccountHolderAddressLine3")
-	// accountHolderPostalCode := r.FormValue("AccountHolderPostalCode")
+	// Get values from POST
+	// accountHolderGivenName := "ade"
+	// accountHolderFamilyName := "martins"
+	// accountHolderDateOfBirth := "1990-01-15"
+	// accountHolderIdentificationNumber := "123456555"
+	// accountHolderContactNumber1 := "555-555-5555"
+	// accountHolderContactNumber2 := "444-444-4444"
+	// accountHolderEmailAddress := "johndoe@example.com"
+	// accountHolderAddressLine1 := "123 Main St"
+	// accountHolderAddressLine2 := "Apt 4B"
+	// accountHolderAddressLine3 := "Building XYZ"
+	// accountHolderPostalCode := "12345"
+	accountHolderGivenName := r.FormValue("accountHolderGivenName")
+	accountHolderFamilyName := r.FormValue("accountHolderFamilyName")
+	accountHolderDateOfBirth := r.FormValue("accountHolderDateOfBirth")
+	accountHolderIdentificationNumber := r.FormValue("accountHolderIdentificationNumber")
+	accountHolderContactNumber1 := r.FormValue("accountHolderContactNumber1")
+	accountHolderContactNumber2 := r.FormValue("accountHolderContactNumber2")
+	accountHolderEmailAddress := r.FormValue("accountHolderEmailAddress")
+	accountHolderAddressLine1 := r.FormValue("accountHolderAddressLine1")
+	accountHolderAddressLine2 := r.FormValue("accountHolderAddressLine2")
+	accountHolderAddressLine3 := r.FormValue("accountHolderAddressLine3")
+	accountHolderPostalCode := r.FormValue("accountHolderPostalCode")
+
+	fmt.Println(accountHolderAddressLine1, accountHolderAddressLine2, accountHolderAddressLine3)
 	// Initialize variables with actual data
-	accountHolderGivenName := "segun"
-	accountHolderFamilyName := "martins"
-	accountHolderDateOfBirth := "1990-01-15"
-	accountHolderIdentificationNumber := "123456555"
-	accountHolderContactNumber1 := "555-555-5555"
-	accountHolderContactNumber2 := "444-444-4444"
-	accountHolderEmailAddress := "johndoe@example.com"
-	accountHolderAddressLine1 := "123 Main St"
-	accountHolderAddressLine2 := "Apt 4B"
-	accountHolderAddressLine3 := "Building XYZ"
-	accountHolderPostalCode := "12345"
 
 	req := []string{
 		"0",

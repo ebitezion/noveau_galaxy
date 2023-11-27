@@ -16,8 +16,8 @@ func SetConfig(config *configuration.Configuration) {
 
 func savePainTransaction(transaction PAINTrans) (err error) {
 	// Prepare statement for inserting data
-	insertStatement := "INSERT INTO transactions (`transaction`, `type`, `senderAccountNumber`, `senderBankNumber`, `receiverAccountNumber`, `receiverBankNumber`, `transactionAmount`, `feeAmount`, `timestamp`) "
-	insertStatement += "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)"
+	insertStatement := "INSERT INTO transactions (`transaction`, `type`, `senderAccountNumber`, `senderBankNumber`, `receiverAccountNumber`, `receiverBankNumber`, `transactionAmount`, `feeAmount`, `timestamp`,`narration`) "
+	insertStatement += "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?,?)"
 	stmtIns, err := Config.Db.Prepare(insertStatement)
 	if err != nil {
 		return errors.New("payments.savePainTransaction: " + err.Error())
@@ -31,7 +31,7 @@ func savePainTransaction(transaction PAINTrans) (err error) {
 	feeAmount := transaction.Amount.Mul(transaction.Fee)
 
 	_, err = stmtIns.Exec("pain", transaction.PainType, transaction.Sender.AccountNumber, transaction.Sender.BankNumber, transaction.Receiver.AccountNumber, transaction.Receiver.BankNumber,
-		transaction.Amount, feeAmount, sqlTime)
+		transaction.Amount, feeAmount, sqlTime, transaction.Narration)
 
 	if err != nil {
 		return errors.New("payments.savePainTransaction: " + err.Error())
