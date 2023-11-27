@@ -19,7 +19,6 @@ func (u *UKAccountGenerator) generateRandomNumber(length int) string {
 		num, _ := rand.Int(rand.Reader, big.NewInt(10))
 		result += num.String()
 	}
-
 	return result
 }
 
