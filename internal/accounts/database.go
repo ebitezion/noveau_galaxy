@@ -32,15 +32,14 @@ func loadDatabase() (db *sql.DB, err error) {
 
 func createAccount(accountDetails *AccountDetails, accountHolderDetails *AccountHolderDetails) (err error) {
 	// Convert variables
-	t := time.Now()
-	sqlTime := int32(t.Unix())
 
-	err = doCreateAccount(sqlTime, accountDetails)
+	err = doCreateAccount(accountDetails)
 	if err != nil {
 		return errors.New("accounts.createAccount: " + err.Error())
 	}
 
-	err = doCreateAccountMeta(sqlTime, accountHolderDetails, accountDetails)
+	err = doCreateAccountMeta(
+		accountHolderDetails, accountDetails)
 	if err != nil {
 		return errors.New("accounts.createAccount: " + err.Error())
 	}
@@ -62,10 +61,10 @@ func deleteAccount(accountDetails *AccountDetails, accountHolderDetails *Account
 	return
 }
 
-func doCreateAccount(sqlTime int32, accountDetails *AccountDetails) (err error) {
+func doCreateAccount(accountDetails *AccountDetails) (err error) {
 	// Create account
-	insertStatement := "INSERT INTO accounts (`accountNumber`, `bankNumber`, `accountHolderName`, `accountBalance`, `overdraft`, `availableBalance`, `timestamp`) "
-	insertStatement += "VALUES(?, ?, ?, ?, ?, ?, ?)"
+	insertStatement := "INSERT INTO accounts (`accountNumber`, `bankNumber`, `accountHolderName`, `accountBalance`, `overdraft`, `availableBalance`) "
+	insertStatement += "VALUES(?, ?, ?, ?, ?, ?)"
 	stmtIns, err := Config.Db.Prepare(insertStatement)
 	if err != nil {
 		return errors.New("accounts.doCreateAccount: " + err.Error())
@@ -78,7 +77,7 @@ func doCreateAccount(sqlTime int32, accountDetails *AccountDetails) (err error) 
 	newUuid := uuid.NewV4()
 	accountDetails.AccountNumber = newUuid.String()
 
-	_, err = stmtIns.Exec(accountDetails.AccountNumber, accountDetails.BankNumber, accountDetails.AccountHolderName, accountDetails.AccountBalance, accountDetails.Overdraft, accountDetails.AvailableBalance, sqlTime)
+	_, err = stmtIns.Exec(accountDetails.AccountNumber, accountDetails.BankNumber, accountDetails.AccountHolderName, accountDetails.AccountBalance, accountDetails.Overdraft, accountDetails.AvailableBalance)
 	if err != nil {
 		return errors.New("accounts.doCreateAccount: " + err.Error())
 	}
@@ -104,10 +103,10 @@ func doDeleteAccount(accountDetails *AccountDetails) (err error) {
 	return
 }
 
-func doCreateAccountMeta(sqlTime int32, accountHolderDetails *AccountHolderDetails, accountDetails *AccountDetails) (err error) {
+func doCreateAccountMeta(accountHolderDetails *AccountHolderDetails, accountDetails *AccountDetails) (err error) {
 	// Create account meta
-	insertStatement := "INSERT INTO accounts_meta (`accountNumber`, `bankNumber`, `accountHolderGivenName`, `accountHolderFamilyName`, `accountHolderDateOfBirth`, `accountHolderIdentificationNumber`, `accountHolderContactNumber1`, `accountHolderContactNumber2`, `accountHolderEmailAddress`, `accountHolderAddressLine1`, `accountHolderAddressLine2`, `accountHolderAddressLine3`, `accountHolderPostalCode`, `timestamp`) "
-	insertStatement += "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+	insertStatement := "INSERT INTO accounts_meta (`accountNumber`, `bankNumber`, `accountHolderGivenName`, `accountHolderFamilyName`, `accountHolderDateOfBirth`, `accountHolderIdentificationNumber`, `accountHolderContactNumber1`, `accountHolderContactNumber2`, `accountHolderEmailAddress`, `accountHolderAddressLine1`, `accountHolderAddressLine2`, `accountHolderAddressLine3`, `accountHolderPostalCode`) "
+	insertStatement += "VALUES( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 	stmtIns, err := Config.Db.Prepare(insertStatement)
 	if err != nil {
 		return errors.New("accounts.doCreateAccountMeta: " + err.Error())
@@ -117,7 +116,7 @@ func doCreateAccountMeta(sqlTime int32, accountHolderDetails *AccountHolderDetai
 	accountHolderDetails.AccountNumber = accountDetails.AccountNumber
 
 	_, err = stmtIns.Exec(accountHolderDetails.AccountNumber, accountHolderDetails.BankNumber, accountHolderDetails.GivenName, accountHolderDetails.FamilyName, accountHolderDetails.DateOfBirth, accountHolderDetails.IdentificationNumber, accountHolderDetails.ContactNumber1, accountHolderDetails.ContactNumber2, accountHolderDetails.EmailAddress, accountHolderDetails.AddressLine1, accountHolderDetails.AddressLine2, accountHolderDetails.AddressLine3,
-		accountHolderDetails.PostalCode, sqlTime)
+		accountHolderDetails.PostalCode)
 
 	if err != nil {
 		return errors.New("accounts.doCreateAccountMeta: " + err.Error())

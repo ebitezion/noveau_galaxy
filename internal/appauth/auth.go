@@ -98,8 +98,8 @@ func CreateUserPassword(user string, password string) (result string, err error)
 	}
 
 	// Prepare statement for inserting data
-	insertStatement := "INSERT INTO accounts_auth (`accountNumber`, `password`, `timestamp`) "
-	insertStatement += "VALUES(?, ?, ?)"
+	insertStatement := "INSERT INTO accounts_auth (`accountNumber`, `password`) "
+	insertStatement += "VALUES(?, ?)"
 	stmtIns, err := Config.Db.Prepare(insertStatement)
 	if err != nil {
 		return "", errors.New("appauth.CreateUserPassword: Error with insert. " + err.Error())

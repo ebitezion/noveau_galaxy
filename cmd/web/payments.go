@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/ebitezion/backend-framework/internal/notifications"
 	"github.com/ebitezion/backend-framework/internal/payments"
 )
 
@@ -126,4 +127,20 @@ func (app *application) PaymentDepositInitiation(w http.ResponseWriter, r *http.
 // BatchTransaction is used by the banking application to process different transactions at the same time
 func (app *application) BatchTransaction() {
 
+}
+
+// this function is how to use the notification package
+func Notification() {
+	ns := notifications.NotificationService{}
+	User := notifications.User{
+		ID:       1,
+		Username: "adeoluwa",
+		Email:    "akanbiadenugba699@gmail.com",
+		Phone:    "08088974888",
+	}
+	notification := notifications.Notification{
+		User:    User,
+		Message: "hi this is a test sms",
+	}
+	notifications.SendNotification(ns, notification)
 }

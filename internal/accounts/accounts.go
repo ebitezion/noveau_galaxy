@@ -115,7 +115,7 @@ type Transaction struct {
 	ReceiverBankNumber    string  `json:"receiverBankNumber"`
 	TransactionAmount     float64 `json:"transactionAmount"`
 	FeeAmount             float64 `json:"feeAmount"`
-	Timestamp             int     `json:"timestamp"`
+	Timestamp             string  `json:"timestamp"`
 }
 
 // Set up some defaults

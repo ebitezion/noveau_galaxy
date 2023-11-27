@@ -288,7 +288,7 @@ func (app *application) Register(biodata data.AccountBioData) (accountNumber str
 // CreateTransaction stores a transaction that occured in the database
 func (app *application) CreateTransaction(transaction *data.Transaction) error {
 	//Insert Identity data to DB
-	query := `INSERT INTO transactions (sender_account_id, receiver_account_id, amount, currency_code, status, transaction_type, timestamp) VALUES (?, ?, ?, ?, ?, ?,?)`
+	query := `INSERT INTO transactions (sender_account_id, receiver_account_id, amount, currency_code, status, transaction_type, ) VALUES (?, ?, ?, ?, ?, ?)`
 
 	args := []interface{}{transaction.SenderAccountID, transaction.ReceiverAccountID, transaction.Amount, transaction.CurrencyCode, transaction.Status, transaction.TransactionType}
 
