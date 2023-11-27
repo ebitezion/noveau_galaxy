@@ -6,6 +6,8 @@ CREATE TABLE IF NOT EXISTS accounts_meta (
 `accountHolderFamilyName` text NOT NULL, 
 `accountHolderDateOfBirth` text NOT NULL, 
 `accountHolderIdentificationNumber` text NOT NULL, 
+` accountIdenificationType text NOT NULL`,
+`country text NOT NULL`,
 `accountHolderContactNumber1` text NOT NULL, 
 `accountHolderContactNumber2` text NULL, 
 `accountHolderEmailAddress` text NOT NULL, 

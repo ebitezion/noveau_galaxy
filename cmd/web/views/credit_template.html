@@ -1,0 +1,28 @@
+{{ template "layout" . }} {{ define "content" }}
+<div class="container-fluid">
+	<!-- Page Heading -->
+	<div class="d-sm-flex align-items-center justify-content-between mb-4">
+		<h1 class="h3 mb-0 text-gray-800 mx-auto">Credit Initiation</h1>
+	</div>
+	<div class="container w-50 mt-5">
+		<form method="post" action="/process-form">
+			<div class="mb-3">
+				<label for="sendersAccountNumber" class="form-label">Sender's Account Number</label>
+				<input type="text" class="form-control" id="sendersAccountNumber" name="sendersAccountNumber" required />
+			</div>
+
+			<div class="mb-3">
+				<label for="receiversAccountNumber" class="form-label">Receiver's Account Number</label>
+				<input type="text" class="form-control" id="receiversAccountNumber" name="receiversAccountNumber" required />
+			</div>
+
+			<div class="mb-3">
+				<label for="Amount" class="form-label">Amount</label>
+				<input type="text" class="form-control" id="Amount" name="Amount" required />
+			</div>
+
+			<button type="submit" class="btn btn-custom btn-user btn-block">Submit</button>
+		</form>
+	</div>
+</div>
+{{ end }}

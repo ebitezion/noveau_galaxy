@@ -157,6 +157,7 @@ func RemoveUserPassword(user string, hashedPassword string) (result string, err 
 }
 
 func CreateToken(user string, password string) (token string, err error) {
+
 	rows, err := Config.Db.Query("SELECT `password` FROM `accounts_auth` WHERE `accountNumber` = ?", user)
 	if err != nil {
 		return "", errors.New("appauth.CreateToken: Error with select query. " + err.Error())

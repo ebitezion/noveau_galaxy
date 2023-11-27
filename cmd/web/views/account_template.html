@@ -1,0 +1,94 @@
+{{ template "layout" . }} {{ define "content" }}
+<div class="container-fluid">
+	<!-- Page Heading -->
+	<div class="d-sm-flex align-items-center justify-content-between mb-4">
+		<h1 class="h2 mb-0 text-gray-800 mx-auto">Account Creation</h1>
+	</div>
+	<div class="container w-75 mt-5">
+		<form method="post" action="localhost:4000/v1/accounts/create">
+			<div class="row">
+				<div class="col-6">
+					<div class="mb-3">
+						<label for="AccountHolderGivenName" class="form-label">Given Name</label>
+						<input type="text" class="form-control" id="AccountHolderGivenName" name="AccountHolderGivenName" required />
+					</div>
+				</div>
+				<div class="col-6">
+					<div class="mb-3">
+						<label for="AccountHolderFamilyName" class="form-label">Family Name</label>
+						<input type="text" class="form-control" id="AccountHolderFamilyName" name="AccountHolderFamilyName" required />
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-6">
+					<div class="mb-3">
+						<label for="AccountHolderDateOfBirth" class="form-label">Date of Birth</label>
+						<input type="date" class="form-control" id="AccountHolderDateOfBirth" name="AccountHolderDateOfBirth" required />
+					</div>
+				</div>
+				<div class="col-6">
+					<div class="mb-3">
+						<label for="AccountHolderIdentificationNumber" class="form-label">Identification Number</label>
+						<input
+							type="text"
+							class="form-control"
+							id="AccountHolderIdentificationNumber"
+							name="AccountHolderIdentificationNumber"
+							required
+						/>
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-6">
+					<div class="mb-3">
+						<label for="AccountHolderContactNumber1" class="form-label">Contact Number 1</label>
+						<input type="text" class="form-control" id="AccountHolderContactNumber1" name="AccountHolderContactNumber1" required />
+					</div>
+				</div>
+				<div class="col-6">
+					<div class="mb-3">
+						<label for="AccountHolderContactNumber2" class="form-label">Contact Number 2</label>
+						<input type="text" class="form-control" id="AccountHolderContactNumber2" name="AccountHolderContactNumber2" required />
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-6">
+					<div class="mb-3">
+						<label for="AccountHolderEmailAddress" class="form-label">Email Address</label>
+						<input type="email" class="form-control" id="AccountHolderEmailAddress" name="AccountHolderEmailAddress" required />
+					</div>
+				</div>
+				<div class="col-6">
+					<div class="mb-3">
+						<label for="AccountHolderAddressLine1" class="form-label">Address Line 1</label>
+						<input type="text" class="form-control" id="AccountHolderAddressLine1" name="AccountHolderAddressLine1" required />
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-6">
+					<div class="mb-3">
+						<label for="AccountHolderAddressLine2" class="form-label">Address Line 2</label>
+						<input type="text" class="form-control" id="AccountHolderAddressLine2" name="AccountHolderAddressLine2" required />
+					</div>
+				</div>
+				<div class="col-6">
+					<div class="mb-3">
+						<label for="AccountHolderAddressLine3" class="form-label">Address Line 3</label>
+						<input type="text" class="form-control" id="AccountHolderAddressLine3" name="AccountHolderAddressLine3" required />
+					</div>
+				</div>
+			</div>
+			<div class="mb-3">
+				<label for="AccountHolderPostalCode" class="form-label">Postal Code</label>
+				<input type="text" class="form-control" id="AccountHolderPostalCode" name="AccountHolderPostalCode" required />
+			</div>
+
+			<button type="submit" class="btn btn-custom btn-user btn-block">Submit</button>
+		</form>
+	</div>
+</div>
+{{ end }}

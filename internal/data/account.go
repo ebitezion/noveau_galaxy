@@ -85,7 +85,7 @@ type AccountModel struct {
 // GetUserId gets the userid from a particular account_number
 func (a AccountModel) GetUserId(accountNumber string) (UserId string, err error) {
 
-	query := `SELECT user_id FROM accounts WHERE account_number = ? `
+	query := `SELECT userId FROM accounts WHERE accountNumber = ? `
 	//To avoid making an unnecessary database call, we take a shortcut
 	// and return an ErrRecordNotFound error straight away.
 	if len(accountNumber) < 1 {
@@ -161,8 +161,8 @@ func (a AccountModel) GetAccountDetails(accountNumber string) (*AccountDetails, 
 	}
 
 	query := `
-    SELECT b.firstname, b.surname, b.phoneNumber, a.account_number, a.type, a.balance, a.currency_code, c.bvn
-    FROM accounts AS a
+    SELECT b.firstName, b.surname, b.phoneNumber, a.account_number, a.type, a.balance, a.currency_code, c.bvn
+    FROM v1accounts AS a
     INNER JOIN biodata AS b ON a.user_id = b.id
     INNER JOIN identity AS c ON a.user_id = c.user_id
     WHERE a.account_number = ?;
@@ -205,7 +205,7 @@ func (a AccountModel) GetBalanceDetails(accountNumber string) (*BalanceEnquiry, 
 
 	query := `
     SELECT b.firstname, b.surname, a.account_number, a.balance, a.currency_code
-    FROM accounts AS a
+    FROM v1accounts AS a
     INNER JOIN biodata AS b ON a.user_id = b.id
     INNER JOIN identity AS c ON a.user_id = c.user_id
     WHERE a.account_number = ?;
@@ -280,7 +280,7 @@ func (a AccountModel) GetBenefciaries(UserId string) ([]Beneficiary, error) {
 // GetAccounts  gets all the accounts of a user
 func (a AccountModel) GetAccounts(UserId string) ([]Account, error) {
 
-	query := "SELECT account_number, type, currency_code, balance, sort_code, swift_code, iban, routing_number, other FROM accounts WHERE user_id = ?"
+	query := "SELECT account_number, type, currency_code, balance, sort_code, swift_code, iban, routing_number, other FROM v1accounts WHERE user_id = ?"
 
 	// Use the context.WithTimeout() function to create a context.Context with a timeout.
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)

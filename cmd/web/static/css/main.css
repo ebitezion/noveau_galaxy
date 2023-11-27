@@ -1,0 +1,17 @@
+.theme-colour {
+    color: black ;
+}
+.theme-background {
+    background-color:black;
+}
+.btn-custom {
+color: #fff;
+background-color: #000000;
+border-color: #000000;
+}
+
+.btn-custom:hover {
+color: #fff;
+background-color: #3d4048;
+border-color: #ffffff;
+}

@@ -8,6 +8,7 @@ Payments initiation:
 2 - CustomerPaymentStatusReportV06
 7 - CustomerPaymentReversalV05
 8 - CustomerDirectDebitInitiationV05
+9-  CustomerDebitTransferInitiationV05
 
 Payments mandates:
 9 - MandateInitiationRequestV04
@@ -22,6 +23,7 @@ Payments mandates:
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -38,11 +40,19 @@ type AccountHolder struct {
 }
 
 type PAINTrans struct {
-	PainType int64
-	Sender   AccountHolder
-	Receiver AccountHolder
-	Amount   decimal.Decimal
-	Fee      decimal.Decimal
+	PainType  int64
+	Sender    AccountHolder
+	Receiver  AccountHolder
+	Amount    decimal.Decimal
+	Fee       decimal.Decimal
+	Narration string
+}
+type TransactionBatch struct {
+	Transactions []Transaction
+}
+
+type Transaction struct {
+	// Define transaction fields
 }
 
 func ProcessPAIN(data []string) (result string, err error) {
@@ -69,6 +79,18 @@ func ProcessPAIN(data []string) (result string, err error) {
 			return "", errors.New("payments.ProcessPAIN: " + err.Error())
 		}
 		break
+	case 9:
+		//There must be at least 6 elements
+		if len(data) < 6 {
+			return "", errors.New("payments.ProcessPAIN: Not all data is present. Run pain~help to check for needed PAIN data")
+		}
+
+		result, err = painDebitTransferInitiation(painType, data)
+		if err != nil {
+			return "", errors.New("payments.ProcessPAIN: " + err.Error())
+		}
+		break
+
 	case 1000:
 		//There must be at least 4 elements
 		//token~pain~type~amount
@@ -111,8 +133,8 @@ func painCreditTransferInitiation(painType int64, data []string) (result string,
 	if tokenUser != sender.AccountNumber {
 		return "", errors.New("payments.painCreditTransferInitiation: Sender not valid")
 	}
-
-	transaction := PAINTrans{painType, sender, receiver, transactionAmountDecimal, decimal.NewFromFloat(TRANSACTION_FEE)}
+	Narration := data[6]
+	transaction := PAINTrans{painType, sender, receiver, transactionAmountDecimal, decimal.NewFromFloat(TRANSACTION_FEE), Narration}
 
 	// Checks for transaction (avail balance, accounts open, etc)
 	balanceAvailable, err := checkBalance(transaction.Sender)
@@ -132,10 +154,78 @@ func painCreditTransferInitiation(painType int64, data []string) (result string,
 
 	return
 }
+func painDebitTransferInitiation(painType int64, data []string) (result string, err error) {
 
+	// Validate input
+	sender, err := parseAccountHolder(data[3])
+	if err != nil {
+		return "", errors.New("payments.painCreditTransferInitiation: " + err.Error())
+	}
+	receiver, err := parseAccountHolder(data[4])
+	if err != nil {
+		return "", errors.New("payments.painCreditTransferInitiation: " + err.Error())
+	}
+
+	trAmt := strings.TrimRight(data[5], "\x00")
+	transactionAmountDecimal, err := decimal.NewFromString(trAmt)
+	if err != nil {
+		return "", errors.New("payments.painCreditTransferInitiation: Could not convert transaction amount to decimal. " + err.Error())
+	}
+
+	// Check if sender valid
+	tokenUser, err := appauth.GetUserFromToken(data[0])
+	if err != nil {
+		return "", errors.New("payments.painCreditTransferInitiation: " + err.Error())
+	}
+	if tokenUser != sender.AccountNumber {
+		return "", errors.New("payments.painCreditTransferInitiation: Sender not valid")
+	}
+	Narration := data[6]
+
+	transaction := PAINTrans{painType, sender, receiver, transactionAmountDecimal, decimal.NewFromFloat(TRANSACTION_FEE), Narration}
+
+	// Checks for transaction (avail balance, accounts open, etc)
+	balanceAvailable, err := checkBalance(transaction.Sender)
+	if err != nil {
+		return "", errors.New("payments.painCreditTransferInitiation: " + err.Error())
+	}
+	// Comparing decimals results in -1 if <
+	if balanceAvailable.Cmp(transaction.Amount) == -1 {
+		return "", errors.New("payments.painCreditTransferInitiation: Insufficient funds available")
+	}
+
+	// Save transaction
+	result, err = processPAINTransaction(transaction)
+	if err != nil {
+		return "", errors.New("payments.painCreditTransferInitiation: " + err.Error())
+	}
+
+	return
+}
 func processPAINTransaction(transaction PAINTrans) (result string, err error) {
 	// Test: pain~1~1b2ca241-0373-4610-abad-da7b06c50a7b@~181ac0ae-45cb-461d-b740-15ce33e4612f@~20
 
+	// Save in transaction table
+	err = savePainTransaction(transaction)
+	if err != nil {
+		return "", errors.New("payments.processPAINTransaction: " + err.Error())
+	}
+
+	// Amend sender and receiver accounts
+	// Amend bank's account with fee addition
+	err = updateAccounts(transaction)
+	if err != nil {
+		return "", errors.New("payments.processPAINTransaction: " + err.Error())
+	}
+
+	return
+}
+func processExternalPAINTransaction(transaction PAINTrans) (result string, err error) {
+	// Test: pain~1~1b2ca241-0373-4610-abad-da7b06c50a7b@~181ac0ae-45cb-461d-b740-15ce33e4612f@~20
+
+	//external api to actually transfer the money
+
+	// verification of payment
 	// Save in transaction table
 	err = savePainTransaction(transaction)
 	if err != nil {
@@ -160,23 +250,26 @@ func parseAccountHolder(account string) (accountHolder AccountHolder, err error)
 	}
 
 	accountHolder = AccountHolder{accountStr[0], accountStr[1]}
+
 	return
 }
 
 func customerDepositInitiation(painType int64, data []string) (result string, err error) {
 	// Validate input
 	// Sender is bank
-	sender, err := parseAccountHolder("0@0")
+
+	//senders account number and bank number
+	sender, err := parseAccountHolder(data[3])
 	if err != nil {
 		return "", errors.New("payments.CustomerDepositInitiation: " + err.Error())
 	}
 
-	receiver, err := parseAccountHolder(data[3])
+	receiver, err := parseAccountHolder(data[4])
 	if err != nil {
 		return "", errors.New("payments.CustomerDepositInitiation: " + err.Error())
 	}
-
-	trAmt := strings.TrimRight(data[4], "\x00")
+	fmt.Println(sender, receiver)
+	trAmt := strings.TrimRight(data[5], "\x00")
 	transactionAmountDecimal, err := decimal.NewFromString(trAmt)
 	if err != nil {
 		return "", errors.New("payments.customerDepositInitiation: Could not convert transaction amount to decimal. " + err.Error())
@@ -187,14 +280,14 @@ func customerDepositInitiation(painType int64, data []string) (result string, er
 	if err != nil {
 		return "", errors.New("payments.customerDepositInitiation: " + err.Error())
 	}
-	if tokenUser != receiver.AccountNumber {
+	if tokenUser != sender.AccountNumber {
 		return "", errors.New("payments.customerDepositInitiation: Sender not valid")
 	}
-
+	Narration := data[6]
 	// Issue deposit
 	// @TODO This flow show be fixed. Maybe have banks approve deposits before initiation, or
 	// immediate approval below a certain amount subject to rate limiting
-	transaction := PAINTrans{painType, sender, receiver, transactionAmountDecimal, decimal.NewFromFloat(TRANSACTION_FEE)}
+	transaction := PAINTrans{painType, sender, receiver, transactionAmountDecimal, decimal.NewFromFloat(TRANSACTION_FEE), Narration}
 	// Save transaction
 	result, err = processPAINTransaction(transaction)
 	if err != nil {
@@ -202,4 +295,20 @@ func customerDepositInitiation(painType int64, data []string) (result string, er
 	}
 
 	return
+}
+
+func ProcessTransactionBatch(batch TransactionBatch) error {
+	for _, transaction := range batch.Transactions {
+		// Process each transaction
+		if err := processSingleTransaction(transaction); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func processSingleTransaction(transaction Transaction) error {
+	// Logic to handle a single transaction
+	// ...
+	return nil
 }
