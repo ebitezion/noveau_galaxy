@@ -8,6 +8,8 @@ import (
 	"strings"
 
 	"github.com/ebitezion/backend-framework/internal/appauth"
+	"github.com/ebitezion/backend-framework/internal/nuban"
+	"github.com/ebitezion/backend-framework/internal/ukaccountgen"
 	"github.com/shopspring/decimal"
 )
 
@@ -276,7 +278,13 @@ func setAccountDetails(data []string) (accountDetails AccountDetails, err error)
 	if data[3] == "" {
 		return AccountDetails{}, errors.New("accounts.setAccountDetails: Given name cannot be empty")
 	}
-	accountDetails.BankNumber = BANK_NUMBER
+	nubanGenerator := nuban.NewNUBANGenerator()
+	nuban := nubanGenerator.GenerateNUBAN()
+
+	ukaccountgenerator := ukaccountgen.New().GenerateUKAccountNumber()
+
+	accountDetails.AccountNumber = ukaccountgenerator
+	accountDetails.BankNumber = nuban
 	accountDetails.AccountHolderName = data[4] + "," + data[3] // Family Name, Given Name
 	accountDetails.AccountBalance = decimal.NewFromFloat(OPENING_BALANCE)
 	accountDetails.Overdraft = decimal.NewFromFloat(OPENING_OVERDRAFT)
@@ -298,7 +306,13 @@ func setAccountHolderDetails(data []string) (accountHolderDetails AccountHolderD
 	}
 
 	// @TODO Integrity checks
-	accountHolderDetails.BankNumber = BANK_NUMBER
+	nubanGenerator := nuban.NewNUBANGenerator()
+	nuban := nubanGenerator.GenerateNUBAN()
+
+	ukaccountgenerator := ukaccountgen.New().GenerateUKAccountNumber()
+
+	accountHolderDetails.AccountNumber = ukaccountgenerator
+	accountHolderDetails.BankNumber = nuban
 	accountHolderDetails.GivenName = data[3]
 	accountHolderDetails.FamilyName = data[4]
 	accountHolderDetails.DateOfBirth = data[5]
