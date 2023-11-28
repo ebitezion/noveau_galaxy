@@ -245,3 +245,59 @@ func GetUserFromToken(token string) (user string, err error) {
 
 	return
 }
+
+func AssignRolePrivilege(adminUsername string, targetUsername string, targetRole string, targetPrivilege string) error {
+	// Open a connection to your MySQL database
+	// db, err := sql.Open("mysql", "username:password@tcp(your-mysql-host:port)/your-database")
+	// if err != nil {
+	// 	return err
+	// }
+	// defer db.Close()
+
+	// Check if the admin exists and has sufficient privileges
+	var adminRole string
+	err := Config.Db.QueryRow("SELECT role FROM users WHERE username = ?", adminUsername).Scan(&adminRole)
+	if err != nil {
+		return err
+	}
+
+	if adminRole != "admin" {
+		return errors.New("Admin does not have sufficient privileges")
+	}
+
+	// Get the target user's ID
+	var targetID int
+	err = Config.Db.QueryRow("SELECT user_id FROM users WHERE username = ?", targetUsername).Scan(&targetID)
+	if err != nil {
+		return err
+	}
+
+	if targetID == 0 {
+		return errors.New("Target user not found")
+	}
+
+	// Assign the role to the target user
+	_, err = Config.Db.Exec("UPDATE users SET role = ? WHERE user_id = ?", targetRole, targetID)
+	if err != nil {
+		return err
+	}
+
+	// Get the privilege ID for the specified privilege and role
+	var privilegeID int
+	err = Config.Db.QueryRow("SELECT privilege_id FROM privileges WHERE role = ? AND privilege_name = ?", targetRole, targetPrivilege).Scan(&privilegeID)
+	if err != nil {
+		return err
+	}
+
+	if privilegeID == 0 {
+		return errors.New("Privilege not found for the specified role")
+	}
+
+	// Assign the privilege to the target role
+	_, err = Config.Db.Exec("INSERT INTO role_privileges (role_id, privilege_id) VALUES (?, ?)", targetID, privilegeID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
