@@ -1,0 +1,35 @@
+{{ template "header" . }}
+<div class="container-fluid">
+	<!-- Page Heading -->
+	<div class="d-sm-flex align-items-center justify-content-between mb-4">
+		<h1 class="h3 mb-0 text-gray-800 mx-auto">Balance Enquiry</h1>
+      
+	</div>
+    <div class="w-50 mx-auto">
+          <form class="user" id="loginForm" method="post" action="/v1/balanceEnquiryPage">
+    
+            <div class="form-group">
+                <input type="text" class="form-control form-control-user" name="User"
+                    id="exampleInputEmail" aria-describedby="emailHelp"
+                    placeholder="Enter Account Number...">
+            </div>
+
+    
+            <button type="submit" class="btn btn-custom btn-user btn-block">Submit</button>           
+
+        </form>
+        <div class="container mt-5">
+    <div class="card">
+        <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Account Details</h5>
+            <p class="card-text"><strong>Account Holder Name:</strong> {{.Data.AccountHolderName}}</p>
+            <p class="card-text"><strong>Account Number:</strong> {{.Data.AccountNumber}}</p>
+            <p class="card-text"><strong>Ledger Balance:</strong> {{.Data.LedgerBalance}}</p>
+        </div>
+    </div>
+    </div>
+</div>
+    </div>
+	
+{{ template "footer" . }}

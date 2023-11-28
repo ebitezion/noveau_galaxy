@@ -213,6 +213,19 @@ func FetchAccountMeta(accountNumber string) (AccountHolderDetails *AccountHolder
 
 	return &accountMeta, nil
 }
+func FetchBalanceEnquiry(accountNumber string) (AccountHolderDetails *BalanceEnquiry, err error) {
+
+	if accountNumber == "" {
+		return nil, errors.New("accounts.FetchBalanceEnquiry: Account number not present")
+	}
+
+	BalanceEnquiry, err := GetBalanceDetails(accountNumber)
+	if err != nil {
+		return nil, errors.New("accounts.fetchAccountMeta: " + err.Error())
+	}
+
+	return &BalanceEnquiry, nil
+}
 func openAccount(data []string) (result string, err error) {
 	// Validate string against required info/length
 	if len(data) < 14 {

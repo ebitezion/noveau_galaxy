@@ -355,12 +355,13 @@ func (app *application) AccountCreate(w http.ResponseWriter, r *http.Request) {
 	// accountHolderAddressLine2 := "Apt 4B"
 	// accountHolderAddressLine3 := "Building XYZ"
 	// accountHolderPostalCode := "12345"
+
 	accountHolderGivenName := r.FormValue("accountHolderGivenName")
 	accountHolderFamilyName := r.FormValue("accountHolderFamilyName")
 	accountHolderDateOfBirth := r.FormValue("accountHolderDateOfBirth")
 	accountHolderIdentificationNumber := r.FormValue("accountHolderIdentificationNumber")
 	accountHolderContactNumber1 := r.FormValue("accountHolderContactNumber1")
-	accountHolderContactNumber2 := r.FormValue("accountHolderContactNumber2")
+	accountHolderContactNumber2 := r.FormValue("accountHolderContactNumber1")
 	accountHolderEmailAddress := r.FormValue("accountHolderEmailAddress")
 	accountHolderAddressLine1 := r.FormValue("accountHolderAddressLine1")
 	accountHolderAddressLine2 := r.FormValue("accountHolderAddressLine2")
