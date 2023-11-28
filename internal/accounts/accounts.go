@@ -52,6 +52,7 @@ Accounts (acmt) transactions are as follows:
 1002 - CheckAccountByID
 1003 -  BalanceEnquiry
 1004 - AccountHistory
+1005 - AccountMetaData
 
 */
 
@@ -199,7 +200,19 @@ func ProcessAccount(data []string) (result string, err error) {
 
 	return
 }
+func FetchAccountMeta(accountNumber string) (AccountHolderDetails *AccountHolderDetails, err error) {
 
+	if accountNumber == "" {
+		return nil, errors.New("accounts.fetchAccountMeta: Account number not present")
+	}
+
+	accountMeta, err := getAccountMeta(accountNumber)
+	if err != nil {
+		return nil, errors.New("accounts.fetchAccountMeta: " + err.Error())
+	}
+
+	return &accountMeta, nil
+}
 func openAccount(data []string) (result string, err error) {
 	// Validate string against required info/length
 	if len(data) < 14 {

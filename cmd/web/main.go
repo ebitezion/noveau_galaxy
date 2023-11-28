@@ -53,6 +53,9 @@ func main() {
 	if err != nil {
 		log.Println("Environment Loading Error", err)
 	}
+	//load static files
+	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+
 	//Variables, environment and stuffs
 	var cfg config
 	PORT, err := strconv.ParseInt(os.Getenv("PORT"), 10, 32)

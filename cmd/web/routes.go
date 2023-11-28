@@ -9,8 +9,8 @@ import (
 func (app *application) routes() *httprouter.Router {
 	// Initialize a new httprouter router instance.
 	router := httprouter.New()
-	fs := http.FileServer((http.Dir("/cmd/web/static")))
-	router.Handler("GET", "/", fs)
+	// fs := http.FileServer((http.Dir("/cmd/web/static")))
+	// router.Handler("GET", "/", fs)
 
 	//RENDERED PAGES
 
