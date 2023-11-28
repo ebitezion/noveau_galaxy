@@ -247,33 +247,93 @@ func (app *application) generateRandomString(length int) string {
 	return string(randomString)
 }
 
-// RenderTemplate renders an HTML template with the provided data and layout.
-// It allows you to specify a template function map for custom functions.
+// // RenderTemplate renders an HTML template with the provided data and layout.
+// // It allows you to specify a template function map for custom functions.
+// func (app *application) RenderTemplate(w http.ResponseWriter, templateFiles []string, data interface{}, layout string, funcMap template.FuncMap) {
+// 	if funcMap != nil {
+// 		tmpl, err := app.TemplateFunction(templateFiles, funcMap, layout)
+// 		if err != nil {
+// 			return
+// 		}
+// 		app.ExecuteTemplate(w, tmpl, data, layout)
+// 		return
+// 	}
+// 	tmpl := app.ParseTemplate(templateFiles)
+// 	app.ExecuteTemplate(w, tmpl, data, layout)
+// }
+
+// // TemplateFunction creates and returns an HTML template with custom functions.
+// func (app *application) TemplateFunction(templateFiles []string, funcMap template.FuncMap, layout string) (*template.Template, error) {
+// 	tmpl, err := template.New(layout).Funcs(funcMap).ParseFiles(templateFiles...)
+// 	if err != nil {
+// 		log.Println(err)
+// 		return nil, err
+// 	}
+// 	return tmpl, nil
+// }
+
+// // ParseTemplate parses the HTML template files and returns a template.
+// func (app *application) ParseTemplate(templateFiles []string) *template.Template {
+// 	tmpl, err := template.ParseFiles(templateFiles...)
+// 	if err != nil {
+// 		log.Println(err)
+// 	}
+// 	return tmpl
+// }
+
+// // ExecuteTemplate executes the provided HTML template with the given data.
+// func (app *application) ExecuteTemplate(w http.ResponseWriter, tmpl *template.Template, data interface{}, layout string) {
+// 	layout = app.RemoveSlashFromPath(layout)
+// 	err := tmpl.ExecuteTemplate(w, layout, data)
+// 	if err != nil {
+// 		log.Println(err)
+// 	}
+// }
+
+// // RemoveSlashFromPath removes the slashes from a path and returns the last part.
+// func (app *application) RemoveSlashFromPath(path string) string {
+// 	NewPath := strings.Split(path, "/")
+// 	return NewPath[len(NewPath)-1]
+// }
+
 func (app *application) RenderTemplate(w http.ResponseWriter, templateFiles []string, data interface{}, layout string, funcMap template.FuncMap) {
-	if funcMap != nil {
-		tmpl, err := app.TemplateFunction(templateFiles, funcMap, layout)
-		if err != nil {
-			return
-		}
-		app.ExecuteTemplate(w, tmpl, data, layout)
-		return
+	var tmpl *template.Template
+
+	app.mu.Lock()
+	defer app.mu.Unlock()
+
+	if layout != "" {
+		tmpl = app.getTemplate(layout)
+	} else {
+		tmpl = app.ParseTemplate(templateFiles)
 	}
-	tmpl := app.ParseTemplate(templateFiles)
+
+	if funcMap != nil {
+		tmpl.Funcs(funcMap)
+	}
+
 	app.ExecuteTemplate(w, tmpl, data, layout)
 }
 
-// TemplateFunction creates and returns an HTML template with custom functions.
-func (app *application) TemplateFunction(templateFiles []string, funcMap template.FuncMap, layout string) (*template.Template, error) {
-	tmpl, err := template.New(layout).Funcs(funcMap).ParseFiles(templateFiles...)
+func (app *application) getTemplate(name string) *template.Template {
+	if tmpl, ok := app.templates[name]; ok {
+		return tmpl
+	}
+
+	tmpl, err := template.ParseFiles(name)
 	if err != nil {
 		log.Println(err)
-		return nil, err
+		return nil
 	}
-	return tmpl, nil
+
+	app.templates[name] = tmpl
+	return tmpl
 }
 
-// ParseTemplate parses the HTML template files and returns a template.
 func (app *application) ParseTemplate(templateFiles []string) *template.Template {
+	app.mu.Lock()
+	defer app.mu.Unlock()
+
 	tmpl, err := template.ParseFiles(templateFiles...)
 	if err != nil {
 		log.Println(err)
@@ -281,17 +341,27 @@ func (app *application) ParseTemplate(templateFiles []string) *template.Template
 	return tmpl
 }
 
-// ExecuteTemplate executes the provided HTML template with the given data.
 func (app *application) ExecuteTemplate(w http.ResponseWriter, tmpl *template.Template, data interface{}, layout string) {
+	if tmpl == nil {
+		http.Error(w, "Template not found", http.StatusInternalServerError)
+		return
+	}
+
 	layout = app.RemoveSlashFromPath(layout)
 	err := tmpl.ExecuteTemplate(w, layout, data)
 	if err != nil {
 		log.Println(err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
 	}
 }
 
-// RemoveSlashFromPath removes the slashes from a path and returns the last part.
 func (app *application) RemoveSlashFromPath(path string) string {
 	NewPath := strings.Split(path, "/")
 	return NewPath[len(NewPath)-1]
+}
+
+func newApplication() *application {
+	return &application{
+		templates: make(map[string]*template.Template),
+	}
 }
