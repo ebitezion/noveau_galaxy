@@ -16,6 +16,7 @@ package main
 // 	"github.com/ebitezion/backend-framework/internal/configuration"
 // 	"github.com/ebitezion/backend-framework/internal/data"
 // 	"github.com/ebitezion/backend-framework/internal/payments"
+// 	"github.com/gorilla/sessions"
 // 	"github.com/joho/godotenv"
 
 // 	//_ "github.com/lib/pq"
@@ -44,6 +45,8 @@ package main
 // 	logger *log.Logger
 // 	models data.Models
 // }
+
+// var store = sessions.NewCookieStore([]byte(os.Getenv("SESSIONSTORE")))
 
 // func main() {
 // 	err := godotenv.Load()
@@ -128,10 +131,11 @@ package main
 // 		WriteTimeout: 30 * time.Second,
 // 	}
 
-// 	// Start the HTTP server.
+// 	// // Start the HTTP server.
 // 	logger.Printf("starting %s server on %s", cfg.env, srv.Addr)
 // 	err = srv.ListenAndServe()
 // 	logger.Fatal(err)
+// 	// http.ListenAndServe(":5050", nil)
 // }
 
 // // The openDB() function returns a sql.DB connection pool.
@@ -176,6 +180,9 @@ package main
 // 		return nil, err
 // 	}
 
-// 	// Return the sql.DB connection pool.
-// 	return db, nil
-// }
+//		// Return the sql.DB connection pool.
+//		return db, nil
+//	}
+func main() {
+
+}

@@ -5,10 +5,12 @@ import (
 	"database/sql"
 	"flag"
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/ebitezion/backend-framework/internal/accounts"
@@ -41,18 +43,31 @@ type config struct {
 // Define an application struct to hold the dependencies for HTTP handlers,
 // helpers, and middleware.
 type application struct {
-	config config
-	logger *log.Logger
-	models data.Models
+	config    config
+	logger    *log.Logger
+	models    data.Models
+	templates map[string]*template.Template
+	mu        sync.Mutex
 }
 
 var store = sessions.NewCookieStore([]byte(os.Getenv("SESSIONSTORE")))
 
 func main() {
+	// Define a file server to serve static files
+	fs := http.FileServer(http.Dir("cmd/web/static"))
+
+	// Create a route to serve static files under "/static/"
+	http.Handle("/static/", http.StripPrefix("/static/", fs))
+	// // Log all requests to the server
+	// http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	// 	fmt.Println("Request URL:", r.URL.Path)
+	// 	http.NotFound(w, r)
+	// })
 	err := godotenv.Load()
 	if err != nil {
 		log.Println("Environment Loading Error", err)
 	}
+
 	//Variables, environment and stuffs
 	var cfg config
 	PORT, err := strconv.ParseInt(os.Getenv("PORT"), 10, 32)
@@ -116,9 +131,10 @@ func main() {
 	// Declare an instance of the application struct, containing the config struct and
 	// the logger.
 	app := &application{
-		config: cfg,
-		logger: logger,
-		models: data.NewModels(con.Db),
+		config:    cfg,
+		logger:    logger,
+		models:    data.NewModels(con.Db),
+		templates: make(map[string]*template.Template),
 	}
 
 	// Declare a HTTP server with some sensible timeout settings, which listens on the
