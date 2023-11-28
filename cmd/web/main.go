@@ -58,11 +58,7 @@ func main() {
 
 	// Create a route to serve static files under "/static/"
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
-	// // Log all requests to the server
-	// http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-	// 	fmt.Println("Request URL:", r.URL.Path)
-	// 	http.NotFound(w, r)
-	// })
+
 	err := godotenv.Load()
 	if err != nil {
 		log.Println("Environment Loading Error", err)

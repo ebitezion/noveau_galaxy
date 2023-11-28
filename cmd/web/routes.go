@@ -17,7 +17,7 @@ func (app *application) routes() *httprouter.Router {
 
 	// Log all requests to the server
 	router.NotFound = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("Request URL:", r.URL.Path)
+		fmt.Println("Request URL NOT FOUND:", r.URL.Path)
 		http.NotFound(w, r)
 	})
 
