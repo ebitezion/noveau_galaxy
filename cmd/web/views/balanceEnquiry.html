@@ -6,16 +6,16 @@
       
 	</div>
     <div class="w-50 mx-auto">
-          <form class="user" id="loginForm" method="post" action="/v1/balanceEnquiryPage">
+          <form class="user" id="loginForm" method="post" action="/v1/balanceEnquiry">
     
             <div class="form-group">
-                <input type="text" class="form-control form-control-user" name="User"
+                <input type="text" class="form-control form-control-user" name="accountNumber"
                     id="exampleInputEmail" aria-describedby="emailHelp"
-                    placeholder="Enter Account Number...">
+                    placeholder="Enter Account Number..." required>
             </div>
 
     
-            <button type="submit" class="btn btn-custom btn-user btn-block">Submit</button>           
+            <button type="button" onclick="submitForm()" class="btn btn-custom btn-user btn-block">Submit</button>           
 
         </form>
         <div class="container mt-5">
@@ -23,13 +23,42 @@
         <div class="card">
         <div class="card-body">
             <h5 class="card-title">Account Details</h5>
-            <p class="card-text"><strong>Account Holder Name:</strong> {{.Data.AccountHolderName}}</p>
-            <p class="card-text"><strong>Account Number:</strong> {{.Data.AccountNumber}}</p>
-            <p class="card-text"><strong>Ledger Balance:</strong> {{.Data.LedgerBalance}}</p>
+            <p class="card-text" ><strong>Account Holder Name: <p class="card-text" id="accountHolderName"></p></strong> </p>
+            <p class="card-text" ><strong>Account Number:<p class="card-text" id="accountNumber"></p></strong> </p>
+            <p class="card-text" ><strong>Ledger Balance:    <p class="card-text" id="ledgerBalance"></p></strong></p>
         </div>
     </div>
     </div>
 </div>
     </div>
-	
+	<script>
+   function submitForm() {
+    var formdata = new FormData(document.getElementById("loginForm"));
+    let token = localStorage.getItem('token');
+    console.log(token)
+    var requestOptions = {
+        method: 'POST',
+        headers: {
+        'X-Auth-Token': 'c726cfcb-7181-47d2-9d58-f4b1833b6fe1',
+   
+        },
+        body: formdata,
+    };
+
+    fetch("http://localhost:4000/v1/balanceEnquiry", requestOptions)
+        .then(response => response.json()) // Parse the response as JSON
+        .then(result => {
+            console.log(result)
+            // Update the HTML elements with the received data
+             if (result.responseCode === "00") {
+                document.getElementById("accountHolderName").innerText = result.message.accountHolderName;
+                document.getElementById("accountNumber").innerText = result.message.accountNumber;
+                document.getElementById("ledgerBalance").innerText = result.message.ledgerBalance;
+            }
+      
+        })
+        .catch(error => console.log('error', error));
+}
+
+</script>
 {{ template "footer" . }}

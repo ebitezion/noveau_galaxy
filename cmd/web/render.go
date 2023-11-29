@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/ebitezion/backend-framework/internal/accounts"
@@ -49,41 +48,25 @@ func (app *application) RenderBatchTransactionPage(w http.ResponseWriter, r *htt
 
 func (app *application) RenderBalanceEnquiry(w http.ResponseWriter, r *http.Request) {
 
-	accountNumber := r.PostFormValue("accountNumber")
-	if accountNumber == "" {
-		app.RenderTemplate(w, []string{"cmd/web/views/balanceEnquiry.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, nil, "cmd/web/views/balanceEnquiry.html", nil)
-		return
-	}
-
-	data, err := accounts.FetchBalanceEnquiry(accountNumber)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-
-	pageData := BalanceEnquiryPageData{
-		Data: data,
-		name: "adeoluwa",
-	}
-	app.RenderTemplate(w, []string{"cmd/web/views/balanceEnquiry.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, pageData, "cmd/web/views/balanceEnquiry.html", nil)
+	app.RenderTemplate(w, []string{"cmd/web/views/balanceEnquiry.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, nil, "cmd/web/views/balanceEnquiry.html", nil)
 }
 
 func (app *application) RenderAccountHistory(w http.ResponseWriter, r *http.Request) {
 
-	accountNumber := r.PostFormValue("accountNumber")
-	if accountNumber == "" {
-		app.RenderTemplate(w, []string{"cmd/web/views/balanceEnquiry.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, nil, "cmd/web/views/balanceEnquiry.html", nil)
-		return
-	}
+	// accountNumber := r.PostFormValue("accountNumber")
+	// if accountNumber == "" {
+	// 	app.RenderTemplate(w, []string{"cmd/web/views/balanceEnquiry.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, nil, "cmd/web/views/balanceEnquiry.html", nil)
+	// 	return
+	// }
 
-	data, err := accounts.FetchBalanceEnquiry(accountNumber)
-	if err != nil {
-		log.Println(err)
-		return
-	}
+	// data, err := accounts.FetchBalanceEnquiry(accountNumber)
+	// if err != nil {
+	// 	log.Println(err)
+	// 	return
+	// }
 
-	pageData := BalanceEnquiryPageData{
-		Data: data,
-	}
-	app.RenderTemplate(w, []string{"cmd/web/views/balanceEnquiry.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, pageData, "cmd/web/views/balanceEnquiry.html", nil)
+	// pageData := BalanceEnquiryPageData{
+	// 	Data: data,
+	// }
+	app.RenderTemplate(w, []string{"cmd/web/views/accountHistory.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, nil, "cmd/web/views/accountHistory.html", nil)
 }

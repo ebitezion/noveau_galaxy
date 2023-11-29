@@ -151,7 +151,7 @@ func Notification(token string, sendersAccountNumber string, receiversAccountNum
 	users := [2]*accounts.AccountHolderDetails{sender, receiver}
 
 	for i := range users {
-		fmt.Println(users[i].EmailAddress, users[i].ContactNumber1)
+
 		ns := notifications.NotificationService{}
 		User := notifications.User{
 			ID:       1,

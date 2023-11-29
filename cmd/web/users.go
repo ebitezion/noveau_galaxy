@@ -16,6 +16,7 @@ func (app *application) getTokenFromHeader(w http.ResponseWriter, r *http.Reques
 		app.badRequestResponse(w, r, errors.New("could not retrieve token from headers"))
 		return "", errors.New("could not retrieve token from headers")
 	}
+	fmt.Println(err)
 
 	// Check token
 	err = appauth.CheckToken(token)
@@ -72,12 +73,10 @@ func (app *application) AuthIndex(w http.ResponseWriter, r *http.Request) {
 // Get token
 func (app *application) AuthLogin(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Get token")
-	user := r.FormValue("User")
-	//user := app.readString(r.PostForm, "User", "01928918")
-	password := r.FormValue("Password")
-	//password := app.readString(r.PostForm, "Password", "adeoluwa")
+	accountNumber := r.FormValue("accountNumber")
+	password := r.FormValue("password")
 
-	response, err := appauth.ProcessAppAuth([]string{"0", "appauth", "2", user, password})
+	response, err := appauth.ProcessAppAuth([]string{"0", "appauth", "2", accountNumber, password})
 	if err != nil {
 		//there was error
 		data := envelope{
@@ -89,12 +88,7 @@ func (app *application) AuthLogin(w http.ResponseWriter, r *http.Request) {
 		app.writeJSON(w, http.StatusBadRequest, data, nil)
 		return
 	}
-	//set jwt token
-	err = app.SetJwtSession(w, r, user)
-	if err != nil {
-		fmt.Println(err)
-	}
-	app.logger.Println(response)
+
 	data := envelope{
 		"responseCode": "00",
 		"status":       "Success",

@@ -478,8 +478,9 @@ func (app *application) AccountGetAll(w http.ResponseWriter, r *http.Request) {
 
 // BalanceEnquiry gets the balance details of a user provided a valid accountNumber
 func (app *application) BalanceEnquiry(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Account GetAll")
-	token, err := app.getTokenFromHeader(w, r)
+
+	_, err := app.getTokenFromHeader(w, r)
+
 	if err != nil {
 		//there was error
 		data := envelope{
@@ -492,9 +493,10 @@ func (app *application) BalanceEnquiry(w http.ResponseWriter, r *http.Request) {
 		return
 
 	}
+
 	accountNumber := r.FormValue("accountNumber")
 
-	response, err := accounts.ProcessAccount([]string{token, "acmt", "1003", accountNumber})
+	response, err := accounts.ProcessAccount([]string{"2d5d6e89-2910-48f3-a730-47713040e200", "acmt", "1003", accountNumber})
 
 	if err != nil {
 		//there was error
@@ -508,7 +510,7 @@ func (app *application) BalanceEnquiry(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	//Response(response, err, w, r)
-	app.logger.Println(response)
+
 	data := envelope{
 		"responseCode": "00",
 		"status":       "Success",
@@ -520,7 +522,7 @@ func (app *application) BalanceEnquiry(w http.ResponseWriter, r *http.Request) {
 
 // AccountHistory retrieves the account history of a user
 func (app *application) AccountHistory(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Account GetAll")
+
 	token, err := app.getTokenFromHeader(w, r)
 	if err != nil {
 		//there was error
