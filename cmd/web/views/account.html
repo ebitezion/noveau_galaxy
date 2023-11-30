@@ -81,11 +81,26 @@
 						<input type="text" class="form-control" id="accountHolderAddressLine3" name="accountHolderAddressLine3" required />
 					</div>
 				</div>
+				
 			</div>
-			<div class="mb-3">
-				<label for="accountHolderPostalCode" class="form-label">Postal Code</label>
-				<input type="text" class="form-control" id="accountHolderPostalCode" name="accountHolderPostalCode" required />
+			<div class="row">
+				<div class="col-6">
+					<div class="mb-3">
+					<label for="accountHolderPostalCode" class="form-label">Postal Code</label>
+					<input type="text" class="form-control" id="accountHolderPostalCode" name="accountHolderPostalCode" required />
+					</div>
+				</div>
+				<div class="col-6">
+					<div class="mb-3">
+					<label for="formFile" class="form-label">Image</label>
+					<input class="form-control" type="file" id="formFile">
+					</div>
+				</div>
+				
+				
 			</div>
+			
+			
 
 			 <button type="button" onclick="submitForm()" class="btn btn-custom btn-user btn-block">Submit</button>
 		</form>
