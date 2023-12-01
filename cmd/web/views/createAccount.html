@@ -5,6 +5,10 @@
 		<h1 class="h2 mb-0 text-gray-800 mx-auto">Account Creation</h1>
 	</div>
 	<div class="container w-75 mt-5">
+		<div id="successAlert" class="alert alert-success mt-3" style="display: none;">
+		
+		</div>
+	<div class="container w-100 mt-5">
 		<form id="myForm"  method="post" action="/v1/accounts/create">
 			<div class="row">
 				<div class="col-6">
@@ -93,11 +97,12 @@
 				<div class="col-6">
 					<div class="mb-3">
 					<label for="formFile" class="form-label">Image</label>
-					<input class="form-control" type="file" id="formFile">
+					<input class="form-control" type="file" id="formFile" name="profilePicture">
 					</div>
 				</div>
 				
-				
+			
+
 			</div>
 			
 			
@@ -108,7 +113,7 @@
 </div>
 <script>
     function submitForm() {
-        
+        let token = "awdawdwad"
         var headers = new Headers();
         headers.append("Authorization", "Bearer " + token);
 
@@ -120,9 +125,17 @@
             method: "POST",
             body: formData
         })
-        .then(response => {
-            // Handle the response as needed
-            console.log(response);
+        .then(result => {
+           if (result.responseCode === "00") {
+				// Update the success message with the message from the API
+				document.getElementById("successAlert").innerText = result.message;
+				// Show the success alert
+				document.getElementById("successAlert").style.display = "block";
+				// Hide the alert after 7 seconds
+				setTimeout(function () {
+					document.getElementById("successAlert").style.display = "none";
+				}, 7000);}
+            console.log(result);
             // You can redirect or perform other actions based on the response
         })
         .catch(error => {
