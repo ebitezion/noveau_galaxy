@@ -73,11 +73,10 @@ func (app *application) AuthIndex(w http.ResponseWriter, r *http.Request) {
 // Get token
 func (app *application) AuthLogin(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Get token")
-	accountNumber := r.FormValue("accountNumber")
 	password := r.FormValue("password")
 	username := r.FormValue("username")
 
-	response, err := appauth.ProcessAppAuth([]string{"0", "appauth", "2", accountNumber, password, username})
+	response, err := appauth.ProcessAppAuth([]string{"0", "appauth", "2", username, password})
 
 	if err != nil {
 		//there was error
