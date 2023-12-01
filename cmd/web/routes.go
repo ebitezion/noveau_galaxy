@@ -31,6 +31,7 @@ func (app *application) routes() *httprouter.Router {
 	router.HandlerFunc(http.MethodGet, "/v1/depositPage", app.RenderDepositInitiationPage)
 	router.HandlerFunc(http.MethodGet, "/v1/creditPage", app.RenderCreditInitiationPage)
 	router.HandlerFunc(http.MethodGet, "/v1/batchTransactionPage", app.RenderBatchTransactionPage)
+	router.HandlerFunc(http.MethodGet, "/v1/allAccountsPage", app.RenderAllAccountsPage)
 	// Likewise, convert the methodNotAllowedResponse() helper to a http.Handler and set
 	// it as the custom error handler for 405 Method Not Allowed responses.
 	router.MethodNotAllowed = http.HandlerFunc(app.methodNotAllowedResponse)

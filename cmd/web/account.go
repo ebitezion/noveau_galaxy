@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/ebitezion/backend-framework/internal/accounts"
@@ -355,7 +356,12 @@ func (app *application) AccountCreate(w http.ResponseWriter, r *http.Request) {
 	// accountHolderAddressLine2 := "Apt 4B"
 	// accountHolderAddressLine3 := "Building XYZ"
 	// accountHolderPostalCode := "12345"
-
+	// Parse form data
+	err := r.ParseMultipartForm(10 << 20)
+	if err != nil {
+		http.Error(w, "Failed to parse form data", http.StatusInternalServerError)
+		return
+	}
 	accountHolderGivenName := r.FormValue("accountHolderGivenName")
 	accountHolderFamilyName := r.FormValue("accountHolderFamilyName")
 	accountHolderDateOfBirth := r.FormValue("accountHolderDateOfBirth")
@@ -368,7 +374,12 @@ func (app *application) AccountCreate(w http.ResponseWriter, r *http.Request) {
 	accountHolderAddressLine3 := r.FormValue("accountHolderAddressLine3")
 	accountHolderPostalCode := r.FormValue("accountHolderPostalCode")
 
-	fmt.Println(accountHolderAddressLine1, accountHolderAddressLine2, accountHolderAddressLine3)
+	profileImage, err := ImagetoHexacimal(r)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
 	// Initialize variables with actual data
 
 	req := []string{
@@ -386,6 +397,7 @@ func (app *application) AccountCreate(w http.ResponseWriter, r *http.Request) {
 		accountHolderAddressLine2,
 		accountHolderAddressLine3,
 		accountHolderPostalCode,
+		profileImage,
 	}
 
 	response, err := accounts.ProcessAccount(req)
@@ -401,7 +413,7 @@ func (app *application) AccountCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	//Response(response, err, w, r)
-	app.logger.Println(response)
+
 	data := envelope{
 		"responseCode": "00",
 		"status":       "Success",

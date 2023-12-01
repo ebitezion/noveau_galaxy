@@ -53,6 +53,7 @@ Accounts (acmt) transactions are as follows:
 1003 -  BalanceEnquiry
 1004 - AccountHistory
 1005 - AccountMetaData
+1006 - AllAccounts
 
 */
 
@@ -90,6 +91,7 @@ type AccountHolderDetails struct {
 	AddressLine2         string
 	AddressLine3         string
 	PostalCode           string
+	Image                string
 }
 
 type AccountDetails struct {
@@ -215,20 +217,6 @@ func FetchAccountMeta(accountNumber string) (AccountHolderDetails *AccountHolder
 	return &accountMeta, nil
 }
 
-// func FetchBalanceEnquiry(accountNumber string) (AccountHolderDetails *BalanceEnquiry, err error) {
-
-// 	if accountNumber == "" {
-// 		return nil, errors.New("accounts.FetchBalanceEnquiry: Account number not present")
-// 	}
-
-// 	BalanceEnquiry, err := GetBalanceDetails(accountNumber)
-// 	if err != nil {
-// 		return nil, errors.New("accounts.fetchAccountMeta: " + err.Error())
-// 	}
-
-// 	return &BalanceEnquiry, nil
-// }
-
 func openAccount(data []string) (result string, err error) {
 	// Validate string against required info/length
 	if len(data) < 14 {
@@ -353,26 +341,20 @@ func setAccountHolderDetails(data []string) (accountHolderDetails AccountHolderD
 	accountHolderDetails.AddressLine2 = data[11]
 	accountHolderDetails.AddressLine3 = data[12]
 	accountHolderDetails.PostalCode = data[13]
+	accountHolderDetails.Image = data[14]
 
 	return
 }
 
 // @TODO Remove this after testing, security risk
-func fetchAccounts(data []string) (result string, err error) {
+func fetchAccounts(data []string) (result []AccountDetails, err error) {
 	// Fetch all accounts. This fetches non-sensitive information (no balances)
 	accounts, err := getAllAccountDetails()
 	if err != nil {
-		return "", errors.New("accounts.fetchAccounts: " + err.Error())
+		return nil, errors.New("accounts.fetchAccounts: " + err.Error())
 	}
 
-	// Parse into nice result string
-	jsonAccounts, err := json.Marshal(accounts)
-	if err != nil {
-		return "", errors.New("accounts.fetchAccounts: " + err.Error())
-	}
-
-	result = string(jsonAccounts)
-	return
+	return accounts, nil
 }
 
 func fetchSingleAccount(data []string) (result string, err error) {

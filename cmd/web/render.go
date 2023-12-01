@@ -28,7 +28,7 @@ func (app *application) RenderSignUpPage(w http.ResponseWriter, r *http.Request)
 
 // RenderCreateAccountPage renders a HTML page
 func (app *application) RenderCreateAccountPage(w http.ResponseWriter, r *http.Request) {
-	app.RenderTemplate(w, []string{"cmd/web/views/account.html", "cmd/web/views/layout.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, nil, "cmd/web/views/account.html", nil)
+	app.RenderTemplate(w, []string{"cmd/web/views/createAccount.html", "cmd/web/views/layout.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, nil, "cmd/web/views/createAccount.html", nil)
 }
 
 // RenderDepositInitiationPage renders a HTML page
@@ -52,21 +52,15 @@ func (app *application) RenderBalanceEnquiry(w http.ResponseWriter, r *http.Requ
 }
 
 func (app *application) RenderAccountHistory(w http.ResponseWriter, r *http.Request) {
-
-	// accountNumber := r.PostFormValue("accountNumber")
-	// if accountNumber == "" {
-	// 	app.RenderTemplate(w, []string{"cmd/web/views/balanceEnquiry.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, nil, "cmd/web/views/balanceEnquiry.html", nil)
-	// 	return
-	// }
-
-	// data, err := accounts.FetchBalanceEnquiry(accountNumber)
-	// if err != nil {
-	// 	log.Println(err)
-	// 	return
-	// }
-
-	// pageData := BalanceEnquiryPageData{
-	// 	Data: data,
-	// }
 	app.RenderTemplate(w, []string{"cmd/web/views/accountHistory.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, nil, "cmd/web/views/accountHistory.html", nil)
+}
+
+// RenderBatchTransactionPage renders a HTML page
+func (app *application) RenderAllAccountsPage(w http.ResponseWriter, r *http.Request) {
+	// data, err := accounts.ProcessAccount([]string{"", "acmt", "1004"})
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
+	// fmt.Println(data)
+	app.RenderTemplate(w, []string{"cmd/web/views/allAccounts.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, nil, "cmd/web/views/allAccounts.html", nil)
 }

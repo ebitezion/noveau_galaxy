@@ -1,16 +1,22 @@
 package main
 
 import (
+	"bytes"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"html/template"
+	"image"
+	"image/jpeg"
 	"io"
 	"log"
 	"math"
 	"math/rand"
 	"net/http"
 	"net/url"
+	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -405,4 +411,94 @@ func newApplication() *application {
 	return &application{
 		templates: make(map[string]*template.Template),
 	}
+}
+func UploadImagesFromFile(Filename []string, w http.ResponseWriter, r *http.Request) (string, error) {
+
+	var PictureDbPath string
+
+	for _, v := range Filename {
+		File, Handler, err := r.FormFile(v)
+		if err != nil {
+			log.Println("Error Retrieving the File")
+			log.Println(err)
+			return "theres an error creating file", err
+		}
+		//check file type
+
+		filetype := Handler.Header.Get("Content-Type")
+		if filetype != "image/jpeg" && filetype != "image/png" {
+			log.Println("File must be either png or jpeg")
+			http.Error(w, "File must be either png or jpeg", http.StatusInternalServerError)
+			err := "file must be either png or jpeg"
+			return "File must be either png or jpeg", errors.New(err)
+
+		}
+		defer File.Close()
+
+		Tempfilename := filepath.Base(Handler.Filename)
+		PictureDbPath = "pictures/" + Tempfilename
+		Tempfilepath := filepath.Join("public/pictures", Tempfilename)
+		TempFile, err := os.Create(Tempfilepath)
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "error creating file", http.StatusInternalServerError)
+		}
+		defer TempFile.Close()
+		io.Copy(TempFile, File)
+		log.Println(Tempfilepath)
+	}
+
+	log.Println("item added successfully")
+	return PictureDbPath, nil
+}
+
+func ImagetoHexacimal(r *http.Request) (string, error) {
+	file, _, err := r.FormFile("profilePicture")
+	if err != nil {
+
+		return "", nil
+	}
+	defer file.Close()
+
+	// Read the image data
+	imageData, err := io.ReadAll(file)
+	if err != nil {
+
+		return "", fmt.Errorf("error reading image data")
+	}
+
+	// Convert binary image data to hexadecimal
+	hexData := hex.EncodeToString(imageData)
+
+	return hexData, nil
+}
+
+func hexToImage(hexData string, outputPath string) error {
+	// Decode hexadecimal string to binary data
+	binaryData, err := hex.DecodeString(hexData)
+	if err != nil {
+		return err
+	}
+
+	// Create an image from binary data
+	img, _, err := image.Decode(bytes.NewReader(binaryData))
+	if err != nil {
+		return err
+	}
+
+	// Create or overwrite the output image file
+	outputFile, err := os.Create(outputPath)
+	if err != nil {
+		return err
+	}
+	defer outputFile.Close()
+
+	// Encode the image and write it to the file
+	err = jpeg.Encode(outputFile, img, nil) // Change this to the appropriate format if needed
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("Image successfully saved:", outputPath)
+	return nil
 }

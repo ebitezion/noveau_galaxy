@@ -4,6 +4,7 @@ import (
 	"crypto/sha512"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"time"
 
 	"gopkg.in/redis.v3"
@@ -54,7 +55,7 @@ func ProcessAppAuth(data []string) (result string, err error) {
 		if len(data) < 5 {
 			return "", errors.New("appauth.ProcessAppAuth: Not all required fields present")
 		}
-		result, err = CreateUserPassword(data[3], data[4])
+		result, err = CreateUserPassword(data[3], data[4], data[5])
 		if err != nil {
 			return "", err
 		}
@@ -73,7 +74,7 @@ func ProcessAppAuth(data []string) (result string, err error) {
 	return "", errors.New("appauth.ProcessAppAuth: No valid option chosen")
 }
 
-func CreateUserPassword(user string, password string) (result string, err error) {
+func CreateUserPassword(accountNumber string, password string, userame string) (result string, err error) {
 	//TEST 0~appauth~3~181ac0ae-45cb-461d-b740-15ce33e4612f~testPassword
 	// Generate hash
 	hasher := sha512.New()
@@ -81,7 +82,7 @@ func CreateUserPassword(user string, password string) (result string, err error)
 	hash := hex.EncodeToString(hasher.Sum(nil))
 
 	// Check for existing account
-	rows, err := Config.Db.Query("SELECT `accountNumber` FROM `accounts_auth` WHERE `accountNumber` = ?", user)
+	rows, err := Config.Db.Query("SELECT `accountNumber` FROM `accounts_auth` WHERE `accountNumber` = ?", accountNumber)
 	if err != nil {
 		return "", errors.New("appauth.CreateUserPassword: Error with select query. " + err.Error())
 	}
@@ -96,21 +97,17 @@ func CreateUserPassword(user string, password string) (result string, err error)
 	if count > 0 {
 		return "", errors.New("appauth.CreateUserPassword: Account already exists")
 	}
-
+	fmt.Println(accountNumber, password, userame)
 	// Prepare statement for inserting data
-	insertStatement := "INSERT INTO accounts_auth (`accountNumber`, `password`) "
-	insertStatement += "VALUES(?, ?)"
+	insertStatement := "INSERT INTO accounts_auth (`accountNumber`, `password`,`username`) "
+	insertStatement += "VALUES(?, ?,?)"
 	stmtIns, err := Config.Db.Prepare(insertStatement)
 	if err != nil {
 		return "", errors.New("appauth.CreateUserPassword: Error with insert. " + err.Error())
 	}
 	defer stmtIns.Close() // Close the statement when we leave main() / the program terminates
 
-	// Convert variables
-	t := time.Now()
-	sqlTime := int32(t.Unix())
-
-	_, err = stmtIns.Exec(user, hash, sqlTime)
+	_, err = stmtIns.Exec(accountNumber, hash, userame)
 
 	if err != nil {
 		return "", errors.New("appauth.CreateUserPassword: Could not save account. " + err.Error())

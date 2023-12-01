@@ -75,14 +75,16 @@ func (app *application) AuthLogin(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Get token")
 	accountNumber := r.FormValue("accountNumber")
 	password := r.FormValue("password")
+	username := r.FormValue("username")
 
-	response, err := appauth.ProcessAppAuth([]string{"0", "appauth", "2", accountNumber, password})
+	response, err := appauth.ProcessAppAuth([]string{"0", "appauth", "2", accountNumber, password, username})
+
 	if err != nil {
 		//there was error
 		data := envelope{
 			"responseCode": "06",
 			"status":       "Failed",
-			"message":      err,
+			"message":      err.Error(),
 		}
 
 		app.writeJSON(w, http.StatusBadRequest, data, nil)
@@ -100,19 +102,23 @@ func (app *application) AuthLogin(w http.ResponseWriter, r *http.Request) {
 
 // Create auth account
 func (app *application) AuthCreate(w http.ResponseWriter, r *http.Request) {
-	user := r.FormValue("User")
-	password := r.FormValue("Password")
 
-	response, err := appauth.ProcessAppAuth([]string{"0", "appauth", "3", user, password})
+	accountNumber := r.FormValue("accountNumber")
+	password := r.FormValue("password")
+	username := r.FormValue("username")
+	fmt.Println(accountNumber, password, username)
+	response, err := appauth.ProcessAppAuth([]string{"0", "appauth", "3", accountNumber, password, username})
+	fmt.Println(response, err)
 	if err != nil {
 		//there was error
 		data := envelope{
 			"responseCode": "06",
 			"status":       "Failed",
-			"message":      err,
+			"message":      err.Error(),
 		}
 
 		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
 	}
 	app.logger.Println(response)
 	data := envelope{
