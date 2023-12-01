@@ -26,6 +26,8 @@ func (app *application) routes() *httprouter.Router {
 	router.HandlerFunc(http.MethodGet, "/v1/loginpage", app.RenderLoginPage)
 	router.HandlerFunc(http.MethodGet, "/v1/signuppage", app.RenderSignUpPage)
 	router.HandlerFunc(http.MethodGet, "/v1/createAccountPage", app.RenderCreateAccountPage)
+	router.HandlerFunc(http.MethodGet, "/v1/balanceEnquiryPage", app.RenderBalanceEnquiry)
+	router.HandlerFunc(http.MethodGet, "/v1/accountHistoryPage", app.RenderAccountHistory)
 	router.HandlerFunc(http.MethodGet, "/v1/depositPage", app.RenderDepositInitiationPage)
 	router.HandlerFunc(http.MethodGet, "/v1/creditPage", app.RenderCreditInitiationPage)
 	router.HandlerFunc(http.MethodGet, "/v1/batchTransactionPage", app.RenderBatchTransactionPage)

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/ebitezion/backend-framework/internal/accounts"
+	"github.com/ebitezion/backend-framework/internal/notifications"
 	"github.com/ebitezion/backend-framework/internal/payments"
 )
 
@@ -36,7 +38,12 @@ func (app *application) PaymentCreditInitiation(w http.ResponseWriter, r *http.R
 	if err != nil {
 		fmt.Println(err)
 	}
-	app.logger.Println(response)
+	//send notification
+	err = Notification(token, sendersAccountNumber, receiversAccountNumber, amount)
+	if err != nil {
+		fmt.Println(err)
+	}
+
 	data := envelope{
 		"responseCode": "00",
 		"status":       "Success",
@@ -73,7 +80,8 @@ func (app *application) PaymentDebitInitiation(w http.ResponseWriter, r *http.Re
 	if err != nil {
 		fmt.Println(err)
 	}
-	app.logger.Println(response)
+	//send notification
+
 	data := envelope{
 		"responseCode": "00",
 		"status":       "Success",
@@ -126,4 +134,38 @@ func (app *application) PaymentDepositInitiation(w http.ResponseWriter, r *http.
 // BatchTransaction is used by the banking application to process different transactions at the same time
 func (app *application) BatchTransaction() {
 
+}
+
+// this function is how to use the notification package
+func Notification(token string, sendersAccountNumber string, receiversAccountNumber string, amount string) error {
+	sender, err := accounts.FetchAccountMeta(sendersAccountNumber)
+	if err != nil {
+		return err
+	}
+
+	receiver, err := accounts.FetchAccountMeta(receiversAccountNumber)
+	if err != nil {
+		return err
+	}
+
+	users := [2]*accounts.AccountHolderDetails{sender, receiver}
+
+	for i := range users {
+
+		ns := notifications.NotificationService{}
+		User := notifications.User{
+			ID:       1,
+			Username: "adeoluwa",
+			Email:    "akanbiadenugba699@gmail.com",
+			Phone:    users[i].ContactNumber1,
+		}
+
+		notification := notifications.Notification{
+			User:    User,
+			Message: fmt.Sprintf("Amount of %s was transfered from %s to %s", amount, sender.AccountNumber, receiver.AccountNumber),
+		}
+		notifications.SendNotification(ns, notification)
+	}
+
+	return nil
 }

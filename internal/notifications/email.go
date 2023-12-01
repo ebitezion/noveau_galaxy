@@ -3,13 +3,14 @@ package notifications
 import (
 	"fmt"
 	"net/smtp"
+	"os"
 )
 
 func (ns *NotificationService) SendEmail(to, subject, body string) error {
 	// Set up authentication information.
-	from := "youremail@example.com"
-	password := "yourpassword"
-	smtpHost := "smtp.example.com"
+	from := "akanbiadenugba699@gmail.com"
+	password := os.Getenv("SMTP_PASSWORD")
+	smtpHost := "smtp.gmail.com"
 	smtpPort := "587"
 
 	auth := smtp.PlainAuth("", from, password, smtpHost)

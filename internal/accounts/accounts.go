@@ -52,6 +52,7 @@ Accounts (acmt) transactions are as follows:
 1002 - CheckAccountByID
 1003 -  BalanceEnquiry
 1004 - AccountHistory
+1005 - AccountMetaData
 
 */
 
@@ -117,7 +118,7 @@ type Transaction struct {
 	ReceiverBankNumber    string  `json:"receiverBankNumber"`
 	TransactionAmount     float64 `json:"transactionAmount"`
 	FeeAmount             float64 `json:"feeAmount"`
-	Timestamp             int     `json:"timestamp"`
+	Timestamp             string  `json:"timestamp"`
 }
 
 // Set up some defaults
@@ -127,7 +128,7 @@ const (
 	OPENING_OVERDRAFT = 0.
 )
 
-func ProcessAccount(data []string) (result string, err error) {
+func ProcessAccount(data []string) (result interface{}, err error) {
 	if len(data) < 3 {
 		return "", errors.New("accounts.ProcessAccount: Not enough fields, minimum 3")
 	}
@@ -177,6 +178,7 @@ func ProcessAccount(data []string) (result string, err error) {
 			return
 		}
 		result, err = fetchAccountBalance(data)
+
 		if err != nil {
 			return "", errors.New("accounts.ProcessAccount: " + err.Error())
 		}
@@ -199,6 +201,33 @@ func ProcessAccount(data []string) (result string, err error) {
 
 	return
 }
+func FetchAccountMeta(accountNumber string) (AccountHolderDetails *AccountHolderDetails, err error) {
+
+	if accountNumber == "" {
+		return nil, errors.New("accounts.fetchAccountMeta: Account number not present")
+	}
+
+	accountMeta, err := getAccountMeta(accountNumber)
+	if err != nil {
+		return nil, errors.New("accounts.fetchAccountMeta: " + err.Error())
+	}
+
+	return &accountMeta, nil
+}
+
+// func FetchBalanceEnquiry(accountNumber string) (AccountHolderDetails *BalanceEnquiry, err error) {
+
+// 	if accountNumber == "" {
+// 		return nil, errors.New("accounts.FetchBalanceEnquiry: Account number not present")
+// 	}
+
+// 	BalanceEnquiry, err := GetBalanceDetails(accountNumber)
+// 	if err != nil {
+// 		return nil, errors.New("accounts.fetchAccountMeta: " + err.Error())
+// 	}
+
+// 	return &BalanceEnquiry, nil
+// }
 
 func openAccount(data []string) (result string, err error) {
 	// Validate string against required info/length
@@ -382,47 +411,32 @@ func fetchSingleAccountByID(data []string) (result string, err error) {
 	result = userAccountNumber
 	return
 }
-func fetchAccountBalance(data []string) (result string, err error) {
-
-	// Format: token~acmt~1002~USERID
+func fetchAccountBalance(data []string) (result *BalanceEnquiry, err error) {
 	accountNumber := data[3]
 	if accountNumber == "" {
-		return "", errors.New("accounts.fetchSingleAccountByID: Account number not present")
+		return nil, errors.New("accounts.fetchSingleAccountByID: Account number not present")
 	}
 
 	balanceEnquiry, err := GetBalanceDetails(accountNumber)
 	if err != nil {
-		return "", errors.New("accounts.fetchSingleAccountByID: " + err.Error())
+		return nil, errors.New("accounts.fetchSingleAccountByID: " + err.Error())
 	}
 
-	// Parse into nice result string
-	jsonAccountBalance, err := json.Marshal(balanceEnquiry)
-	if err != nil {
-		return "", errors.New("accounts.fetchSingleAccount: " + err.Error())
-	}
-
-	result = string(jsonAccountBalance)
-	return
+	return &balanceEnquiry, nil
 }
-func fetchAccountHistory(data []string) (result string, err error) {
+
+func fetchAccountHistory(data []string) (result []Transaction, err error) {
 
 	// Format: token~acmt~1002~USERID
 	accountNumber := data[3]
 	if accountNumber == "" {
-		return "", errors.New("accounts.fetchSingleAccountByID: Account number not present")
+		return nil, errors.New("accounts.fetchSingleAccountByID: Account number not present")
 	}
 
-	balanceEnquiry, err := GetAccountHistory(accountNumber)
+	history, err := GetAccountHistory(accountNumber)
 	if err != nil {
-		return "", errors.New("accounts.fetchSingleAccountByID: " + err.Error())
+		return nil, errors.New("accounts.fetchSingleAccountByID: " + err.Error())
 	}
 
-	// Parse into nice result string
-	jsonAccountBalance, err := json.Marshal(balanceEnquiry)
-	if err != nil {
-		return "", errors.New("accounts.fetchSingleAccount: " + err.Error())
-	}
-
-	result = string(jsonAccountBalance)
-	return
+	return history, nil
 }
