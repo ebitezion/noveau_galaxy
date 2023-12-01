@@ -92,16 +92,17 @@ type AccountHolderDetails struct {
 	AddressLine3         string
 	PostalCode           string
 	Image                string
+	Country              string
 }
 
 type AccountDetails struct {
-	AccountNumber     string
-	BankNumber        string
-	AccountHolderName string
-	AccountBalance    decimal.Decimal
-	Overdraft         decimal.Decimal
-	AvailableBalance  decimal.Decimal
-	Timestamp         int
+	AccountNumber        string
+	BankNumber           string
+	AccountHolderName    string
+	AccountBalance       decimal.Decimal
+	Overdraft            decimal.Decimal
+	AvailableBalance     decimal.Decimal
+	AccountHolderDetails AccountHolderDetails
 }
 
 type BalanceEnquiry struct {

@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/ebitezion/backend-framework/internal/accounts"
 	"github.com/ebitezion/backend-framework/internal/notifications"
@@ -108,8 +109,9 @@ func (app *application) PaymentDepositInitiation(w http.ResponseWriter, r *http.
 	//for deposit only credit is receivers account number is required
 	//which is the number before the @ sign
 
-	sendersAccountNumber := r.FormValue("sendersAccountNumber")
-	sendersBankNumber := r.FormValue("sendersBankNumber")
+	sendersAccountNumber := os.Getenv("DEPOSIT_ACCOUNT_NUMBER")
+	sendersBankNumber := os.Getenv("DEPOSIT_BANK_NUMBER")
+
 	receiversAccountNumber := r.FormValue("receiversAccountNumber")
 	amount := r.FormValue("Amount")
 

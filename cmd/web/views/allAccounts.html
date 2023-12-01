@@ -2,95 +2,85 @@
 <div class="container-fluid">
 	<!-- Page Heading -->
 	<div class="d-sm-flex align-items-center justify-content-between mb-4">
-		<h1 class="h3 mb-0 text-gray-800 mx-auto">Account History</h1>
+		<h1 class="h3 mb-0 text-gray-800 mx-auto">Account Details</h1>
       
 	</div>
        
   <div class="card shadow mb-4">
-                        <div class="card-header py-3">
-                            <h6 class="m-0 font-weight-bold text-primary">DataTables Example</h6>
-                        </div>
+                        
                         <div class="card-body">
                             <div class="table-responsive">
                                 <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
                                     <thead>
                                         <tr>
                                             <th>Name</th>
-                                            <th>Position</th>
-                                            <th>Office</th>
-                                            <th>Age</th>
-                                            <th>Start date</th>
-                                            <th>Salary</th>
+                                            <th>BankNumber</th>
+                                            <th>AccountNumber</th>
+                                            <th>All Details</th>
+                                          
                                         </tr>
                                     </thead>
-                                    <tfoot>
+                                
+                                    {{ range .Accounts }}
                                         <tr>
-                                            <th>Name</th>
-                                            <th>Position</th>
-                                            <th>Office</th>
-                                            <th>Age</th>
-                                            <th>Start date</th>
-                                            <th>Salary</th>
+                                            <td>{{ .AccountHolderName }}</td>
+                                            <td>{{ .BankNumber }}</td>
+                                            <td>{{ .AccountNumber }}</td>
+                                            <td>
+                                                <!-- <span class="material-symbols-outlined ViewAccount" data-bs-toggle="modal" data-bs-target="ade"> visibility </span> -->
+                                               
+                                              
+                                                    <span class="material-symbols-outlined Vieworder" data-bs-toggle="modal"  data-bs-target="#{{ .AccountNumber }}" style="cursor: pointer;"> visibility </span>
+                                                
+                                            </td>
+                                            <div class="modal fade" id="{{ .AccountNumber }}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                            <div class="modal-dialog modal-dialog-centered modal-xl">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h1 class="modal-title fs-5" id="exampleModalLabel"></h1>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <div class="row">
+                                                            <div class="col-md-6">
+                                                                <h3>Account Information</h3>
+                                                                <p><strong>Account Number:</strong> {{ .AccountNumber }}</p>
+                                                                <p><strong>Bank Number:</strong> {{ .BankNumber }}</p>
+                                                                <p><strong>Account Holder Name:</strong> {{ .AccountHolderName }}</p>
+                                                                <p><strong>Account Balance:</strong> {{ .AccountBalance }}</p>
+                                                                <p><strong>Overdraft:</strong> {{ .Overdraft }}</p>
+                                                                <p><strong>Available Balance:</strong> {{ .AvailableBalance }}</p>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <h3>Contact Information</h3>
+                                                                <p><strong>Given Name:</strong> {{ .AccountHolderDetails.GivenName }}</p>
+                                                                <p><strong>Family Name:</strong> {{ .AccountHolderDetails.FamilyName }}</p>
+                                                                <p><strong>Date of Birth:</strong> {{ .AccountHolderDetails.DateOfBirth }}</p>
+                                                                <p><strong>Identification Number:</strong> {{ .AccountHolderDetails.IdentificationNumber }}</p>
+                                                                <p><strong>Contact Number 1:</strong> {{ .AccountHolderDetails.ContactNumber1 }}</p>
+                                                                <p><strong>Contact Number 2:</strong> {{ .AccountHolderDetails.ContactNumber2 }}</p>
+                                                                <!-- Add more contact fields as needed -->
+                                                                <p><strong>Email Address:</strong> {{ .AccountHolderDetails.EmailAddress }}</p>
+                                                                <p><strong>Address Line 1:</strong> {{ .AccountHolderDetails.AddressLine1 }}</p>
+                                                                <p><strong>Address Line 2:</strong> {{ .AccountHolderDetails.AddressLine2 }}</p>
+                                                                <p><strong>Address Line 3:</strong> {{ .AccountHolderDetails.AddressLine3 }}</p>
+                                                                <p><strong>Postal Code:</strong> {{ .AccountHolderDetails.PostalCode }}</p>
+                                                                <p><strong>Country:</strong> {{ .AccountHolderDetails.Country }}</p>
+                                                                <p><strong>Image:</strong> {{ .AccountHolderDetails.Image }}</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                        <button type="button" class="btn btn-primary">Save changes</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                            <!-- Add more fields as needed -->
                                         </tr>
-                                    </tfoot>
-                                    <tbody>
-                                        <tr>
-                                            <td>Tiger Nixon</td>
-                                            <td>System Architect</td>
-                                            <td>Edinburgh</td>
-                                            <td>61</td>
-                                            <td>2011/04/25</td>
-                                            <td>$320,800</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Garrett Winters</td>
-                                            <td>Accountant</td>
-                                            <td>Tokyo</td>
-                                            <td>63</td>
-                                            <td>2011/07/25</td>
-                                            <td>$170,750</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Ashton Cox</td>
-                                            <td>Junior Technical Author</td>
-                                            <td>San Francisco</td>
-                                            <td>66</td>
-                                            <td>2009/01/12</td>
-                                            <td>$86,000</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Cedric Kelly</td>
-                                            <td>Senior Javascript Developer</td>
-                                            <td>Edinburgh</td>
-                                            <td>22</td>
-                                            <td>2012/03/29</td>
-                                            <td>$433,060</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Airi Satou</td>
-                                            <td>Accountant</td>
-                                            <td>Tokyo</td>
-                                            <td>33</td>
-                                            <td>2008/11/28</td>
-                                            <td>$162,700</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Brielle Williamson</td>
-                                            <td>Integration Specialist</td>
-                                            <td>New York</td>
-                                            <td>61</td>
-                                            <td>2012/12/02</td>
-                                            <td>$372,000</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Herrod Chandler</td>
-                                            <td>Sales Assistant</td>
-                                            <td>San Francisco</td>
-                                            <td>59</td>
-                                            <td>2012/08/06</td>
-                                            <td>$137,500</td>
-                                        </tr>
-                             
+                                        
+                                    {{ end }}
                                     </tbody>
                                 </table>
                             </div>
