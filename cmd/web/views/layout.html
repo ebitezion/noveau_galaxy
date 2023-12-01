@@ -14,13 +14,13 @@
 			href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
 		/>
 		<!-- Custom fonts for this template-->
-		<link href="/cmd/web/static/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css" />
+		<link href="/static/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css" />
 		<link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet" />
 
 		<!-- Custom styles for this template-->
-		<link href="/cmd/web/static/css/sb-admin-2.min.css" rel="stylesheet" />
+		<link href="/static/css/sb-admin-2.min.css" rel="stylesheet" />
 		<!-- Custom css -->
-		<link href="/cmd/web/static/css/main.css" rel="stylesheet" />
+		<link href="/static/css/main.css" rel="stylesheet" />
 	</head>
 
 	<body id="page-top">
@@ -88,8 +88,8 @@
 					</a>
 					<div id="collapseUtilities" class="collapse" aria-labelledby="headingUtilities" data-parent="#accordionSidebar">
 						<div class="bg-white py-2 collapse-inner rounded">
-							<a class="collapse-item" href="/v1/DepositPage">Deposit Initiation</a>
-							<a class="collapse-item" href="/v1/CreditPage">Credit Initiation</a>
+							<a class="collapse-item" href="/v1/depositPage">Deposit Initiation</a>
+							<a class="collapse-item" href="/v1/creditPage">Credit Initiation</a>
 							<a class="collapse-item" href="/v1/batchTransactionPage">Batch Transaction</a>
 						</div>
 					</div>
@@ -337,10 +337,10 @@
 						</ul>
 					</nav>
 					<!-- End of Topbar -->
-
+					{{ template "content" .}}
 					<!-- Begin Page Content -->
 
-					{{ template "content" .}}
+				
 				</div>
 				<!-- End of Main Content -->
 
@@ -383,20 +383,20 @@
 		</div>
 
 		<!-- Bootstrap core JavaScript-->
-		<script src="/cmd/web/static/vendor/jquery/jquery.min.js"></script>
-		<script src="/cmd/web/static/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+		<script src="/static/vendor/jquery/jquery.min.js"></script>
+		<script src="/static/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 
 		<!-- Core plugin JavaScript-->
-		<script src="/cmd/web/static/vendor/jquery-easing/jquery.easing.min.js"></script>
+		<script src="/static/vendor/jquery-easing/jquery.easing.min.js"></script>
 
 		<!-- Custom scripts for all pages-->
-		<script src="/cmd/web/static/js/sb-admin-2.min.js"></script>
+		<script src="/static/js/sb-admin-2.min.js"></script>
 
 		<!-- Page level plugins -->
-		<script src="/cmd/web/static/vendor/chart.js/Chart.min.js"></script>
+		<script src="/static/vendor/chart.js/Chart.min.js"></script>
 
 		<!-- Page level custom scripts -->
-		<script src="/cmd/web/static/js/demo/chart-area-demo.js"></script>
-		<script src="/cmd/web/static/js/demo/chart-pie-demo.js"></script>
+		<script src="/static/js/demo/chart-area-demo.js"></script>
+		<script src="/static/js/demo/chart-pie-demo.js"></script>
 	</body>
 </html>

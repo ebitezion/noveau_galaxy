@@ -16,22 +16,19 @@ func SetConfig(config *configuration.Configuration) {
 
 func savePainTransaction(transaction PAINTrans) (err error) {
 	// Prepare statement for inserting data
-	insertStatement := "INSERT INTO transactions (`transaction`, `type`, `senderAccountNumber`, `senderBankNumber`, `receiverAccountNumber`, `receiverBankNumber`, `transactionAmount`, `feeAmount`, `timestamp`,`narration`) "
-	insertStatement += "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?,?)"
+	insertStatement := "INSERT INTO transactions (`transaction`, `type`, `senderAccountNumber`, `senderBankNumber`, `receiverAccountNumber`, `receiverBankNumber`, `transactionAmount`, `feeAmount`,`narration`) "
+	insertStatement += "VALUES(?, ?, ?, ?, ?, ?, ?, ?,?)"
 	stmtIns, err := Config.Db.Prepare(insertStatement)
 	if err != nil {
 		return errors.New("payments.savePainTransaction: " + err.Error())
 	}
 	defer stmtIns.Close() // Close the statement when we leave main() / the program terminates
 
-	t := time.Now()
-	sqlTime := int32(t.Unix())
-
 	// The feePerc is a percentage, convert to amount
 	feeAmount := transaction.Amount.Mul(transaction.Fee)
 
 	_, err = stmtIns.Exec("pain", transaction.PainType, transaction.Sender.AccountNumber, transaction.Sender.BankNumber, transaction.Receiver.AccountNumber, transaction.Receiver.BankNumber,
-		transaction.Amount, feeAmount, sqlTime, transaction.Narration)
+		transaction.Amount, feeAmount, transaction.Narration)
 
 	if err != nil {
 		return errors.New("payments.savePainTransaction: " + err.Error())
@@ -141,14 +138,14 @@ func checkBalance(account AccountHolder) (balance decimal.Decimal, err error) {
 func processCreditInitiation(transaction PAINTrans, sqlTime int32, feeAmount decimal.Decimal) (err error) {
 	// Only update if account local
 	if transaction.Sender.BankNumber == "" {
-		updateSenderStatement := "UPDATE accounts SET `accountBalance` = (`accountBalance` - ?), `availableBalance` = (`availableBalance` - ?), `timestamp` = ? WHERE `accountNumber` = ? "
+		updateSenderStatement := "UPDATE accounts SET `accountBalance` = (`accountBalance` - ?), `availableBalance` = (`availableBalance` - ?)   WHERE `accountNumber` = ? "
 		stmtUpdSender, err := Config.Db.Prepare(updateSenderStatement)
 		if err != nil {
 			return errors.New("payments.processCreditInitiation: " + err.Error())
 		}
 		defer stmtUpdSender.Close() // Close the statement when we leave main() / the program terminates
 
-		_, err = stmtUpdSender.Exec(transaction.Amount.Add(feeAmount), transaction.Amount.Add(feeAmount), sqlTime, transaction.Sender.AccountNumber)
+		_, err = stmtUpdSender.Exec(transaction.Amount.Add(feeAmount), transaction.Amount.Add(feeAmount), transaction.Sender.AccountNumber)
 
 		if err != nil {
 			return errors.New("payments.processCreditInitiation: " + err.Error())
@@ -161,14 +158,15 @@ func processCreditInitiation(transaction PAINTrans, sqlTime int32, feeAmount dec
 	// Update receiver account
 	// Only update if account local
 	if transaction.Receiver.BankNumber == "" {
-		updateStatementReceiver := "UPDATE accounts SET `accountBalance` = (`accountBalance` + ?), `availableBalance` = (`availableBalance` + ?), `timestamp` = ? WHERE `accountNumber` = ? "
+		updateStatementReceiver := "UPDATE accounts SET `accountBalance` = (`accountBalance` + ?), `availableBalance` = (`availableBalance` + ?) WHERE `accountNumber` = ? "
 		stmtUpdReceiver, err := Config.Db.Prepare(updateStatementReceiver)
 		if err != nil {
 			return errors.New("payments.processCreditInitiation: " + err.Error())
 		}
 		defer stmtUpdReceiver.Close() // Close the statement when we leave main() / the program terminates
 
-		_, err = stmtUpdReceiver.Exec(transaction.Amount, transaction.Amount, sqlTime, transaction.Receiver.AccountNumber)
+		_, err = stmtUpdReceiver.Exec(transaction.Amount, transaction.Amount,
+			transaction.Receiver.AccountNumber)
 
 		if err != nil {
 			return errors.New("payments.processCreditInitiation: " + err.Error())

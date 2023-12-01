@@ -18,9 +18,9 @@
         rel="stylesheet">
 
     <!-- Custom styles for this template-->
-    <link href="/cmd/web/static/css/sb-admin-2.min.css" rel="stylesheet">
+    <link href="/static/css/sb-admin-2.min.css" rel="stylesheet">
     <!-- Custom css -->
-    <link href="/cmd/web/static/css/main.css" rel="stylesheet">
+    <link href="/static/css/main.css" rel="stylesheet">
 
 </head>
 
@@ -44,13 +44,13 @@
                                     </div> 
                                     <form class="user" id="loginForm" >
                                         <div class="form-group">
-                                            <input type="text" class="form-control form-control-user" name="User"
+                                            <input type="text" class="form-control form-control-user" name="accountNumber"
                                                 id="exampleInputEmail" aria-describedby="emailHelp"
                                                 placeholder="Enter Account Number...">
                                         </div>
                                         <div class="form-group">
-                                            <input type="password" class="form-control form-control-user"name="Password"
-                                                id="exampleInputPassword" placeholder="Password">
+                                            <input type="password" class="form-control form-control-user"name="password"
+                                                id="exampleInputPassword" placeholder="password">
                                         </div>
                                         <div class="form-group">
                                             <div class="custom-control custom-checkbox small">
@@ -62,10 +62,7 @@
                                         <button type="submit" class="btn btn-custom btn-user btn-block">Login</button>
                                      
                                         <hr>
-                                        <a href="main.html" class="btn btn-google btn-user btn-block">
-                                            <i class="fab fa-google fa-fw"></i> Login with Google
-                                        </a>
-                                    
+                                       
                                     </form>
                                     <hr>
                                     <div class="text-center">
@@ -127,9 +124,10 @@
                 console.log("Response Code: " + responseCode);
                 console.log("Status: " + status);
 
-                // Example manipulation: Check if the status is "Success"
+                
                 if (status === "Success") {
-                    makeAuthenticatedApiCall(message)
+                    localStorage.setItem('token', data.message);
+                    // makeAuthenticatedApiCall(message)
                 }
             })
             .catch(error => console.log('error', error));

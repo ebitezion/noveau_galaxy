@@ -288,7 +288,7 @@ func (app *application) Register(biodata data.AccountBioData) (accountNumber str
 // CreateTransaction stores a transaction that occured in the database
 func (app *application) CreateTransaction(transaction *data.Transaction) error {
 	//Insert Identity data to DB
-	query := `INSERT INTO transactions (sender_account_id, receiver_account_id, amount, currency_code, status, transaction_type, timestamp) VALUES (?, ?, ?, ?, ?, ?,?)`
+	query := `INSERT INTO transactions (sender_account_id, receiver_account_id, amount, currency_code, status, transaction_type, ) VALUES (?, ?, ?, ?, ?, ?)`
 
 	args := []interface{}{transaction.SenderAccountID, transaction.ReceiverAccountID, transaction.Amount, transaction.CurrencyCode, transaction.Status, transaction.TransactionType}
 
@@ -355,12 +355,13 @@ func (app *application) AccountCreate(w http.ResponseWriter, r *http.Request) {
 	// accountHolderAddressLine2 := "Apt 4B"
 	// accountHolderAddressLine3 := "Building XYZ"
 	// accountHolderPostalCode := "12345"
+
 	accountHolderGivenName := r.FormValue("accountHolderGivenName")
 	accountHolderFamilyName := r.FormValue("accountHolderFamilyName")
 	accountHolderDateOfBirth := r.FormValue("accountHolderDateOfBirth")
 	accountHolderIdentificationNumber := r.FormValue("accountHolderIdentificationNumber")
 	accountHolderContactNumber1 := r.FormValue("accountHolderContactNumber1")
-	accountHolderContactNumber2 := r.FormValue("accountHolderContactNumber2")
+	accountHolderContactNumber2 := r.FormValue("accountHolderContactNumber1")
 	accountHolderEmailAddress := r.FormValue("accountHolderEmailAddress")
 	accountHolderAddressLine1 := r.FormValue("accountHolderAddressLine1")
 	accountHolderAddressLine2 := r.FormValue("accountHolderAddressLine2")
@@ -477,8 +478,9 @@ func (app *application) AccountGetAll(w http.ResponseWriter, r *http.Request) {
 
 // BalanceEnquiry gets the balance details of a user provided a valid accountNumber
 func (app *application) BalanceEnquiry(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Account GetAll")
-	token, err := app.getTokenFromHeader(w, r)
+
+	_, err := app.getTokenFromHeader(w, r)
+
 	if err != nil {
 		//there was error
 		data := envelope{
@@ -491,9 +493,10 @@ func (app *application) BalanceEnquiry(w http.ResponseWriter, r *http.Request) {
 		return
 
 	}
+
 	accountNumber := r.FormValue("accountNumber")
 
-	response, err := accounts.ProcessAccount([]string{token, "acmt", "1003", accountNumber})
+	response, err := accounts.ProcessAccount([]string{"2d5d6e89-2910-48f3-a730-47713040e200", "acmt", "1003", accountNumber})
 
 	if err != nil {
 		//there was error
@@ -507,7 +510,7 @@ func (app *application) BalanceEnquiry(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	//Response(response, err, w, r)
-	app.logger.Println(response)
+
 	data := envelope{
 		"responseCode": "00",
 		"status":       "Success",
@@ -519,7 +522,7 @@ func (app *application) BalanceEnquiry(w http.ResponseWriter, r *http.Request) {
 
 // AccountHistory retrieves the account history of a user
 func (app *application) AccountHistory(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Account GetAll")
+
 	token, err := app.getTokenFromHeader(w, r)
 	if err != nil {
 		//there was error

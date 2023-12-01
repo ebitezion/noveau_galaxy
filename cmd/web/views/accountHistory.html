@@ -1,0 +1,78 @@
+{{ template "header" . }}
+<div class="container-fluid">
+	<!-- Page Heading -->
+	<div class="d-sm-flex align-items-center justify-content-between mb-4">
+		<h1 class="h3 mb-0 text-gray-800 mx-auto">Account History</h1>
+      
+	</div>
+        <div class="w-50 mx-auto">
+     <form class="user" id="myform" method="post" action="/v1/accountHistory">
+    
+            <div class="form-group">
+                <input type="text" class="form-control form-control-user" name="accountNumber"
+                    id="exampleInputEmail" aria-describedby="emailHelp"
+                    placeholder="Enter Account Number..." required>
+            </div>
+
+    
+            <button type="button" onclick="submitForm()" class="btn btn-custom btn-user btn-block">Submit</button>           
+
+        </form> 
+        </div>
+  <table class="table mt-5">
+    <thead> 
+      <tr>
+         <th>SN</th>
+        <th>ID</th>
+        <th>Transaction Type</th>
+        <th>Sender Account Number</th>
+        <th>Sender Bank Number</th>
+        <th>Receiver Account Number</th>
+        <th>Receiver Bank Number</th>
+        <th>Transaction Amount</th>
+        <th>Fee Amount</th>
+        <th>Timestamp</th>
+      </tr>
+    </thead>
+    <tbody id="transactionTableBody">
+   
+    </tbody>
+  </table>
+	<script>
+        function submitForm() {
+            var formdata = new FormData(document.getElementById("myform"));
+            var requestOptions = {
+                method: 'POST',
+                headers: {
+                    'X-Auth-Token': '0787ff11-d9ba-4355-8bab-b5506aefbc46',
+                },
+                body: formdata,
+            };
+
+            fetch("http://localhost:4000/v1/accountHistory", requestOptions)
+                .then(response => response.json()) // Parse the response as JSON
+                .then(result => {
+                    console.log(result);
+                    // Update the HTML table with the received data
+                    var tableBody = document.getElementById("transactionTableBody");
+                    tableBody.innerHTML = ""; // Clear existing data
+                    var index = 1 
+                    result.message.forEach(function (transaction) {
+                        var row = tableBody.insertRow(-1);
+                           
+                        row.insertCell(0).textContent = index++; // SN Column
+                        row.insertCell(1).textContent = transaction.id;
+                        row.insertCell(2).textContent = transaction.transaction;
+                        row.insertCell(3).textContent = transaction.senderAccountNumber;
+                        row.insertCell(4).textContent = transaction.senderBankNumber;
+                        row.insertCell(5).textContent = transaction.receiverAccountNumber;
+                        row.insertCell(6).textContent = transaction.receiverBankNumber;
+                        row.insertCell(7).textContent = transaction.transactionAmount;
+                        row.insertCell(8).textContent = transaction.feeAmount;
+                        row.insertCell(9).textContent = transaction.timestamp;
+                    });
+                })
+                .catch(error => console.log('error', error));
+        }
+    </script>
+{{ template "footer" . }}

@@ -296,70 +296,111 @@ func (app *application) generateRandomString(length int) string {
 // 	return NewPath[len(NewPath)-1]
 // }
 
+// func (app *application) RenderTemplate(w http.ResponseWriter, templateFiles []string, data interface{}, layout string, funcMap template.FuncMap) {
+// 	var tmpl *template.Template
+
+// 	app.mu.Lock()
+// 	defer app.mu.Unlock()
+
+// 	if layout != "" {
+// 		tmpl = app.getTemplate(layout)
+// 	} else {
+// 		tmpl = app.ParseTemplate(templateFiles)
+// 	}
+
+// 	if funcMap != nil {
+// 		tmpl.Funcs(funcMap)
+// 	}
+
+// 	app.ExecuteTemplate(w, tmpl, data, layout)
+// }
+
+// func (app *application) getTemplate(name string) *template.Template {
+// 	if tmpl, ok := app.templates[name]; ok {
+// 		return tmpl
+// 	}
+
+// 	tmpl, err := template.ParseFiles(name)
+// 	if err != nil {
+// 		log.Println(err)
+// 		return nil
+// 	}
+
+// 	app.templates[name] = tmpl
+// 	return tmpl
+// }
+
+// func (app *application) ParseTemplate(templateFiles []string) *template.Template {
+// 	app.mu.Lock()
+// 	defer app.mu.Unlock()
+
+// 	tmpl, err := template.ParseFiles(templateFiles...)
+// 	if err != nil {
+// 		log.Println(err)
+// 	}
+// 	return tmpl
+// }
+
+// func (app *application) ExecuteTemplate(w http.ResponseWriter, tmpl *template.Template, data interface{}, layout string) {
+// 	if tmpl == nil {
+// 		http.Error(w, "Template not found", http.StatusInternalServerError)
+// 		return
+// 	}
+
+// 	layout = app.RemoveSlashFromPath(layout)
+// 	err := tmpl.ExecuteTemplate(w, layout, data)
+// 	if err != nil {
+// 		log.Println(err)
+// 		http.Error(w, "Internal server error", http.StatusInternalServerError)
+// 	}
+// }
+
+//	func (app *application) RemoveSlashFromPath(path string) string {
+//		NewPath := strings.Split(path, "/")
+//		return NewPath[len(NewPath)-1]
+//	}
 func (app *application) RenderTemplate(w http.ResponseWriter, templateFiles []string, data interface{}, layout string, funcMap template.FuncMap) {
-	var tmpl *template.Template
-
-	app.mu.Lock()
-	defer app.mu.Unlock()
-
-	if layout != "" {
-		tmpl = app.getTemplate(layout)
-	} else {
-		tmpl = app.ParseTemplate(templateFiles)
-	}
-
 	if funcMap != nil {
-		tmpl.Funcs(funcMap)
+		tmpl, err := TemplateFunction(templateFiles, funcMap, layout)
+		if err != nil {
+			return
+		}
+		ExecuteTemplate(w, tmpl, data, layout)
+		return
 	}
+	tmpl := ParseTemplate(templateFiles)
+	ExecuteTemplate(w, tmpl, data, layout)
 
-	app.ExecuteTemplate(w, tmpl, data, layout)
 }
-
-func (app *application) getTemplate(name string) *template.Template {
-	if tmpl, ok := app.templates[name]; ok {
-		return tmpl
-	}
-
-	tmpl, err := template.ParseFiles(name)
+func TemplateFunction(templateFiles []string, funcMap template.FuncMap, layout string) (*template.Template, error) {
+	tmpl, err := template.New(layout).Funcs(funcMap).ParseFiles(templateFiles...)
 	if err != nil {
 		log.Println(err)
-		return nil
+		return nil, err
 	}
+	return tmpl, nil
 
-	app.templates[name] = tmpl
-	return tmpl
 }
-
-func (app *application) ParseTemplate(templateFiles []string) *template.Template {
-	app.mu.Lock()
-	defer app.mu.Unlock()
-
+func ParseTemplate(templateFiles []string) *template.Template {
 	tmpl, err := template.ParseFiles(templateFiles...)
 	if err != nil {
 		log.Println(err)
+
 	}
 	return tmpl
 }
-
-func (app *application) ExecuteTemplate(w http.ResponseWriter, tmpl *template.Template, data interface{}, layout string) {
-	if tmpl == nil {
-		http.Error(w, "Template not found", http.StatusInternalServerError)
-		return
-	}
-
-	layout = app.RemoveSlashFromPath(layout)
+func ExecuteTemplate(w http.ResponseWriter, tmpl *template.Template, data interface{}, layout string) {
+	layout = RemoveSlashFromPath(layout)
 	err := tmpl.ExecuteTemplate(w, layout, data)
 	if err != nil {
 		log.Println(err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
 	}
-}
 
-func (app *application) RemoveSlashFromPath(path string) string {
+}
+func RemoveSlashFromPath(path string) string {
 	NewPath := strings.Split(path, "/")
 	return NewPath[len(NewPath)-1]
 }
-
 func newApplication() *application {
 	return &application{
 		templates: make(map[string]*template.Template),
