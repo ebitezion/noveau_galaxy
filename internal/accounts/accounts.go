@@ -216,7 +216,15 @@ func FetchAccountMeta(accountNumber string) (AccountHolderDetails *AccountHolder
 
 	return &accountMeta, nil
 }
+func fetchAccounts(data []string) (result []AccountDetails, err error) {
+	// Fetch all accounts. This fetches non-sensitive information (no balances)
+	accounts, err := getAllAccountDetails()
+	if err != nil {
+		return nil, errors.New("accounts.fetchAccounts: " + err.Error())
+	}
 
+	return accounts, nil
+}
 func openAccount(data []string) (result string, err error) {
 	// Validate string against required info/length
 	if len(data) < 14 {
@@ -347,15 +355,6 @@ func setAccountHolderDetails(data []string) (accountHolderDetails AccountHolderD
 }
 
 // @TODO Remove this after testing, security risk
-func fetchAccounts(data []string) (result []AccountDetails, err error) {
-	// Fetch all accounts. This fetches non-sensitive information (no balances)
-	accounts, err := getAllAccountDetails()
-	if err != nil {
-		return nil, errors.New("accounts.fetchAccounts: " + err.Error())
-	}
-
-	return accounts, nil
-}
 
 func fetchSingleAccount(data []string) (result string, err error) {
 	// Fetch user account. Must be user logged in
