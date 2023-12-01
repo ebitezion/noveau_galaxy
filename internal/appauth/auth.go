@@ -1,6 +1,7 @@
 package appauth
 
 import (
+	"context"
 	"crypto/sha512"
 	"encoding/hex"
 	"errors"
@@ -155,6 +156,7 @@ func RemoveUserPassword(user string, hashedPassword string) (result string, err 
 
 func CreateToken(user string, password string) (token string, err error) {
 
+	//check if password is correct
 	rows, err := Config.Db.Query("SELECT `password` FROM `accounts_auth` WHERE `username` = ?", user)
 	if err != nil {
 		return "", errors.New("appauth.CreateToken: Error with select query. " + err.Error())
@@ -191,6 +193,25 @@ func CreateToken(user string, password string) (token string, err error) {
 	return
 }
 
+// CheckIfValueExists checks if a given value is in the specified table and returns a boolean
+func CheckIfValueExists(Query string, Args []interface{}) (bool, error) {
+
+	// Declare a variable to store the count.
+	var count int
+
+	// Use the context.WithTimeout() function to create a context.Context with a timeout.
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	// Use QueryRowContext() to execute the query and get the count.
+	err := Config.Db.QueryRowContext(ctx, Query, Args...).Scan(&count)
+	if err != nil {
+		return false, err
+	}
+
+	// If the count is greater than 0, the invitee is already in the database.
+	return count > 0, nil
+}
 func RemoveToken(token string) (result string, err error) {
 	//TEST 0~appauth~480e67e3-e2c9-48ee-966c-8d251474b669
 	_, err = Config.Redis.Del(token).Result()

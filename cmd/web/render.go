@@ -10,6 +10,9 @@ type BalanceEnquiryPageData struct {
 	Data *accounts.BalanceEnquiry
 	name string
 }
+type AllAccountPageData struct {
+	Accounts []accounts.AccountDetails
+}
 
 // RenderIndexPage renders a HTML page
 func (app *application) RenderIndexPage(w http.ResponseWriter, r *http.Request) {
@@ -57,10 +60,13 @@ func (app *application) RenderAccountHistory(w http.ResponseWriter, r *http.Requ
 
 // RenderBatchTransactionPage renders a HTML page
 func (app *application) RenderAllAccountsPage(w http.ResponseWriter, r *http.Request) {
-	// data, err := accounts.ProcessAccount([]string{"", "acmt", "1004"})
+	// data, err := accounts.ProcessAccount([]string{"", "acmt", "1000"})
 	// if err != nil {
 	// 	fmt.Println(err)
+	// 	return
 	// }
-	// fmt.Println(data)
+	// pageData := AllAccountPageData{
+	// 	Accounts: data,
+	// }
 	app.RenderTemplate(w, []string{"cmd/web/views/allAccounts.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, nil, "cmd/web/views/allAccounts.html", nil)
 }
