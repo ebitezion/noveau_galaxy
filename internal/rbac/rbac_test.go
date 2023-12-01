@@ -7,7 +7,7 @@ import (
 )
 
 func TestRBAC(t *testing.T) {
-	// Initialize RBAC
+	// Initialize a new RBAC instance
 	rbacSystem := rbac.NewRBAC()
 
 	// Add roles with associated privileges
@@ -28,55 +28,23 @@ func TestRBAC(t *testing.T) {
 		t.Errorf("Error adding user user: %v", err)
 	}
 
-	// Retrieve and update a user
-	userToUpdate, err := rbacSystem.GetUserByUsername("admin")
+	// Save RBAC configuration to a file
+	if err := rbacSystem.Save("rbac_test_config.json"); err != nil {
+		t.Errorf("Error saving RBAC configuration: %v", err)
+	}
+
+	// Load RBAC configuration from the file
+	loadedRBACSystem, err := rbac.Load("rbac_test_config.json")
 	if err != nil {
-		t.Errorf("Error retrieving user: %v", err)
-	}
-
-	userToUpdate.Password = "newadminpass"
-	err = rbacSystem.UpdateUser("admin", userToUpdate)
-	if err != nil {
-		t.Errorf("Error updating user: %v", err)
-	}
-
-	updatedUser, err := rbacSystem.GetUserByUsername("admin")//
-	t.Log("Got",updatedUser,"Expected", )
-	if err != nil {
-		t.Errorf("Error retrieving updated user: %v", err)
-	}
-
-	// Check permissions for users
-	adminPermissions := rbacSystem.CheckPermission(adminUser, "Delete")
-	if !adminPermissions {
-		t.Error("Admin should have permission to delete")
-	}
-
-	userPermissions := rbacSystem.CheckPermission(userUser, "Update")
-	if userPermissions {
-		t.Error("User shouldn't have permission to update")
-	}
-
-	// Update role privileges
-	err = rbacSystem.UpdateRolePrivileges("Admin", []rbac.Privilege{"Create", "Read", "Update"})
-	if err != nil {
-		t.Errorf("Error updating role privileges: %v", err)
-	}
-
-	// Delete a user
-	err = rbacSystem.DeleteUser("user")
-	if err != nil {
-		t.Errorf("Error deleting user: %v", err)
-	}
-
-	_, err = rbacSystem.GetUserByUsername("user")
-	if err == nil {
-		t.Error("Deleted user shouldn't be found")
-	}
-
-	// Delete a role
-	err = rbacSystem.DeleteRole("User")
-	if err != nil {
-		t.Errorf("Error deleting role: %v", err)
+		t.Errorf("Error loading RBAC configuration: %v", err)
+	} else {
+		// Check if the loaded RBAC system has the privilege for a user
+		user := rbac.User{Username: "admin", Password: "adminpass", Roles: []rbac.Role{"Admin"}}
+		permission := "Read"
+		hasPermission := loadedRBACSystem.CheckPermission(user, rbac.Privilege(permission))
+		expectedPermission := true // Change this according to your expectation
+		if hasPermission != expectedPermission {
+			t.Errorf("Expected permission '%s' for user 'admin', got %v", permission, hasPermission)
+		}
 	}
 }

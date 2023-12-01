@@ -3,7 +3,9 @@
 package rbac
 
 import (
+	"encoding/json"
 	"errors"
+	"io/ioutil"
 	"sync"
 )
 
@@ -22,22 +24,22 @@ type User struct {
 
 // RBAC represents the Role-Based Access Control system
 type RBAC struct {
-	rolePrivileges map[Role][]Privilege
-	users          map[string]User // Map of username to User
+	RolePrivileges map[Role][]Privilege
+	Users          map[string]User // Map of username to User
 	mutex          sync.RWMutex
 }
 
 // NewRBAC creates a new RBAC instance
 func NewRBAC() *RBAC {
 	return &RBAC{
-		rolePrivileges: make(map[Role][]Privilege),
-		users:          make(map[string]User),
+		RolePrivileges: make(map[Role][]Privilege),
+		Users:          make(map[string]User),
 	}
 }
 
 // AddRole adds a new role with associated privileges
 func (r *RBAC) AddRole(role Role, privileges []Privilege) {
-	r.rolePrivileges[role] = privileges
+	r.RolePrivileges[role] = privileges
 }
 
 // AddUser adds a new user to the RBAC system
@@ -45,11 +47,11 @@ func (r *RBAC) AddUser(user User) error {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 
-	if _, exists := r.users[user.Username]; exists {
+	if _, exists := r.Users[user.Username]; exists {
 		return errors.New("user already exists")
 	}
 
-	r.users[user.Username] = user
+	r.Users[user.Username] = user
 	return nil
 }
 
@@ -58,7 +60,7 @@ func (r *RBAC) GetUserByUsername(username string) (User, error) {
 	r.mutex.RLock()
 	defer r.mutex.RUnlock()
 
-	user, exists := r.users[username]
+	user, exists := r.Users[username]
 	if !exists {
 		return User{}, errors.New("user not found")
 	}
@@ -71,11 +73,11 @@ func (r *RBAC) UpdateUser(username string, updatedUser User) error {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 
-	if _, exists := r.users[username]; !exists {
+	if _, exists := r.Users[username]; !exists {
 		return errors.New("user not found")
 	}
 
-	r.users[username] = updatedUser
+	r.Users[username] = updatedUser
 	return nil
 }
 
@@ -84,11 +86,11 @@ func (r *RBAC) DeleteUser(username string) error {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 
-	if _, exists := r.users[username]; !exists {
+	if _, exists := r.Users[username]; !exists {
 		return errors.New("user not found")
 	}
 
-	delete(r.users, username)
+	delete(r.Users, username)
 	return nil
 }
 
@@ -97,11 +99,11 @@ func (r *RBAC) UpdateRolePrivileges(role Role, updatedPrivileges []Privilege) er
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 
-	if _, exists := r.rolePrivileges[role]; !exists {
+	if _, exists := r.RolePrivileges[role]; !exists {
 		return errors.New("role not found")
 	}
 
-	r.rolePrivileges[role] = updatedPrivileges
+	r.RolePrivileges[role] = updatedPrivileges
 	return nil
 }
 
@@ -110,19 +112,27 @@ func (r *RBAC) DeleteRole(role Role) error {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 
-	if _, exists := r.rolePrivileges[role]; !exists {
+	if _, exists := r.RolePrivileges[role]; !exists {
 		return errors.New("role not found")
 	}
 
-	delete(r.rolePrivileges, role)
+	delete(r.RolePrivileges, role)
 	return nil
 }
 
 // CheckPermission checks if a user with certain roles has the required privilege
 func (r *RBAC) CheckPermission(user User, privilege Privilege) bool {
-	for _, role := range user.Roles {
-		privileges, exists := r.rolePrivileges[role]
+	// Retrieve user roles from the RBAC system
+	userRoles, err := r.GetUserByUsername(user.Username)
+	if err != nil {
+		return false // User not found or error occurred
+	}
+
+	for _, role := range userRoles.Roles {
+		// Retrieve privileges for each role from the RBAC system
+		privileges, exists := r.RolePrivileges[role]
 		if exists {
+			// Check if the required privilege exists for the user's role
 			for _, p := range privileges {
 				if p == privilege {
 					return true // User has the required privilege
@@ -132,4 +142,32 @@ func (r *RBAC) CheckPermission(user User, privilege Privilege) bool {
 	}
 
 	return false // User doesn't have the required privilege
+}
+
+// Save saves RBAC configuration to a JSON file
+func (r *RBAC) Save(filename string) error {
+	r.mutex.RLock()
+	defer r.mutex.RUnlock()
+
+	data, err := json.Marshal(r)
+	if err != nil {
+		return err
+	}
+
+	return ioutil.WriteFile(filename, data, 0644)
+}
+
+// Load loads RBAC configuration from a JSON file
+func Load(filename string) (*RBAC, error) {
+	data, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
+
+	var loadedRBACSystem RBAC
+	if err := json.Unmarshal(data, &loadedRBACSystem); err != nil {
+		return nil, err
+	}
+
+	return &loadedRBACSystem, nil
 }
