@@ -13,7 +13,7 @@ func TestRBAC(t *testing.T) {
 	// Add roles with associated privileges
 	rbacSystem.AddRole("Admin", []rbac.Privilege{"Create", "Read", "Update", "Delete"})
 	rbacSystem.AddRole("User", []rbac.Privilege{"Read"})
-
+	rbacSystem.AddRole("SubAdmin", []rbac.Privilege{"Read", "Update"})
 	// Add users to the RBAC system
 	adminUser := rbac.User{Username: "admin", Password: "adminpass", Roles: []rbac.Role{"Admin"}}
 	userUser := rbac.User{Username: "user", Password: "userpass", Roles: []rbac.Role{"User"}}
