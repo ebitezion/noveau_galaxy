@@ -5,7 +5,6 @@ import (
 	"crypto/sha512"
 	"encoding/hex"
 	"errors"
-	"fmt"
 	"time"
 
 	"gopkg.in/redis.v3"
@@ -76,14 +75,9 @@ func ProcessAppAuth(data []string) (result string, err error) {
 }
 
 func CreateUserPassword(accountNumber string, password string, userame string) (result string, err error) {
-	//TEST 0~appauth~3~181ac0ae-45cb-461d-b740-15ce33e4612f~testPassword
-	// Generate hash
-	hasher := sha512.New()
-	hasher.Write([]byte(password))
-	hash := hex.EncodeToString(hasher.Sum(nil))
+	//check if account is valid
 
-	// Check for existing account
-	rows, err := Config.Db.Query("SELECT `accountNumber` FROM `accounts_auth` WHERE `accountNumber` = ?", accountNumber)
+	rows, err := Config.Db.Query("SELECT `accountNumber` FROM `accounts` WHERE `accountNumber` = ?", accountNumber)
 	if err != nil {
 		return "", errors.New("appauth.CreateUserPassword: Error with select query. " + err.Error())
 	}
@@ -95,10 +89,33 @@ func CreateUserPassword(accountNumber string, password string, userame string) (
 		count++
 	}
 
+	if count == 0 {
+		return "", errors.New("appauth.CreateUserPassword: Invalid AccountNumber")
+	}
+
+	//TEST 0~appauth~3~181ac0ae-45cb-461d-b740-15ce33e4612f~testPassword
+	// Generate hash
+	hasher := sha512.New()
+	hasher.Write([]byte(password))
+	hash := hex.EncodeToString(hasher.Sum(nil))
+
+	// Check for existing account
+	rows, err = Config.Db.Query("SELECT `accountNumber` FROM `accounts_auth` WHERE `accountNumber` = ?", accountNumber)
+	if err != nil {
+		return "", errors.New("appauth.CreateUserPassword: Error with select query. " + err.Error())
+	}
+	defer rows.Close()
+
+	// @TODO Must be easy way to get row count returned
+	count = 0
+	for rows.Next() {
+		count++
+	}
+
 	if count > 0 {
 		return "", errors.New("appauth.CreateUserPassword: Account already exists")
 	}
-	fmt.Println(accountNumber, password, userame)
+
 	// Prepare statement for inserting data
 	insertStatement := "INSERT INTO accounts_auth (`accountNumber`, `password`,`username`) "
 	insertStatement += "VALUES(?, ?,?)"
@@ -157,7 +174,7 @@ func RemoveUserPassword(user string, hashedPassword string) (result string, err 
 func CreateToken(user string, password string) (token string, err error) {
 
 	//check if password is correct
-	rows, err := Config.Db.Query("SELECT `password` FROM `accounts_auth` WHERE `username` = ?", user)
+	rows, err := Config.Db.Query("SELECT `password` FROM `accounts_auth` WHERE `accountNumber` = ?", user)
 	if err != nil {
 		return "", errors.New("appauth.CreateToken: Error with select query. " + err.Error())
 	}
@@ -243,7 +260,7 @@ func CheckToken(token string) (err error) {
 		}
 	}
 
-	return
+	return nil
 }
 
 func GetUserFromToken(token string) (user string, err error) {

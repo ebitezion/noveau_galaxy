@@ -204,6 +204,19 @@ func ProcessAccount(data []string) (result interface{}, err error) {
 
 	return
 }
+func FetchAccountNumber(username string) (AccountNumber string, err error) {
+
+	if username == "" {
+		return "", errors.New("accounts.fetchAccountMeta: Account number not present")
+	}
+
+	accountNumber, err := getSingleAccountNumberByUsername(username)
+	if err != nil {
+		return "", errors.New("accounts.fetchAccountMeta: " + err.Error())
+	}
+
+	return accountNumber, nil
+}
 func FetchAccountMeta(accountNumber string) (AccountHolderDetails *AccountHolderDetails, err error) {
 
 	if accountNumber == "" {

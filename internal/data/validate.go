@@ -25,3 +25,21 @@ func ValidateUserInformation(v *validator.Validator, data *User) {
 func ValidateBeneficiaryData(v *validator.Validator, data *Beneficiary) {
 
 }
+func ValidateAccountID(v *validator.Validator, data *AccountID) {
+
+}
+func ValidateAuthLoginData(v *validator.Validator, data *AuthLoginData) {
+
+}
+func ValidateAuthCreateData(v *validator.Validator, data *AuthCreateData) {
+
+}
+func ValidateCreditInitiationData(v *validator.Validator, data *PaymentInitiationData) {
+
+}
+func ValidateDepositInitiationData(v *validator.Validator, data *DepositInitiationData) {
+
+}
+func ValidateUser(v *validator.Validator, data *User) {
+
+}

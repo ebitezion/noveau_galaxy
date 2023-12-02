@@ -10,6 +10,106 @@ import (
 	"github.com/ebitezion/backend-framework/internal/payments"
 )
 
+func (app *application) FullAccessCreditInitiation(w http.ResponseWriter, r *http.Request) {
+	token, err := app.getTokenFromHeader(w, r)
+	if err != nil {
+
+		// there was error
+		data := envelope{
+			"responseCode": "06",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+
+	sendersAccountNumber := r.FormValue("sendersAccountNumber")
+	receiversAccountNumber := r.FormValue("receiversAccountNumber")
+	sendersDetails := sendersAccountNumber + "@"
+	receiversDetails := receiversAccountNumber + "@"
+	amount := r.FormValue("Amount")
+
+	response, err := payments.ProcessPAIN([]string{token, "pain", "13", sendersDetails, receiversDetails, amount, "CR"})
+
+	if err != nil {
+		// there was error
+		data := envelope{
+			"responseCode": "06",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+
+	// //send notification
+	// err = Notification(token, sendersAccountNumber, receiversAccountNumber, amount)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
+
+	data := envelope{
+		"responseCode": "00",
+		"status":       "Success",
+		"message":      response + "Credit Made Successfully",
+	}
+	app.writeJSON(w, http.StatusOK, data, nil)
+}
+func (app *application) FullAccessDepositInitiation(w http.ResponseWriter, r *http.Request) {
+
+	token, err := app.getTokenFromHeader(w, r)
+
+	if err != nil {
+
+		// there was error
+		data := envelope{
+			"responseCode": "06",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+	//for credit only  receivers account number and sender account number is required
+	//which is the number before the @ sign
+
+	sendersAccountNumber := os.Getenv("DEPOSIT_ACCOUNT_NUMBER")
+	receiversAccountNumber := r.FormValue("receiversAccountNumber")
+	sendersDetails := sendersAccountNumber + "@"
+	receiversDetails := receiversAccountNumber + "@"
+	amount := r.FormValue("Amount")
+
+	response, err := payments.ProcessPAIN([]string{token, "pain", "14", sendersDetails, receiversDetails, amount, "DR"})
+
+	if err != nil {
+		// there was error
+		data := envelope{
+			"responseCode": "06",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+
+	// //send notification
+	// err = Notification(token, sendersAccountNumber, receiversAccountNumber, amount)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
+
+	data := envelope{
+		"responseCode": "00",
+		"status":       "Success",
+		"message":      response + "Deposit Made Successfully",
+	}
+	app.writeJSON(w, http.StatusOK, data, nil)
+}
 func (app *application) PaymentCreditInitiation(w http.ResponseWriter, r *http.Request) {
 
 	token, err := app.getTokenFromHeader(w, r)
@@ -36,14 +136,24 @@ func (app *application) PaymentCreditInitiation(w http.ResponseWriter, r *http.R
 	amount := r.FormValue("Amount")
 
 	response, err := payments.ProcessPAIN([]string{token, "pain", "1", sendersDetails, receiversDetails, amount, "CR"})
+
 	if err != nil {
-		fmt.Println(err)
+		// there was error
+		data := envelope{
+			"responseCode": "06",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
 	}
-	//send notification
-	err = Notification(token, sendersAccountNumber, receiversAccountNumber, amount)
-	if err != nil {
-		fmt.Println(err)
-	}
+
+	// //send notification
+	// err = Notification(token, sendersAccountNumber, receiversAccountNumber, amount)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
 
 	data := envelope{
 		"responseCode": "00",
@@ -76,6 +186,7 @@ func (app *application) PaymentDebitInitiation(w http.ResponseWriter, r *http.Re
 	sendersDetails := sendersAccountNumber + "@"
 	receiversDetails := receiversAccountNumber + "@"
 	amount := r.FormValue("Amount")
+	fmt.Println(sendersAccountNumber, receiversAccountNumber)
 
 	response, err := payments.ProcessPAIN([]string{token, "pain", "1", sendersDetails, receiversDetails, amount, "DR"})
 	if err != nil {
@@ -105,26 +216,24 @@ func (app *application) PaymentDepositInitiation(w http.ResponseWriter, r *http.
 		return
 	}
 
-	//receivers account number and bank number
-	//for deposit only credit is receivers account number is required
-	//which is the number before the @ sign
-
 	sendersAccountNumber := os.Getenv("DEPOSIT_ACCOUNT_NUMBER")
-	sendersBankNumber := os.Getenv("DEPOSIT_BANK_NUMBER")
 
 	receiversAccountNumber := r.FormValue("receiversAccountNumber")
+
+	sendersDetails := sendersAccountNumber + "@"
+	receiversDetails := receiversAccountNumber + "@"
 	amount := r.FormValue("Amount")
 
-	sendersDetails := fmt.Sprintf("%s@%s", sendersAccountNumber, sendersBankNumber)
-	receiversDetails := receiversAccountNumber + "@"
-
-	//senders account number and bank number
-
-	response, err := payments.ProcessPAIN([]string{token, "pain", "1000", sendersDetails, receiversDetails, amount, "CR"})
+	response, err := payments.ProcessPAIN([]string{token, "pain", "1", sendersDetails, receiversDetails, amount, "CR"})
 	if err != nil {
 		fmt.Println(err)
 	}
-	app.logger.Println(response)
+	//send notification
+	err = Notification(token, sendersAccountNumber, receiversAccountNumber, amount)
+	if err != nil {
+		fmt.Println(err)
+	}
+
 	data := envelope{
 		"responseCode": "00",
 		"status":       "Success",

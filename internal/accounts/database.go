@@ -318,8 +318,24 @@ func getSingleAccountNumberByID(userID string) (accountID string, err error) {
 
 	return
 }
+func getSingleAccountNumberByUsername(username string) (accountNumber string, err error) {
+	query := "SELECT `accountNumber` FROM `accounts_auth` WHERE `username` = ?"
 
-// Get method for fetching a specific record from the users table.
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err = Config.Db.QueryRowContext(ctx, query, username).Scan(&accountNumber)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", errors.New("accounts.getSingleAccountNumberByUsername: Account not found")
+		}
+		return "", err
+	}
+
+	return accountNumber, nil
+}
+
 func GetBalanceDetails(accountNumber string) (BalanceEnquiry, error) {
 
 	query := "SELECT `accountHolderName`, `accountNumber`, `accountBalance` FROM `accounts` WHERE `accountNumber` = ?"

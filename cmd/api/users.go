@@ -5,25 +5,29 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/ebitezion/backend-framework/internal/accounts"
 	"github.com/ebitezion/backend-framework/internal/appauth"
+	"github.com/ebitezion/backend-framework/internal/data"
+	"github.com/ebitezion/backend-framework/internal/validator"
 )
 
 func (app *application) getTokenFromHeader(w http.ResponseWriter, r *http.Request) (token string, err error) {
 	// Get token from header
 	token = r.Header.Get("X-Auth-Token")
-
+	fmt.Println(token)
 	if token == "" {
-		app.badRequestResponse(w, r, errors.New("could not retrieve token from headers"))
-		return "", errors.New("could not retrieve token from headers")
-	}
 
+		return "", errors.New("could not retrieve token from headers")
+
+	}
 	// Check token
 	err = appauth.CheckToken(token)
+
 	if err != nil {
 		return "", errors.New("token invalid")
 	}
 
-	return
+	return token, nil
 }
 
 // Extend token
@@ -71,30 +75,49 @@ func (app *application) AuthIndex(w http.ResponseWriter, r *http.Request) {
 
 // Get token
 func (app *application) AuthLogin(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Get token")
-	user := r.FormValue("User")
-	//user := app.readString(r.PostForm, "User", "01928918")
-	password := r.FormValue("Password")
-	//password := app.readString(r.PostForm, "Password", "adeoluwa")
+	AuthLoginData := data.AuthLoginData{}
+	// read the incoming request body
+	err := app.readJSON(w, r, &AuthLoginData)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+	// Validate the user ID
+	v := validator.New()
+	data.ValidateAuthLoginData(v, &AuthLoginData)
+	if !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		//log to db
 
-	response, err := appauth.ProcessAppAuth([]string{"0", "appauth", "2", user, password})
+		return
+	}
+	accountNumber, err := accounts.FetchAccountNumber(AuthLoginData.Username)
+
 	if err != nil {
 		//there was error
 		data := envelope{
 			"responseCode": "06",
 			"status":       "Failed",
-			"message":      err,
+			"message":      err.Error(),
 		}
 
 		app.writeJSON(w, http.StatusBadRequest, data, nil)
 		return
 	}
-	//set jwt token
-	err = app.SetJwtSession(w, r, user)
+
+	response, err := appauth.ProcessAppAuth([]string{"0", "appauth", "2", accountNumber, AuthLoginData.Password})
 	if err != nil {
-		fmt.Println(err)
+		//there was error
+		data := envelope{
+			"responseCode": "06",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
 	}
-	app.logger.Println(response)
+
 	data := envelope{
 		"responseCode": "00",
 		"status":       "Success",
@@ -106,16 +129,31 @@ func (app *application) AuthLogin(w http.ResponseWriter, r *http.Request) {
 
 // Create auth account
 func (app *application) AuthCreate(w http.ResponseWriter, r *http.Request) {
-	user := r.FormValue("User")
-	password := r.FormValue("Password")
+	AuthCreateData := data.AuthCreateData{}
+	// read the incoming request body
+	err := app.readJSON(w, r, &AuthCreateData)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+	// Validate the user ID
+	v := validator.New()
+	data.ValidateAuthCreateData(v, &AuthCreateData)
+	if !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		//log to db
 
-	response, err := appauth.ProcessAppAuth([]string{"0", "appauth", "3", user, password})
+		return
+	}
+
+	response, err := appauth.ProcessAppAuth([]string{"0", "appauth", "3", AuthCreateData.AccountNumber, AuthCreateData.Password, AuthCreateData.Username})
+
 	if err != nil {
 		//there was error
 		data := envelope{
 			"responseCode": "06",
 			"status":       "Failed",
-			"message":      err,
+			"message":      err.Error(),
 		}
 
 		app.writeJSON(w, http.StatusBadRequest, data, nil)

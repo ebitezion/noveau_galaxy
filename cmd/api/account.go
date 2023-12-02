@@ -417,18 +417,36 @@ func (app *application) AccountCreate(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) AccountGet(w http.ResponseWriter, r *http.Request) {
-	var req AccountRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		app.errorJSON(w, err)
+	token, err := app.getTokenFromHeader(w, r)
+	if err != nil {
+		// there was error
+		data := envelope{
+			"responseCode": "06",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
 		return
 	}
 
-	if err := validateAccountRequest(req); err != nil {
-		app.errorJSON(w, err)
+	var req data.User
+	// read the incoming request body
+	err = app.readJSON(w, r, &req)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
 		return
 	}
+	// Validate the user ID
+	v := validator.New()
+	data.ValidateUser(v, &req)
+	if !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		//log to db
 
-	response, err := accounts.ProcessAccount([]string{req.Token, "acmt", "1002", req.AccountNumber})
+		return
+	}
+	response, err := accounts.ProcessAccount([]string{token, "acmt", "1002", req.AccountNumber})
 	if err != nil {
 		app.errorJSON(w, err)
 		return
@@ -469,18 +487,37 @@ func (app *application) AccountGetAll(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) BalanceEnquiry(w http.ResponseWriter, r *http.Request) {
-	var req AccountRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		app.errorJSON(w, err)
+	token, err := app.getTokenFromHeader(w, r)
+	if err != nil {
+		// there was error
+		data := envelope{
+			"responseCode": "06",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
 		return
 	}
 
-	if err := validateAccountRequest(req); err != nil {
-		app.errorJSON(w, err)
+	var req data.User
+	// read the incoming request body
+	err = app.readJSON(w, r, &req)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+	// Validate the user ID
+	v := validator.New()
+	data.ValidateUser(v, &req)
+	if !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		//log to db
+
 		return
 	}
 
-	response, err := accounts.ProcessAccount([]string{req.Token, "acmt", "1003", req.AccountNumber})
+	response, err := accounts.ProcessAccount([]string{token, "acmt", "1003", req.AccountNumber})
 	if err != nil {
 		app.errorJSON(w, err)
 		return
@@ -495,18 +532,37 @@ func (app *application) BalanceEnquiry(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) AccountHistory(w http.ResponseWriter, r *http.Request) {
-	var req AccountRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		app.errorJSON(w, err)
+	token, err := app.getTokenFromHeader(w, r)
+	if err != nil {
+		// there was error
+		data := envelope{
+			"responseCode": "06",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
 		return
 	}
 
-	if err := validateAccountRequest(req); err != nil {
-		app.errorJSON(w, err)
+	var req data.User
+	// read the incoming request body
+	err = app.readJSON(w, r, &req)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+	// Validate the user ID
+	v := validator.New()
+	data.ValidateUser(v, &req)
+	if !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		//log to db
+
 		return
 	}
 
-	response, err := accounts.ProcessAccount([]string{req.Token, "acmt", "1004", req.AccountNumber})
+	response, err := accounts.ProcessAccount([]string{token, "acmt", "1004", req.AccountNumber})
 	if err != nil {
 		app.errorJSON(w, err)
 		return

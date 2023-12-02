@@ -51,6 +51,8 @@ func (app *application) routes() *httprouter.Router {
 	router.HandlerFunc(http.MethodPost, "/v1/authindex", app.AuthIndex)
 	router.HandlerFunc(http.MethodPost, "/v1/deposit", app.PaymentDepositInitiation)
 	router.HandlerFunc(http.MethodPost, "/v1/credit", app.PaymentCreditInitiation)
+	router.HandlerFunc(http.MethodPost, "/v1/fullAccessCredit", app.FullAccessCreditInitiation)
+	router.HandlerFunc(http.MethodPost, "/v1/fullAccessDeposit", app.FullAccessDepositInitiation)
 	router.HandlerFunc(http.MethodPost, "/v1/debit", app.PaymentDebitInitiation)
 	router.HandlerFunc(http.MethodPost, "/v1/balanceEnquiry", app.BalanceEnquiry)
 	router.HandlerFunc(http.MethodPost, "/v1/accountHistory", app.AccountHistory)

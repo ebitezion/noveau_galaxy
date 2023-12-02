@@ -71,7 +71,6 @@ func (app *application) RenderAllAccountsPage(w http.ResponseWriter, r *http.Req
 		fmt.Println("Failed to convert to []AccountDetails")
 		return
 	}
-	fmt.Println(accountDetails)
 
 	pageData := AllAccountPageData{
 		Accounts: accountDetails,
