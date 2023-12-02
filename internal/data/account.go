@@ -7,6 +7,28 @@ import (
 	"time"
 )
 
+type AccountID struct {
+	AccountID string `json:"accountID"`
+}
+type AuthLoginData struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+type AuthCreateData struct {
+	Username      string `json:"username"`
+	AccountNumber string `json:"accountNumber"`
+	Password      string `json:"password"`
+}
+type PaymentInitiationData struct {
+	SendersAccountNumber   string `json:"sendersAccountNumber"`
+	ReceiversAccountNumber string `json:"receiversAccountNumber"`
+	Amount                 string `json:"amount"`
+}
+type DepositInitiationData struct {
+	AccountNumber string `json:"accountNumber"`
+	Amount        string `json:"amount"`
+}
+
 type AccountDetails struct {
 	FirstName     string `json:"firstName"`
 	LastName      string `json:"lastName"`

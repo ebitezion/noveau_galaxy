@@ -16,6 +16,11 @@ Payments mandates:
 11 - MandateCancellationRequestV04
 12 - MandateAcceptanceReportV04
 
+
+@author adenugba adeoluwa 1st december
+13- FullAccessCreditInitiation
+14-painFullAccessDepositInitiation
+
 #### Custom payments
 1000 - CustomerDepositInitiation (@FIXME Will need to implement this properly, for now we use it to demonstrate functionality)
 
@@ -90,6 +95,28 @@ func ProcessPAIN(data []string) (result string, err error) {
 			return "", errors.New("payments.ProcessPAIN: " + err.Error())
 		}
 		break
+	case 13:
+		//There must be at least 4 elements
+		//token~pain~type~amount
+		if len(data) < 5 {
+			return "", errors.New("payments.ProcessPAIN: Not all data is present. Run pain~help to check for needed PAIN data")
+		}
+		result, err = painFullAccessCreditInitiation(painType, data)
+		if err != nil {
+			return "", errors.New("payments.ProcessPAIN: " + err.Error())
+		}
+		break
+	case 14:
+		//There must be at least 4 elements
+		//token~pain~type~amount
+		if len(data) < 5 {
+			return "", errors.New("payments.ProcessPAIN: Not all data is present. Run pain~help to check for needed PAIN data")
+		}
+		result, err = painFullAccessDepositInitiation(painType, data)
+		if err != nil {
+			return "", errors.New("payments.ProcessPAIN: " + err.Error())
+		}
+		break
 
 	case 1000:
 		//There must be at least 4 elements
@@ -102,6 +129,7 @@ func ProcessPAIN(data []string) (result string, err error) {
 			return "", errors.New("payments.ProcessPAIN: " + err.Error())
 		}
 		break
+
 	}
 
 	return
@@ -133,6 +161,84 @@ func painCreditTransferInitiation(painType int64, data []string) (result string,
 	if tokenUser != sender.AccountNumber {
 		return "", errors.New("payments.painCreditTransferInitiation: Sender not valid")
 	}
+	fmt.Println("hit")
+	Narration := data[6]
+	transaction := PAINTrans{painType, sender, receiver, transactionAmountDecimal, decimal.NewFromFloat(TRANSACTION_FEE), Narration}
+
+	// Checks for transaction (avail balance, accounts open, etc)
+	balanceAvailable, err := checkBalance(transaction.Sender)
+	if err != nil {
+		return "", errors.New("payments.painCreditTransferInitiation: " + err.Error())
+	}
+	// Comparing decimals results in -1 if <
+	if balanceAvailable.Cmp(transaction.Amount) == -1 {
+		return "", errors.New("payments.painCreditTransferInitiation: Insufficient funds available")
+	}
+
+	// Save transaction
+	result, err = processPAINTransaction(transaction)
+	if err != nil {
+		return "", errors.New("payments.painCreditTransferInitiation: " + err.Error())
+	}
+
+	return
+}
+func painFullAccessDepositInitiation(painType int64, data []string) (result string, err error) {
+	// Validate input
+	sender, err := parseAccountHolder(data[3])
+	if err != nil {
+		return "", errors.New("payments.painCreditTransferInitiation: " + err.Error())
+	}
+	receiver, err := parseAccountHolder(data[4])
+	if err != nil {
+		return "", errors.New("payments.painCreditTransferInitiation: " + err.Error())
+	}
+
+	trAmt := strings.TrimRight(data[5], "\x00")
+	transactionAmountDecimal, err := decimal.NewFromString(trAmt)
+	if err != nil {
+		return "", errors.New("payments.painCreditTransferInitiation: Could not convert transaction amount to decimal. " + err.Error())
+	}
+
+	Narration := data[6]
+	transaction := PAINTrans{painType, sender, receiver, transactionAmountDecimal, decimal.NewFromFloat(TRANSACTION_FEE), Narration}
+
+	// Checks for transaction (avail balance, accounts open, etc)
+	balanceAvailable, err := checkBalance(transaction.Sender)
+	if err != nil {
+		return "", errors.New("payments.painCreditTransferInitiation: " + err.Error())
+	}
+	// Comparing decimals results in -1 if <
+	if balanceAvailable.Cmp(transaction.Amount) == -1 {
+		return "", errors.New("payments.painCreditTransferInitiation: Insufficient funds available")
+	}
+
+	// Save transaction
+	result, err = processPAINTransaction(transaction)
+	if err != nil {
+		return "", errors.New("payments.painCreditTransferInitiation: " + err.Error())
+	}
+
+	return
+}
+func painFullAccessCreditInitiation(painType int64, data []string) (result string, err error) {
+
+	// Validate input
+	sender, err := parseAccountHolder(data[3])
+	if err != nil {
+		return "", errors.New("payments.painCreditTransferInitiation: " + err.Error())
+	}
+	receiver, err := parseAccountHolder(data[4])
+	if err != nil {
+		return "", errors.New("payments.painCreditTransferInitiation: " + err.Error())
+	}
+
+	trAmt := strings.TrimRight(data[5], "\x00")
+	transactionAmountDecimal, err := decimal.NewFromString(trAmt)
+	if err != nil {
+		return "", errors.New("payments.painCreditTransferInitiation: Could not convert transaction amount to decimal. " + err.Error())
+	}
+
 	Narration := data[6]
 	transaction := PAINTrans{painType, sender, receiver, transactionAmountDecimal, decimal.NewFromFloat(TRANSACTION_FEE), Narration}
 

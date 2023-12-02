@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/ebitezion/backend-framework/internal/accounts"
@@ -31,7 +32,7 @@ func (app *application) RenderSignUpPage(w http.ResponseWriter, r *http.Request)
 
 // RenderCreateAccountPage renders a HTML page
 func (app *application) RenderCreateAccountPage(w http.ResponseWriter, r *http.Request) {
-	app.RenderTemplate(w, []string{"cmd/web/views/createAccount.html", "cmd/web/views/layout.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, nil, "cmd/web/views/createAccount.html", nil)
+	app.RenderTemplate(w, []string{"cmd/web/views/createAccount.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, nil, "cmd/web/views/createAccount.html", nil)
 }
 
 // RenderDepositInitiationPage renders a HTML page
@@ -60,13 +61,19 @@ func (app *application) RenderAccountHistory(w http.ResponseWriter, r *http.Requ
 
 // RenderBatchTransactionPage renders a HTML page
 func (app *application) RenderAllAccountsPage(w http.ResponseWriter, r *http.Request) {
-	// data, err := accounts.ProcessAccount([]string{"", "acmt", "1000"})
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	return
-	// }
-	// pageData := AllAccountPageData{
-	// 	Accounts: data,
-	// }
-	app.RenderTemplate(w, []string{"cmd/web/views/allAccounts.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, nil, "cmd/web/views/allAccounts.html", nil)
+	data, err := accounts.ProcessAccount([]string{"", "acmt", "1000"})
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	accountDetails, ok := data.([]accounts.AccountDetails)
+	if !ok {
+		fmt.Println("Failed to convert to []AccountDetails")
+		return
+	}
+
+	pageData := AllAccountPageData{
+		Accounts: accountDetails,
+	}
+	app.RenderTemplate(w, []string{"cmd/web/views/allAccounts.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, pageData, "cmd/web/views/allAccounts.html", nil)
 }

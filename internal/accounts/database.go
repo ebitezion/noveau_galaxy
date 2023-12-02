@@ -8,6 +8,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"log"
 	"time"
 
 	"github.com/ebitezion/backend-framework/internal/configuration"
@@ -204,26 +205,76 @@ func getAccountMeta(id string) (accountDetails AccountHolderDetails, err error) 
 }
 
 func getAllAccountDetails() (allAccounts []AccountDetails, err error) {
-	rows, err := Config.Db.Query("SELECT `accountNumber`, `bankNumber`, `accountHolderName` FROM `accounts`")
+	query := `
+		SELECT 
+			a.accountNumber, 
+			a.bankNumber,
+			a.accountHolderName, 
+			a.accountBalance, 
+			a.overdraft, 
+			a.availableBalance, 
+			b.accountHolderContactNumber1, 
+			b.accountHolderContactNumber2,
+			b.accountHolderGivenName,
+			b.accountHolderFamilyName,
+			b.accountHolderDateOfBirth,
+			b.accountHolderIdentificationNumber,
+			b.country,
+			b.accountHolderEmailAddress,
+			b.accountHolderAddressLine1,
+			b.accountHolderAddressLine2,
+			b.accountHolderAddressLine3,
+			b.accountHolderPostalCode
+		FROM 
+			accounts a
+		JOIN 
+			accounts_meta b 
+		ON 
+			a.accountNumber = b.accountNumber
+	`
+
+	rows, err := Config.Db.Query(query)
 	if err != nil {
-		return []AccountDetails{}, errors.New("accounts.getAllAccountDetails: Error with select query: " + err.Error())
+		return nil, errors.New("accounts.getAllAccountDetails: Error with select query: " + err.Error())
 	}
 	defer rows.Close()
 
-	count := 0
 	allAccounts = make([]AccountDetails, 0)
 
 	for rows.Next() {
 		accountDetailsSingle := AccountDetails{}
-		if err := rows.Scan(&accountDetailsSingle.AccountNumber, &accountDetailsSingle.BankNumber, &accountDetailsSingle.AccountHolderName); err != nil {
-			break
+		if err := rows.Scan(
+			&accountDetailsSingle.AccountNumber,
+			&accountDetailsSingle.BankNumber,
+			&accountDetailsSingle.AccountHolderName,
+			&accountDetailsSingle.AccountBalance,
+			&accountDetailsSingle.Overdraft,
+			&accountDetailsSingle.AvailableBalance,
+			&accountDetailsSingle.AccountHolderDetails.ContactNumber1,
+			&accountDetailsSingle.AccountHolderDetails.ContactNumber2,
+			&accountDetailsSingle.AccountHolderDetails.GivenName,
+			&accountDetailsSingle.AccountHolderDetails.FamilyName,
+			&accountDetailsSingle.AccountHolderDetails.DateOfBirth,
+			&accountDetailsSingle.AccountHolderDetails.IdentificationNumber,
+			&accountDetailsSingle.AccountHolderDetails.Country,
+			&accountDetailsSingle.AccountHolderDetails.EmailAddress,
+			&accountDetailsSingle.AccountHolderDetails.AddressLine1,
+			&accountDetailsSingle.AccountHolderDetails.AddressLine2,
+			&accountDetailsSingle.AccountHolderDetails.AddressLine3,
+			&accountDetailsSingle.AccountHolderDetails.PostalCode,
+		); err != nil {
+			log.Println("Error scanning row:", err)
+			continue
 		}
 
 		allAccounts = append(allAccounts, accountDetailsSingle)
-		count++
 	}
 
-	return
+	if err := rows.Err(); err != nil {
+		return nil, errors.New("accounts.getAllAccountDetails: Error after iteration: " + err.Error())
+	}
+
+	return allAccounts, nil
 }
 
 func getSingleAccountDetail(accountNumber string) (account AccountDetails, err error) {
@@ -267,8 +318,24 @@ func getSingleAccountNumberByID(userID string) (accountID string, err error) {
 
 	return
 }
+func getSingleAccountNumberByUsername(username string) (accountNumber string, err error) {
+	query := "SELECT `accountNumber` FROM `accounts_auth` WHERE `username` = ?"
 
-// Get method for fetching a specific record from the users table.
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err = Config.Db.QueryRowContext(ctx, query, username).Scan(&accountNumber)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", errors.New("accounts.getSingleAccountNumberByUsername: Account not found")
+		}
+		return "", err
+	}
+
+	return accountNumber, nil
+}
+
 func GetBalanceDetails(accountNumber string) (BalanceEnquiry, error) {
 
 	query := "SELECT `accountHolderName`, `accountNumber`, `accountBalance` FROM `accounts` WHERE `accountNumber` = ?"

@@ -92,16 +92,17 @@ type AccountHolderDetails struct {
 	AddressLine3         string
 	PostalCode           string
 	Image                string
+	Country              string
 }
 
 type AccountDetails struct {
-	AccountNumber     string
-	BankNumber        string
-	AccountHolderName string
-	AccountBalance    decimal.Decimal
-	Overdraft         decimal.Decimal
-	AvailableBalance  decimal.Decimal
-	Timestamp         int
+	AccountNumber        string
+	BankNumber           string
+	AccountHolderName    string
+	AccountBalance       decimal.Decimal
+	Overdraft            decimal.Decimal
+	AvailableBalance     decimal.Decimal
+	AccountHolderDetails AccountHolderDetails
 }
 
 type BalanceEnquiry struct {
@@ -202,6 +203,19 @@ func ProcessAccount(data []string) (result interface{}, err error) {
 	}
 
 	return
+}
+func FetchAccountNumber(username string) (AccountNumber string, err error) {
+
+	if username == "" {
+		return "", errors.New("accounts.fetchAccountMeta: Account number not present")
+	}
+
+	accountNumber, err := getSingleAccountNumberByUsername(username)
+	if err != nil {
+		return "", errors.New("accounts.fetchAccountMeta: " + err.Error())
+	}
+
+	return accountNumber, nil
 }
 func FetchAccountMeta(accountNumber string) (AccountHolderDetails *AccountHolderDetails, err error) {
 

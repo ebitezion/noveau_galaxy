@@ -76,6 +76,18 @@ func updateAccounts(transaction PAINTrans) (err error) {
 			return errors.New("payments.updateAccounts: " + err.Error())
 		}
 		break
+	case 13:
+		err = processCreditInitiation(transaction, sqlTime, feeAmount)
+		if err != nil {
+			return errors.New("payments.updateAccounts: " + err.Error())
+		}
+		break
+	case 14:
+		err = processCreditInitiation(transaction, sqlTime, feeAmount)
+		if err != nil {
+			return errors.New("payments.updateAccounts: " + err.Error())
+		}
+		break
 	// Deposit
 	case 1000:
 		err = processDepositInitiation(transaction, sqlTime, feeAmount)
@@ -84,6 +96,7 @@ func updateAccounts(transaction PAINTrans) (err error) {
 		}
 		break
 	}
+	// Payment
 
 	err = updateBankHoldingAccount(feeAmount, sqlTime)
 	if err != nil {

@@ -21,14 +21,6 @@ func (app *application) routes() *httprouter.Router {
 		http.NotFound(w, r)
 	})
 
-	//RENDERED PAGES
-	router.HandlerFunc(http.MethodGet, "/v1/index", app.RenderIndexPage)
-	router.HandlerFunc(http.MethodGet, "/v1/loginpage", app.RenderLoginPage)
-	router.HandlerFunc(http.MethodGet, "/v1/signuppage", app.RenderSignUpPage)
-	router.HandlerFunc(http.MethodGet, "/v1/createAccountPage", app.RenderCreateAccountPage)
-	router.HandlerFunc(http.MethodGet, "/v1/depositPage", app.RenderDepositInitiationPage)
-	router.HandlerFunc(http.MethodGet, "/v1/creditPage", app.RenderCreditInitiationPage)
-	router.HandlerFunc(http.MethodGet, "/v1/batchTransactionPage", app.RenderBatchTransactionPage)
 	// Likewise, convert the methodNotAllowedResponse() helper to a http.Handler and set
 	// it as the custom error handler for 405 Method Not Allowed responses.
 	router.MethodNotAllowed = http.HandlerFunc(app.methodNotAllowedResponse)
@@ -43,18 +35,24 @@ func (app *application) routes() *httprouter.Router {
 	// router.HandlerFunc(http.MethodPost, "/v1/beneficiary/new", app.NewBeneficiary)
 	// router.HandlerFunc(http.MethodPost, "/v1/beneficiary", app.GetBeneficiaries)
 
-	router.HandlerFunc(http.MethodGet, "/api/v1/accounts", app.AccountGet)
-	router.HandlerFunc(http.MethodPost, "/api/v1/login", app.AuthLogin)
-	router.HandlerFunc(http.MethodPost, "/api/v1/create", app.AuthCreate)
-	router.HandlerFunc(http.MethodPost, "/api/v1/authindex", app.AuthIndex)
-	router.HandlerFunc(http.MethodPost, "/api/v1/deposit", app.PaymentDepositInitiation)
-	router.HandlerFunc(http.MethodPost, "/api/v1/credit", app.PaymentCreditInitiation)
-	router.HandlerFunc(http.MethodPost, "/api/v1/debit", app.PaymentDebitInitiation)
-	router.HandlerFunc(http.MethodPost, "/api/v1/balanceEnquiry", app.BalanceEnquiry)
-	router.HandlerFunc(http.MethodPost, "/api/v1/accountHistory", app.AccountHistory)
+	//authentication
+	router.HandlerFunc(http.MethodPost, "/v1/api/login", app.AuthLogin)
+	router.HandlerFunc(http.MethodPost, "/v1/api/create", app.AuthCreate)
+
+	router.HandlerFunc(http.MethodPost, "/v1/authindex", app.AuthIndex)
+
+	//transactions and account management
+	router.HandlerFunc(http.MethodPost, "/v1/api/deposit", app.PaymentDepositInitiation)
+	router.HandlerFunc(http.MethodPost, "/v1/api/credit", app.PaymentCreditInitiation)
+	router.HandlerFunc(http.MethodPost, "/v1/api/debit", app.PaymentDebitInitiation)
+	router.HandlerFunc(http.MethodPost, "/v1/api/fullAccessCredit", app.FullAccessCreditInitiation)
+	router.HandlerFunc(http.MethodPost, "/v1/api/fullAccessDeposit", app.FullAccessDepositInitiation)
+	router.HandlerFunc(http.MethodPost, "/v1/api/balanceEnquiry", app.BalanceEnquiry)
+	router.HandlerFunc(http.MethodPost, "/v1/api/accountHistory", app.AccountHistory)
 
 	//ACCOUNT V2
-	router.HandlerFunc(http.MethodPost, "/api/v1/accounts/create", app.AccountCreate)
+	router.HandlerFunc(http.MethodPost, "/v1/api/accounts/create", app.AccountCreate)
+	router.HandlerFunc(http.MethodGet, "/v1/accounts", app.AccountGet)
 
 	//Currency Exchange
 	router.HandlerFunc(http.MethodGet, "/v1/availableCurrencies", app.AvailableCurrenciesHandler)

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/ebitezion/backend-framework/internal/accounts"
 	"github.com/ebitezion/backend-framework/internal/appauth"
 )
 
@@ -13,18 +14,18 @@ func (app *application) getTokenFromHeader(w http.ResponseWriter, r *http.Reques
 	token = r.Header.Get("X-Auth-Token")
 
 	if token == "" {
-		app.badRequestResponse(w, r, errors.New("could not retrieve token from headers"))
-		return "", errors.New("could not retrieve token from headers")
-	}
-	fmt.Println(err)
 
+		return "", errors.New("could not retrieve token from headers")
+
+	}
 	// Check token
 	err = appauth.CheckToken(token)
+
 	if err != nil {
 		return "", errors.New("token invalid")
 	}
 
-	return
+	return token, nil
 }
 
 // Extend token
@@ -75,8 +76,22 @@ func (app *application) AuthLogin(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Get token")
 	password := r.FormValue("password")
 	username := r.FormValue("username")
+	//get accountnumber
+	accountNumber, err := accounts.FetchAccountNumber(username)
 
-	response, err := appauth.ProcessAppAuth([]string{"0", "appauth", "2", username, password})
+	if err != nil {
+		//there was error
+		data := envelope{
+			"responseCode": "06",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+
+	response, err := appauth.ProcessAppAuth([]string{"0", "appauth", "2", accountNumber, password})
 
 	if err != nil {
 		//there was error
@@ -105,9 +120,9 @@ func (app *application) AuthCreate(w http.ResponseWriter, r *http.Request) {
 	accountNumber := r.FormValue("accountNumber")
 	password := r.FormValue("password")
 	username := r.FormValue("username")
-	fmt.Println(accountNumber, password, username)
+
 	response, err := appauth.ProcessAppAuth([]string{"0", "appauth", "3", accountNumber, password, username})
-	fmt.Println(response, err)
+
 	if err != nil {
 		//there was error
 		data := envelope{
