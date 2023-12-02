@@ -132,6 +132,7 @@ const (
 )
 
 func ProcessAccount(data []string) (result interface{}, err error) {
+
 	if len(data) < 3 {
 		return "", errors.New("accounts.ProcessAccount: Not enough fields, minimum 3")
 	}
@@ -148,12 +149,14 @@ func ProcessAccount(data []string) (result interface{}, err error) {
 		   @TODO
 		   The differences between AccountOpeningInstructionV05 and AccountOpeningRequestV02 will be explored in detail, for now we treat the same - open an account
 		*/
+
 		result, err = openAccount(data)
 		if err != nil {
 			return "", errors.New("accounts.ProcessAccount: " + err.Error())
 		}
 		break
 	case 1000:
+		//TODO: check permissions for this 
 		result, err = fetchAccounts(data)
 		if err != nil {
 			return "", errors.New("accounts.ProcessAccount: " + err.Error())
