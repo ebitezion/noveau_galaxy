@@ -374,14 +374,34 @@ func (app *application) AccountIndex(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) AccountCreate(w http.ResponseWriter, r *http.Request) {
-	var req AccountRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		app.errorJSON(w, err)
+
+	_, err := app.getTokenFromHeader(w, r)
+	if err != nil {
+		// there was error
+		data := envelope{
+			"responseCode": "06",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
 		return
 	}
 
-	if err := validateAccountRequest(req); err != nil {
-		app.errorJSON(w, err)
+	var req data.NewAccountRequest
+	// read the incoming request body
+	err = app.readJSON(w, r, &req)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+	// Validate the user ID
+	v := validator.New()
+	data.ValidateNewAccountRequestData(v, &req)
+	if !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		//log to db
+
 		return
 	}
 
@@ -400,6 +420,7 @@ func (app *application) AccountCreate(w http.ResponseWriter, r *http.Request) {
 		req.AccountHolderAddressLine2,
 		req.AccountHolderAddressLine3,
 		req.AccountHolderPostalCode,
+		req.ProfileImage,
 	}
 
 	response, err := accounts.ProcessAccount(reqSlice)

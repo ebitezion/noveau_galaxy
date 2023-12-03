@@ -1,11 +1,13 @@
 package accounts
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/ebitezion/backend-framework/internal/appauth"
 	"github.com/ebitezion/backend-framework/internal/nuban"
@@ -427,11 +429,44 @@ func fetchAccountHistory(data []string) (result []Transaction, err error) {
 	if accountNumber == "" {
 		return nil, errors.New("accounts.fetchSingleAccountByID: Account number not present")
 	}
+	//check if receivers accounts is valid
 
+	exists, err := CheckIfAccountNumberExists(accountNumber)
+	if err != nil {
+		return nil, errors.New("payments.fetchSingleAccountByID: " + err.Error())
+	}
+	// Check the result.
+	if !exists {
+		return nil, errors.New("payments.fetchSingleAccountByID: " + " Account Not valid")
+	}
 	history, err := GetAccountHistory(accountNumber)
 	if err != nil {
 		return nil, errors.New("accounts.fetchSingleAccountByID: " + err.Error())
 	}
 
 	return history, nil
+}
+
+// CheckIfValueExists checks if a given value is in the specified table and returns a boolean
+func CheckIfAccountNumberExists(accountNumber string) (bool, error) {
+	query := "SELECT COUNT(*) FROM accounts WHERE accountNumber = ?"
+	// Declare a variable to store the count.
+	var count int
+
+	// Use the context.WithTimeout() function to create a context.Context with a timeout.
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	// Use QueryRowContext() to execute the query and get the count.
+	err := Config.Db.QueryRowContext(ctx, query, accountNumber).Scan(&count)
+	if err != nil {
+		// Print the error message for debugging purposes.
+		fmt.Println("Error executing query:", err)
+		return false, err
+	}
+
+	fmt.Println("Count:", count)
+
+	// If the count is greater than 0, the value exists in the database.
+	return count > 0, nil
 }

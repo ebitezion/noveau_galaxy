@@ -367,7 +367,7 @@ func (app *application) AccountCreate(w http.ResponseWriter, r *http.Request) {
 	accountHolderDateOfBirth := r.FormValue("accountHolderDateOfBirth")
 	accountHolderIdentificationNumber := r.FormValue("accountHolderIdentificationNumber")
 	accountHolderContactNumber1 := r.FormValue("accountHolderContactNumber1")
-	accountHolderContactNumber2 := r.FormValue("accountHolderContactNumber1")
+	accountHolderContactNumber2 := r.FormValue("accountHolderContactNumber2")
 	accountHolderEmailAddress := r.FormValue("accountHolderEmailAddress")
 	accountHolderAddressLine1 := r.FormValue("accountHolderAddressLine1")
 	accountHolderAddressLine2 := r.FormValue("accountHolderAddressLine2")

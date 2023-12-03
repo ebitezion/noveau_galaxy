@@ -43,3 +43,6 @@ func ValidateDepositInitiationData(v *validator.Validator, data *DepositInitiati
 func ValidateUser(v *validator.Validator, data *User) {
 
 }
+func ValidateNewAccountRequestData(v *validator.Validator, data *NewAccountRequest) {
+
+}
