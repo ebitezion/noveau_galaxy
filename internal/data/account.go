@@ -8,7 +8,6 @@ import (
 )
 
 type NewAccountRequest struct {
-	Token                          string `json:"token"`
 	AccountHolderGivenName         string `json:"accountHolderGivenName" validate:"required,min=6,max=20"`
 	AccountHolderFamilyName        string `json:"accountHolderFamilyName" validate:"required,min=6,max=20"`
 	AccountHolderDateOfBirth       string `json:"accountHolderDateOfBirth" validate:"required,customDate"`
