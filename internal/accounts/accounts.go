@@ -56,6 +56,7 @@ Accounts (acmt) transactions are as follows:
 1004 - AccountHistory
 1005 - AccountMetaData
 1006 - AllAccounts
+1007 - UpdateAccountInformation
 
 */
 
@@ -86,6 +87,7 @@ type AccountHolderDetails struct {
 	FamilyName           string
 	DateOfBirth          string
 	IdentificationNumber string
+	IdentificationType   string
 	ContactNumber1       string
 	ContactNumber2       string
 	EmailAddress         string
@@ -198,6 +200,16 @@ func ProcessAccount(data []string) (result interface{}, err error) {
 			return "", errors.New("accounts.ProcessAccount: " + err.Error())
 		}
 		break
+	case 1007:
+		if len(data) < 3 {
+			err = errors.New("accounts.ProcessAccount: Not all fields present")
+			return
+		}
+		result, err = updateAccountInformation(data)
+		if err != nil {
+			return "", errors.New("accounts.ProcessAccount: " + err.Error())
+		}
+		break
 
 	default:
 		err = errors.New("accounts.ProcessAccount: ACMT transaction code invalid")
@@ -253,6 +265,7 @@ func openAccount(data []string) (result string, err error) {
 	// Test: acmt~1~Kyle~Redelinghuys~19000101~190001011234098~1112223456~~email@domain.com~Physical Address 1~~~1000
 	// Check if account already exists, check on ID number
 	accountHolder, _ := getAccountMeta(data[6])
+	fmt.Println(accountHolder.AccountNumber, accountHolder)
 	if accountHolder.AccountNumber != "" {
 		return "", errors.New("accounts.openAccount: Account already open. " + accountHolder.AccountNumber)
 	}
@@ -277,7 +290,32 @@ func openAccount(data []string) (result string, err error) {
 	result = accountHolderObject.AccountNumber
 	return
 }
+func updateAccountInformation(data []string) (result string, err error) {
+	// Validate string against required info/length
+	if len(data) < 14 {
+		err = errors.New("accounts.openAccount: Not all fields present")
+		//@TODO Add to documentation rather than returning here
+		//result = "ERROR: acmt transactions must be as follows:acmt~AcmtType~AccountHolderGivenName~AccountHolderFamilyName~AccountHolderDateOfBirth~AccountHolderIdentificationNumber~AccountHolderContactNumber1~AccountHolderContactNumber2~AccountHolderEmailAddress~AccountHolderAddressLine1~AccountHolderAddressLine2~AccountHolderAddressLine3~AccountHolderPostalCode"
+		return
+	}
 
+	// @FIXME: Remove new line from data
+	data[len(data)-1] = strings.Replace(data[len(data)-1], "\n", "", -1)
+
+	accountHolderDetailsObject, err := setAccountDetailsForUpdate(data)
+	if err != nil {
+		return "", errors.New("accounts.openAccount: " + err.Error())
+	}
+
+	err = updateAccount(&accountHolderDetailsObject)
+	if err != nil {
+		return "", errors.New("accounts.openAccount: " + err.Error())
+	}
+
+	result = "Update Successful"
+	return
+
+}
 func closeAccount(data []string) (result string, err error) {
 	// Validate string against required info/length
 	if len(data) < 14 {
@@ -366,6 +404,39 @@ func setAccountHolderDetails(data []string) (accountHolderDetails AccountHolderD
 	accountHolderDetails.AddressLine3 = data[12]
 	accountHolderDetails.PostalCode = data[13]
 	accountHolderDetails.Image = data[14]
+	accountHolderDetails.IdentificationType = data[15]
+	accountHolderDetails.Country = data[16]
+
+	return
+}
+
+func setAccountDetailsForUpdate(data []string) (accountHolderDetails AccountHolderDetails, err error) {
+	if len(data) < 14 {
+		return AccountHolderDetails{}, errors.New("accounts.setAccountHolderDetails: Not all field values present")
+	}
+	//@TODO: Test date parsing in format ddmmyyyy
+	if data[4] == "" {
+		return AccountHolderDetails{}, errors.New("accounts.setAccountHolderDetails: Family name cannot be empty")
+	}
+	if data[3] == "" {
+		return AccountHolderDetails{}, errors.New("accounts.setAccountHolderDetails: Given name cannot be empty")
+	}
+
+	accountHolderDetails.GivenName = data[3]
+	accountHolderDetails.FamilyName = data[4]
+	accountHolderDetails.DateOfBirth = data[5]
+	accountHolderDetails.IdentificationNumber = data[6]
+	accountHolderDetails.ContactNumber1 = data[7]
+	accountHolderDetails.ContactNumber2 = data[8]
+	accountHolderDetails.EmailAddress = data[9]
+	accountHolderDetails.AddressLine1 = data[10]
+	accountHolderDetails.AddressLine2 = data[11]
+	accountHolderDetails.AddressLine3 = data[12]
+	accountHolderDetails.PostalCode = data[13]
+	accountHolderDetails.Image = data[14]
+	accountHolderDetails.IdentificationType = data[15]
+	accountHolderDetails.Country = data[16]
+	accountHolderDetails.AccountNumber = data[17]
 
 	return
 }

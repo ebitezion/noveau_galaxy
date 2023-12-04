@@ -59,7 +59,7 @@ func (app *application) routes() *httprouter.Router {
 
 	//ACCOUNT V2
 	router.HandlerFunc(http.MethodPost, "/v1/accounts/create", app.AccountCreate)
-
+	router.HandlerFunc(http.MethodPost, "/v1/accounts/update", app.AccountUpdate)
 	//Currency Exchange
 	router.HandlerFunc(http.MethodGet, "/v1/availableCurrencies", app.AvailableCurrenciesHandler)
 

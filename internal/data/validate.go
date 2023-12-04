@@ -94,5 +94,7 @@ func ValidateNewAccountRequestData(v *validator.Validator, data *NewAccountReque
 	v.Check(data.AccountHolderAddressLine2 != "", "accountHolderAddressLine2", "must be provided")
 	v.Check(data.AccountHolderAddressLine3 != "", "accountHolderAddressLine3", "must be provided")
 	v.Check(data.AccountHolderPostalCode != "", "accountHolderPostalCode", "must be provided")
+	v.Check(data.AccountHolderIdentificationType != "", "accountHolderIdentificationType", "must be provided")
+	v.Check(data.Country != "", "country", "must be provided")
 
 }

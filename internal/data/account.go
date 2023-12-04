@@ -8,19 +8,21 @@ import (
 )
 
 type NewAccountRequest struct {
-	AccountHolderGivenName         string `json:"accountHolderGivenName" validate:"required,min=6,max=20"`
-	AccountHolderFamilyName        string `json:"accountHolderFamilyName" validate:"required,min=6,max=20"`
-	AccountHolderDateOfBirth       string `json:"accountHolderDateOfBirth" validate:"required,customDate"`
-	AccountHolderIdentificationNum string `json:"accountHolderIdentificationNumber" validate:"required,min=6,max=20"`
-	AccountHolderContactNumber2    string `json:"accountHolderContactNumber2"`
-	AccountHolderEmailAddress      string `json:"accountHolderEmailAddress" validate:"required,email"`
-	AccountHolderContactNumber1    string `json:"accountHolderContactNumber1" validate:"required,len=10"`
-	AccountHolderAddressLine1      string `json:"accountHolderAddressLine1" validate:"required,min=6,max=20"`
-	AccountHolderAddressLine2      string `json:"accountHolderAddressLine2" validate:"required,min=6,max=20"`
-	AccountHolderAddressLine3      string `json:"accountHolderAddressLine3" validate:"required,min=6,max=20"`
-	AccountHolderPostalCode        string `json:"accountHolderPostalCode" validate:"required,len=6"`
-	AccountNumber                  string `json:"accountNumber"`
-	ProfileImage                   string `json:"profileImage"`
+	AccountHolderGivenName          string `json:"accountHolderGivenName"`
+	AccountHolderFamilyName         string `json:"accountHolderFamilyName"`
+	AccountHolderDateOfBirth        string `json:"accountHolderDateOfBirth"`
+	AccountHolderIdentificationNum  string `json:"accountHolderIdentificationNumber"`
+	AccountHolderIdentificationType string `json:"accountHolderIdentificationType"`
+	AccountHolderContactNumber1     string `json:"accountHolderContactNumber1"`
+	AccountHolderContactNumber2     string `json:"accountHolderContactNumber2"`
+	AccountHolderEmailAddress       string `json:"accountHolderEmailAddress"`
+	AccountHolderAddressLine1       string `json:"accountHolderAddressLine1"`
+	AccountHolderAddressLine2       string `json:"accountHolderAddressLine2"`
+	AccountHolderAddressLine3       string `json:"accountHolderAddressLine3"`
+	AccountHolderPostalCode         string `json:"accountHolderPostalCode"`
+	AccountNumber                   string `json:"accountNumber"`
+	Image                           string `json:"image"`
+	Country                         string `json:"country"`
 }
 
 type AccountID struct {

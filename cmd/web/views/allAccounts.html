@@ -55,99 +55,93 @@
                                                             </div>
                                                             <div class="col-md-6">
                                                                 <h3>Contact Information</h3>
-                                                                 <div class="input-group mb-3">
-                                                                    <input type="text" name ="Id" value="{{ .AccountHolderDetails.GivenName }}" class="d-none" >
-                                                                    <span class="input-group-text">GivenName</span>
-                                                                    <input type="text" class="form-control"  name="GivenName" id="GivenName" value="{{ .AccountHolderDetails.GivenName }}"  oninvalid="this.setCustomValidity('Please Enter valid FoodTitle')" oninput="setCustomValidity('')" required>
                                                                 
-                                                                </div>
-                                                                 <div class="input-group mb-3">
-                                                                    <input type="text" name ="Id" value="{{ .AccountHolderDetails.FamilyName }}" class="d-none" >
-                                                                    <span class="input-group-text">FamilyName</span>
-                                                                    <input type="text" class="form-control"  name="FamilyName" id="FamilyName" value="{{ .AccountHolderDetails.FamilyName }}"  oninvalid="this.setCustomValidity('Please Enter valid FoodTitle')" oninput="setCustomValidity('')" required>
-                                                                
-                                                                </div>
-                                                                 <div class="input-group mb-3">
-                                                                    <input type="date" name ="Id" value="{{ .AccountHolderDetails.DateOfBirth }}" class="d-none" >
-                                                                    <span class="input-group-text">DateOfBirth</span>
-                                                                    <input type="text" class="form-control"  name="DateOfBirth" id="DateOfBirth" value="{{ .AccountHolderDetails.DateOfBirth }}"  oninvalid="this.setCustomValidity('Please Enter valid FoodTitle')" oninput="setCustomValidity('')" required>
-                                                                
-                                                                </div>
-                                                                 <div class="input-group mb-3">
-                                                                    <input type="text" name ="Id" value="{{ .AccountHolderDetails.ContactNumber1 }}" class="d-none" >
-                                                                    <span class="input-group-text">ContactNumber1</span>
-                                                                    <input type="text" class="form-control"  name="ContactNumber1" id="ContactNumber1" value="{{ .AccountHolderDetails.ContactNumber1 }}"  oninvalid="this.setCustomValidity('Please Enter valid FoodTitle')" oninput="setCustomValidity('')" required>
-                                                                
-                                                                </div>
-                                                                <div class="input-group mb-3">
-                                                                    <input type="text" name ="Id" value="{{ .AccountHolderDetails.ContactNumber2 }}" class="d-none" >
-                                                                    <span class="input-group-text">ContactNumber2</span>
-                                                                    <input type="text" class="form-control"  name="ContactNumber2" id="ContactNumber2" value="{{ .AccountHolderDetails.ContactNumber2 }}"  oninvalid="this.setCustomValidity('Please Enter valid FoodTitle')" oninput="setCustomValidity('')" required>
-                                                                
-                                                                </div>
-                                                                <div class="input-group mb-3">
-                                                                    <input type="text" name ="Id" value="{{ .AccountHolderDetails.EmailAddress }}" class="d-none" >
-                                                                    <span class="input-group-text">EmailAddress</span>
-                                                                    <input type="text" class="form-control"  name="EmailAddress" id="EmailAddress" value="{{ .AccountHolderDetails.EmailAddress }}"  oninvalid="this.setCustomValidity('Please Enter valid FoodTitle')" oninput="setCustomValidity('')" required>
-                                                                
-                                                                </div>
-                                                                <div class="input-group mb-3">
-                                                                    <input type="text" name ="Id" value="{{ .AccountHolderDetails.AddressLine1 }}" class="d-none" >
-                                                                    <span class="input-group-text">AddressLine1</span>
-                                                                    <input type="text" class="form-control"  name="AddressLine1" id="AddressLine1" value="{{ .AccountHolderDetails.AddressLine1 }}"  oninvalid="this.setCustomValidity('Please Enter valid FoodTitle')" oninput="setCustomValidity('')" required>
-                                                                
-                                                                </div>
-                                                                <div class="input-group mb-3">
-                                                                    <input type="text" name ="Id" value="{{ .AccountHolderDetails.ContactNumber2 }}" class="d-none" >
-                                                                    <span class="input-group-text">ContactNumber2</span>
-                                                                    <input type="text" class="form-control"  name="GivenName" id="ContactNumber2" value="{{ .AccountHolderDetails.ContactNumber2 }}"  oninvalid="this.setCustomValidity('Please Enter valid FoodTitle')" oninput="setCustomValidity('')" required>
-                                                                
-                                                                </div>
-                                                                <div class="input-group mb-3">
-                                                                    <input type="text" name ="Id" value="{{ .AccountHolderDetails.AddressLine1 }}" class="d-none" >
-                                                                    <span class="input-group-text">AddressLine1</span>
-                                                                    <input type="text" class="form-control"  name="AddressLine1" id="AddressLine1" value="{{ .AccountHolderDetails.AddressLine1 }}"  oninvalid="this.setCustomValidity('Please Enter valid FoodTitle')" oninput="setCustomValidity('')" required>
-                                                                
-                                                                </div>
-                                                                 <div class="input-group mb-3">
-                                                                    <input type="text" name ="Id" value="{{ .AccountHolderDetails.AddressLine2 }}" class="d-none" >
-                                                                    <span class="input-group-text">AddressLine2</span>
-                                                                    <input type="text" class="form-control"  name="AddressLine2" id="AddressLine2" value="{{ .AccountHolderDetails.AddressLine2 }}"  oninvalid="this.setCustomValidity('Please Enter valid FoodTitle')" oninput="setCustomValidity('')" required>
-                                                                
-                                                                </div>
-                                                                 <div class="input-group mb-3">
-                                                                    <input type="text" name ="Id" value="{{ .AccountHolderDetails.AddressLine3 }}" class="d-none" >
-                                                                    <span class="input-group-text">AddressLine3</span>
-                                                                    <input type="text" class="form-control"  name="AddressLine3" id="AddressLine3" value="{{ .AccountHolderDetails.AddressLine3 }}"  oninvalid="this.setCustomValidity('Please Enter valid FoodTitle')" oninput="setCustomValidity('')" required>
-                                                                
-                                                                </div>
-                                                                 <div class="input-group mb-3">
-                                                                    <input type="text" name ="Id" value="{{ .AccountHolderDetails.PostalCode }}" class="d-none" >
-                                                                    <span class="input-group-text">PostalCode</span>
-                                                                    <input type="text" class="form-control"  name="PostalCode" id="PostalCode" value="{{ .AccountHolderDetails.PostalCode }}"  oninvalid="this.setCustomValidity('Please Enter valid FoodTitle')" oninput="setCustomValidity('')" required>
-                                                                
-                                                                </div>
+                                                                <form id="myform">
+                                                                        <div class="input-group mb-3">
+                                                                            <input type="text" name="Id" value="{{ .AccountHolderDetails.GivenName }}" class="d-none">
+                                                                            <span class="input-group-text">GivenName</span>
+                                                                            <input type="text" class="form-control" name="accountHolderGivenName" id="accountHolderGivenName" value="{{ .AccountHolderDetails.GivenName }}"  required>
+                                                                        </div>
 
-                                                                <!-- <p><strong>Given Name:</strong> {{ .AccountHolderDetails.GivenName }}</p>
-                                                                <p><strong>Family Name:</strong> {{ .AccountHolderDetails.FamilyName }}</p>
-                                                                <p><strong>Date of Birth:</strong> {{ .AccountHolderDetails.DateOfBirth }}</p>
-                                                                <p><strong>Identification Number:</strong> {{ .AccountHolderDetails.IdentificationNumber }}</p>
-                                                                <p><strong>Contact Number 1:</strong> {{ .AccountHolderDetails.ContactNumber1 }}</p>
-                                                                <p><strong>Contact Number 2:</strong> {{ .AccountHolderDetails.ContactNumber2 }}</p>
-                                                                <p><strong>Email Address:</strong> {{ .AccountHolderDetails.EmailAddress }}</p>
-                                                                <p><strong>Address Line 1:</strong> {{ .AccountHolderDetails.AddressLine1 }}</p>
-                                                                <p><strong>Address Line 2:</strong> {{ .AccountHolderDetails.AddressLine2 }}</p>
-                                                                <p><strong>Address Line 3:</strong> {{ .AccountHolderDetails.AddressLine3 }}</p>
-                                                                <p><strong>Postal Code:</strong> {{ .AccountHolderDetails.PostalCode }}</p> -->
-                                                                <p><strong>Country:</strong> {{ .AccountHolderDetails.Country }}</p>
-                                                                <p><strong>Image:</strong> {{ .AccountHolderDetails.Image }}</p>
+                                                                        <div class="input-group mb-3">
+                                                                            <input type="text" name="Id" value="{{ .AccountHolderDetails.FamilyName }}" class="d-none">
+                                                                            <span class="input-group-text">FamilyName</span>
+                                                                            <input type="text" class="form-control" name="accountHolderFamilyName" id="accountHolderFamilyName" value="{{ .AccountHolderDetails.FamilyName }}"  required>
+                                                                        </div>
+
+                                                                        <div class="input-group mb-3">
+                                                                            <input type="date" name="Id" value="{{ .AccountHolderDetails.DateOfBirth }}" class="d-none">
+                                                                            <span class="input-group-text">DateOfBirth</span>
+                                                                            <input type="text" class="form-control" name="accountHolderDateOfBirth" id="accountHolderDateOfBirth" value="{{ .AccountHolderDetails.DateOfBirth }}"  required>
+                                                                        </div>
+
+                                                                        <div class="input-group mb-3">
+                                                                            <input type="text" name="Id" value="{{ .AccountHolderDetails.ContactNumber1 }}" class="d-none">
+                                                                            <span class="input-group-text">ContactNumber1</span>
+                                                                            <input type="text" class="form-control" name="accountHolderContactNumber1" id="accountHolderContactNumber1" value="{{ .AccountHolderDetails.ContactNumber1 }}"  required>
+                                                                        </div>
+
+                                                                        <div class="input-group mb-3">
+                                                                            <input type="text" name="Id" value="{{ .AccountHolderDetails.ContactNumber2 }}" class="d-none">
+                                                                            <span class="input-group-text">ContactNumber2</span>
+                                                                            <input type="text" class="form-control" name="accountHolderContactNumber2" id="accountHolderContactNumber2" value="{{ .AccountHolderDetails.ContactNumber2 }}"  required>
+                                                                        </div>
+
+                                                                        <div class="input-group mb-3">
+                                                                            <input type="text" name="Id" value="{{ .AccountHolderDetails.EmailAddress }}" class="d-none">
+                                                                            <span class="input-group-text">EmailAddress</span>
+                                                                            <input type="text" class="form-control" name="accountHolderEmailAddress" id="accountHolderEmailAddress" value="{{ .AccountHolderDetails.EmailAddress }}"  required>
+                                                                        </div>
+
+                                                                        <div class="input-group mb-3">
+                                                                            <input type="text" name="Id" value="{{ .AccountHolderDetails.AddressLine1 }}" class="d-none">
+                                                                            <span class="input-group-text">AddressLine1</span>
+                                                                            <input type="text" class="form-control" name="accountHolderAddressLine1" id="accountHolderAddressLine1" value="{{ .AccountHolderDetails.AddressLine1 }}"  required>
+                                                                        </div>
+
+                                                                        <div class="input-group mb-3">
+                                                                            <input type="text" name="Id" value="{{ .AccountHolderDetails.AddressLine2 }}" class="d-none">
+                                                                            <span class="input-group-text">AddressLine2</span>
+                                                                            <input type="text" class="form-control" name="accountHolderAddressLine2" id="accountHolderAddressLine2" value="{{ .AccountHolderDetails.AddressLine2 }}"  required>
+                                                                        </div>
+
+                                                                        <div class="input-group mb-3">
+                                                                            <input type="text" name="Id" value="{{ .AccountHolderDetails.AddressLine3 }}" class="d-none">
+                                                                            <span class="input-group-text">AddressLine3</span>
+                                                                            <input type="text" class="form-control" name="accountHolderAddressLine3" id="accountHolderAddressLine3" value="{{ .AccountHolderDetails.AddressLine3 }}"  required>
+                                                                        </div>
+
+                                                                        <div class="input-group mb-3">
+                                                                            <input type="text" name="Id" value="{{ .AccountHolderDetails.PostalCode }}" class="d-none">
+                                                                            <span class="input-group-text">PostalCode</span>
+                                                                            <input type="text" class="form-control" name="accountHolderPostalCode" id="accountHolderPostalCode" value="{{ .AccountHolderDetails.PostalCode }}"  required>
+                                                                        </div>
+                                                                        <div class="input-group mb-3">
+                                                                            <input type="text" name="Id" value="{{ .AccountHolderDetails.Country }}" class="d-none">
+                                                                            <span class="input-group-text">Country</span>
+                                                                            <input type="text" class="form-control" name="country" id="country" value="{{ .AccountHolderDetails.Country }}"  required>
+                                                                        </div>
+                                                                          <div class="input-group mb-3 d-none"  >
+                                                                            <input type="text" name="Id" value="{{ .AccountNumber }}" class="d-none">
+                                                                            <span class="input-group-text">AccountNumber</span>
+                                                                            <input type="text" class="form-control" name="accountNumber" id="accountNumber" value="{{ .AccountNumber }}"  required>
+                                                                        </div>
+                                                                
+                                                                        
+                                                                      
+                                                                        <div id="successAlert" class="alert alert-success mt-3" style="display: none;">
+                                                                        </div>
+                                                                        <div id="failureAlert" class="alert alert-danger mt-3" style="display: none;">	
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
                                                             </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="modal-footer">
-                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                                        <button type="button" class="btn btn-primary">Save changes</button>
-                                                    </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                                <button type="button" class="btn btn-primary" onclick="submitForm()"  >Save changes</button>
+                                                            </div>
+                                                                </form>
+                                                                
                                                 </div>
                                             </div>
                                         </div>
@@ -164,22 +158,44 @@
                 </div>
 	<script>
         function submitForm() {
+			
+            event.preventDefault();
             var formdata = new FormData(document.getElementById("myform"));
             var requestOptions = {
                 method: 'POST',
                 headers: {
-                    'X-Auth-Token': 'd25fdd5b-bf4d-4d7b-8763-7b53f2763f98',
+                    'X-Auth-Token': '02c01f6a-c356-4a5b-b246-3e10f8677153',
                 },
                 body: formdata,
             };
 
-            fetch("http://localhost:4000/v1/accountHistory", requestOptions)
+            fetch("http://localhost:4000/v1/accounts/update", requestOptions)
                 .then(response => response.json()) // Parse the response as JSON
                 .then(result => {
-                    console.log(result);
-        
-                })
-                .catch(error => console.log('error', error));
+					console.log(result)
+					if (result.responseCode === "00") {
+                        
+					 // Update the success message with the message from the API
+                        document.getElementById("successAlert").innerText = result.message;
+                        // Show the success alert
+                        document.getElementById("successAlert").style.display = "block";
+                        // Hide the alert after 7 seconds
+                        setTimeout(function () {
+                            document.getElementById("successAlert").style.display = "none";
+                        }, 7000);
+				}else {
+                          document.getElementById("failureAlert").innerText = result.message;
+                        // Show the failure alert
+                        document.getElementById("failureAlert").style.display = "block";
+                        // Hide the alert after 7 seconds
+                        setTimeout(function () {
+                            document.getElementById("failureAlert").style.display = "none";
+                        }, 7000);
+                    }
+
+					
+				})
+            //     .catch(error => console.log('error', error));
         }
     </script>
 {{ template "footer" . }}
