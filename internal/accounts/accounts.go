@@ -1,11 +1,13 @@
 package accounts
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/ebitezion/backend-framework/internal/appauth"
 	"github.com/ebitezion/backend-framework/internal/nuban"
@@ -54,6 +56,7 @@ Accounts (acmt) transactions are as follows:
 1004 - AccountHistory
 1005 - AccountMetaData
 1006 - AllAccounts
+1007 - UpdateAccountInformation
 
 */
 
@@ -84,6 +87,7 @@ type AccountHolderDetails struct {
 	FamilyName           string
 	DateOfBirth          string
 	IdentificationNumber string
+	IdentificationType   string
 	ContactNumber1       string
 	ContactNumber2       string
 	EmailAddress         string
@@ -196,6 +200,16 @@ func ProcessAccount(data []string) (result interface{}, err error) {
 			return "", errors.New("accounts.ProcessAccount: " + err.Error())
 		}
 		break
+	case 1007:
+		if len(data) < 3 {
+			err = errors.New("accounts.ProcessAccount: Not all fields present")
+			return
+		}
+		result, err = updateAccountInformation(data)
+		if err != nil {
+			return "", errors.New("accounts.ProcessAccount: " + err.Error())
+		}
+		break
 
 	default:
 		err = errors.New("accounts.ProcessAccount: ACMT transaction code invalid")
@@ -251,6 +265,7 @@ func openAccount(data []string) (result string, err error) {
 	// Test: acmt~1~Kyle~Redelinghuys~19000101~190001011234098~1112223456~~email@domain.com~Physical Address 1~~~1000
 	// Check if account already exists, check on ID number
 	accountHolder, _ := getAccountMeta(data[6])
+	fmt.Println(accountHolder.AccountNumber, accountHolder)
 	if accountHolder.AccountNumber != "" {
 		return "", errors.New("accounts.openAccount: Account already open. " + accountHolder.AccountNumber)
 	}
@@ -275,7 +290,32 @@ func openAccount(data []string) (result string, err error) {
 	result = accountHolderObject.AccountNumber
 	return
 }
+func updateAccountInformation(data []string) (result string, err error) {
+	// Validate string against required info/length
+	if len(data) < 14 {
+		err = errors.New("accounts.openAccount: Not all fields present")
+		//@TODO Add to documentation rather than returning here
+		//result = "ERROR: acmt transactions must be as follows:acmt~AcmtType~AccountHolderGivenName~AccountHolderFamilyName~AccountHolderDateOfBirth~AccountHolderIdentificationNumber~AccountHolderContactNumber1~AccountHolderContactNumber2~AccountHolderEmailAddress~AccountHolderAddressLine1~AccountHolderAddressLine2~AccountHolderAddressLine3~AccountHolderPostalCode"
+		return
+	}
 
+	// @FIXME: Remove new line from data
+	data[len(data)-1] = strings.Replace(data[len(data)-1], "\n", "", -1)
+
+	accountHolderDetailsObject, err := setAccountDetailsForUpdate(data)
+	if err != nil {
+		return "", errors.New("accounts.openAccount: " + err.Error())
+	}
+
+	err = updateAccount(&accountHolderDetailsObject)
+	if err != nil {
+		return "", errors.New("accounts.openAccount: " + err.Error())
+	}
+
+	result = "Update Successful"
+	return
+
+}
 func closeAccount(data []string) (result string, err error) {
 	// Validate string against required info/length
 	if len(data) < 14 {
@@ -364,6 +404,39 @@ func setAccountHolderDetails(data []string) (accountHolderDetails AccountHolderD
 	accountHolderDetails.AddressLine3 = data[12]
 	accountHolderDetails.PostalCode = data[13]
 	accountHolderDetails.Image = data[14]
+	accountHolderDetails.IdentificationType = data[15]
+	accountHolderDetails.Country = data[16]
+
+	return
+}
+
+func setAccountDetailsForUpdate(data []string) (accountHolderDetails AccountHolderDetails, err error) {
+	if len(data) < 14 {
+		return AccountHolderDetails{}, errors.New("accounts.setAccountHolderDetails: Not all field values present")
+	}
+	//@TODO: Test date parsing in format ddmmyyyy
+	if data[4] == "" {
+		return AccountHolderDetails{}, errors.New("accounts.setAccountHolderDetails: Family name cannot be empty")
+	}
+	if data[3] == "" {
+		return AccountHolderDetails{}, errors.New("accounts.setAccountHolderDetails: Given name cannot be empty")
+	}
+
+	accountHolderDetails.GivenName = data[3]
+	accountHolderDetails.FamilyName = data[4]
+	accountHolderDetails.DateOfBirth = data[5]
+	accountHolderDetails.IdentificationNumber = data[6]
+	accountHolderDetails.ContactNumber1 = data[7]
+	accountHolderDetails.ContactNumber2 = data[8]
+	accountHolderDetails.EmailAddress = data[9]
+	accountHolderDetails.AddressLine1 = data[10]
+	accountHolderDetails.AddressLine2 = data[11]
+	accountHolderDetails.AddressLine3 = data[12]
+	accountHolderDetails.PostalCode = data[13]
+	accountHolderDetails.Image = data[14]
+	accountHolderDetails.IdentificationType = data[15]
+	accountHolderDetails.Country = data[16]
+	accountHolderDetails.AccountNumber = data[17]
 
 	return
 }
@@ -427,11 +500,44 @@ func fetchAccountHistory(data []string) (result []Transaction, err error) {
 	if accountNumber == "" {
 		return nil, errors.New("accounts.fetchSingleAccountByID: Account number not present")
 	}
+	//check if receivers accounts is valid
 
+	exists, err := CheckIfAccountNumberExists(accountNumber)
+	if err != nil {
+		return nil, errors.New("payments.fetchSingleAccountByID: " + err.Error())
+	}
+	// Check the result.
+	if !exists {
+		return nil, errors.New("payments.fetchSingleAccountByID: " + " Account Not valid")
+	}
 	history, err := GetAccountHistory(accountNumber)
 	if err != nil {
 		return nil, errors.New("accounts.fetchSingleAccountByID: " + err.Error())
 	}
 
 	return history, nil
+}
+
+// CheckIfValueExists checks if a given value is in the specified table and returns a boolean
+func CheckIfAccountNumberExists(accountNumber string) (bool, error) {
+	query := "SELECT COUNT(*) FROM accounts WHERE accountNumber = ?"
+	// Declare a variable to store the count.
+	var count int
+
+	// Use the context.WithTimeout() function to create a context.Context with a timeout.
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	// Use QueryRowContext() to execute the query and get the count.
+	err := Config.Db.QueryRowContext(ctx, query, accountNumber).Scan(&count)
+	if err != nil {
+		// Print the error message for debugging purposes.
+		fmt.Println("Error executing query:", err)
+		return false, err
+	}
+
+	fmt.Println("Count:", count)
+
+	// If the count is greater than 0, the value exists in the database.
+	return count > 0, nil
 }

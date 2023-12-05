@@ -14,7 +14,7 @@ import (
 func (app *application) getTokenFromHeader(w http.ResponseWriter, r *http.Request) (token string, err error) {
 	// Get token from header
 	token = r.Header.Get("X-Auth-Token")
-	fmt.Println(token)
+
 	if token == "" {
 
 		return "", errors.New("could not retrieve token from headers")

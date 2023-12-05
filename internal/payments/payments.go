@@ -27,10 +27,12 @@ Payments mandates:
 */
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/ebitezion/backend-framework/internal/appauth"
 	"github.com/shopspring/decimal"
@@ -153,15 +155,27 @@ func painCreditTransferInitiation(painType int64, data []string) (result string,
 		return "", errors.New("payments.painCreditTransferInitiation: Could not convert transaction amount to decimal. " + err.Error())
 	}
 
-	// Check if sender valid
-	tokenUser, err := appauth.GetUserFromToken(data[0])
+	//check if receivers accounts is valid
+
+	exists, err := CheckIfAccountNumberExists(receiver.AccountNumber)
 	if err != nil {
 		return "", errors.New("payments.painCreditTransferInitiation: " + err.Error())
 	}
-	if tokenUser != sender.AccountNumber {
-		return "", errors.New("payments.painCreditTransferInitiation: Sender not valid")
+	// Check the result.
+	if !exists {
+		return "", errors.New("payments.painCreditTransferInitiation: " + "Receivers Account Not valid")
 	}
-	fmt.Println("hit")
+	////check if senders accounts is valid
+	exists, err = CheckIfAccountNumberExists(sender.AccountNumber)
+
+	if err != nil {
+		return "", errors.New("payments.painCreditTransferInitiation: " + err.Error())
+	}
+	// Check the result.
+	if !exists {
+		return "", errors.New("payments.painCreditTransferInitiation: " + "Senders Account Not valid")
+	}
+
 	Narration := data[6]
 	transaction := PAINTrans{painType, sender, receiver, transactionAmountDecimal, decimal.NewFromFloat(TRANSACTION_FEE), Narration}
 
@@ -184,20 +198,32 @@ func painCreditTransferInitiation(painType int64, data []string) (result string,
 	return
 }
 func painFullAccessDepositInitiation(painType int64, data []string) (result string, err error) {
+
 	// Validate input
 	sender, err := parseAccountHolder(data[3])
 	if err != nil {
-		return "", errors.New("payments.painCreditTransferInitiation: " + err.Error())
+		return "", errors.New("payments.CustomerDepositInitiation: " + err.Error())
 	}
 	receiver, err := parseAccountHolder(data[4])
 	if err != nil {
-		return "", errors.New("payments.painCreditTransferInitiation: " + err.Error())
+		return "", errors.New("payments.CustomerDepositInitiation: " + err.Error())
+	}
+
+	//check if accounts are valid . its at this point because the parse account function will have stripped the @
+	exists, err := CheckIfAccountNumberExists(receiver.AccountNumber)
+
+	if err != nil {
+		return "", errors.New("payments.CustomerDepositInitiation: " + err.Error())
+	}
+	// Check the result.
+	if !exists {
+		return "", errors.New("payments.CustomerDepositInitiation: " + "Account Not valid")
 	}
 
 	trAmt := strings.TrimRight(data[5], "\x00")
 	transactionAmountDecimal, err := decimal.NewFromString(trAmt)
 	if err != nil {
-		return "", errors.New("payments.painCreditTransferInitiation: Could not convert transaction amount to decimal. " + err.Error())
+		return "", errors.New("payments.CustomerDepositInitiation: Could not convert transaction amount to decimal. " + err.Error())
 	}
 
 	Narration := data[6]
@@ -206,17 +232,17 @@ func painFullAccessDepositInitiation(painType int64, data []string) (result stri
 	// Checks for transaction (avail balance, accounts open, etc)
 	balanceAvailable, err := checkBalance(transaction.Sender)
 	if err != nil {
-		return "", errors.New("payments.painCreditTransferInitiation: " + err.Error())
+		return "", errors.New("payments.CustomerDepositInitiation: " + err.Error())
 	}
 	// Comparing decimals results in -1 if <
 	if balanceAvailable.Cmp(transaction.Amount) == -1 {
-		return "", errors.New("payments.painCreditTransferInitiation: Insufficient funds available")
+		return "", errors.New("payments.CustomerDepositInitiation: Insufficient funds available")
 	}
 
 	// Save transaction
 	result, err = processPAINTransaction(transaction)
 	if err != nil {
-		return "", errors.New("payments.painCreditTransferInitiation: " + err.Error())
+		return "", errors.New("payments.CustomerDepositInitiation: " + err.Error())
 	}
 
 	return
@@ -231,6 +257,27 @@ func painFullAccessCreditInitiation(painType int64, data []string) (result strin
 	receiver, err := parseAccountHolder(data[4])
 	if err != nil {
 		return "", errors.New("payments.painCreditTransferInitiation: " + err.Error())
+	}
+
+	//check if receivers accounts is valid
+
+	exists, err := CheckIfAccountNumberExists(receiver.AccountNumber)
+	if err != nil {
+		return "", errors.New("payments.painCreditTransferInitiation: " + err.Error())
+	}
+	// Check the result.
+	if !exists {
+		return "", errors.New("payments.painCreditTransferInitiation: " + "Receivers Account Not valid")
+	}
+	////check if senders accounts is valid
+	exists, err = CheckIfAccountNumberExists(sender.AccountNumber)
+
+	if err != nil {
+		return "", errors.New("payments.painCreditTransferInitiation: " + err.Error())
+	}
+	// Check the result.
+	if !exists {
+		return "", errors.New("payments.painCreditTransferInitiation: " + "Senders Account Not valid")
 	}
 
 	trAmt := strings.TrimRight(data[5], "\x00")
@@ -374,7 +421,16 @@ func customerDepositInitiation(painType int64, data []string) (result string, er
 	if err != nil {
 		return "", errors.New("payments.CustomerDepositInitiation: " + err.Error())
 	}
-	fmt.Println(sender, receiver)
+
+	exists, err := CheckIfAccountNumberExists(receiver.AccountNumber)
+
+	if err != nil {
+		return "", errors.New("payments.CustomerDepositInitiation: " + err.Error())
+	}
+	// Check the result.
+	if !exists {
+		return "", errors.New("payments.CustomerDepositInitiation: " + "Account Not valid")
+	}
 	trAmt := strings.TrimRight(data[5], "\x00")
 	transactionAmountDecimal, err := decimal.NewFromString(trAmt)
 	if err != nil {
@@ -417,4 +473,28 @@ func processSingleTransaction(transaction Transaction) error {
 	// Logic to handle a single transaction
 	// ...
 	return nil
+}
+
+// CheckIfValueExists checks if a given value is in the specified table and returns a boolean
+func CheckIfAccountNumberExists(accountNumber string) (bool, error) {
+	query := "SELECT COUNT(*) FROM accounts WHERE accountNumber = ?"
+	// Declare a variable to store the count.
+	var count int
+
+	// Use the context.WithTimeout() function to create a context.Context with a timeout.
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	// Use QueryRowContext() to execute the query and get the count.
+	err := Config.Db.QueryRowContext(ctx, query, accountNumber).Scan(&count)
+	if err != nil {
+		// Print the error message for debugging purposes.
+		fmt.Println("Error executing query:", err)
+		return false, err
+	}
+
+	fmt.Println("Count:", count)
+
+	// If the count is greater than 0, the value exists in the database.
+	return count > 0, nil
 }

@@ -9,7 +9,7 @@
 		
 		</div>
 	<div class="container w-100 mt-5">
-		<form id="myForm"  method="post" action="/v1/accounts/create">
+		<form id="myForm" >
 			<div class="row">
 				<div class="col-6">
 					<div class="mb-3">
@@ -29,6 +29,33 @@
 					<div class="mb-3">
 						<label for="accountHolderDateOfBirth" class="form-label">Date of Birth</label>
 						<input type="date" class="form-control" id="accountHolderDateOfBirth" name="accountHolderDateOfBirth" required />
+					</div>
+				</div>
+				<div class="col-6">
+					<div class="mb-3">
+						<label for="accountHolderIdentificationNumber" class="form-label">Country</label>
+						<input
+							type="text"
+							class="form-control"
+							id="country"
+							name="country"
+							required
+						/>
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				
+				<div class="col-6">
+					<div class="mb-3">
+						<label for="accountHolderIdentificationType" class="form-label">Identification Type</label>
+						<input
+							type="text"
+							class="form-control"
+							id="accountHolderIdentificationType"
+							name="accountHolderIdentificationType"
+							required
+						/>
 					</div>
 				</div>
 				<div class="col-6">
@@ -53,7 +80,7 @@
 				</div>
 				<div class="col-6">
 					<div class="mb-3">
-						<label for="accountHolderContactNumber1" class="form-label">Contact Number 2</label>
+						<label for="accountHolderContactNumber2" class="form-label">Contact Number 2</label>
 						<input type="text" class="form-control" id="accountHolderContactNumber1" name="accountHolderContactNumber1" required />
 					</div>
 				</div>
@@ -106,27 +133,33 @@
 			</div>
 			
 			
-
+			
+			   <div id="successAlert" class="alert alert-success mt-3" style="display: none;">
+				</div>
+				<div id="failureAlert" class="alert alert-danger mt-3" style="display: none;">	
+				</div>
 			 <button type="button" onclick="submitForm()" class="btn btn-custom btn-user btn-block">Submit</button>
 		</form>
 	</div>
 </div>
 <script>
     function submitForm() {
-        let token = "awdawdwad"
-        var headers = new Headers();
-        headers.append("Authorization", "Bearer " + token);
-
+         event.preventDefault();
         // Get the form data
         var formData = new FormData(document.getElementById("myForm"));
 
         // Send the form data using fetch
         fetch("/v1/accounts/create", {
             method: "POST",
-            body: formData
+            body: formData,
+			headers: {
+                    'X-Auth-Token': '02c01f6a-c356-4a5b-b246-3e10f8677153',
+                },
         })
         .then(result => {
+			console.log(result)
            if (result.responseCode === "00") {
+			
 				// Update the success message with the message from the API
 				document.getElementById("successAlert").innerText = result.message;
 				// Show the success alert
@@ -135,8 +168,7 @@
 				setTimeout(function () {
 					document.getElementById("successAlert").style.display = "none";
 				}, 7000);}
-            console.log(result);
-            // You can redirect or perform other actions based on the response
+          
         })
         .catch(error => {
             // Handle errors
