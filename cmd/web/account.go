@@ -344,20 +344,22 @@ func (app *application) AccountIndex(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) AccountCreate(w http.ResponseWriter, r *http.Request) {
-	// Get values from POST
-	// accountHolderGivenName := "ade"
-	// accountHolderFamilyName := "martins"
-	// accountHolderDateOfBirth := "1990-01-15"
-	// accountHolderIdentificationNumber := "123456555"
-	// accountHolderContactNumber1 := "555-555-5555"
-	// accountHolderContactNumber2 := "444-444-4444"
-	// accountHolderEmailAddress := "johndoe@example.com"
-	// accountHolderAddressLine1 := "123 Main St"
-	// accountHolderAddressLine2 := "Apt 4B"
-	// accountHolderAddressLine3 := "Building XYZ"
-	// accountHolderPostalCode := "12345"
+
+	_, err := app.getTokenFromHeader(w, r)
+	if err != nil {
+		// there was error
+		data := envelope{
+			"responseCode": "06",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+
 	// Parse form data
-	err := r.ParseMultipartForm(10 << 20)
+	err = r.ParseMultipartForm(10 << 20)
 	if err != nil {
 		http.Error(w, "Failed to parse form data", http.StatusInternalServerError)
 		return
@@ -366,14 +368,15 @@ func (app *application) AccountCreate(w http.ResponseWriter, r *http.Request) {
 	accountHolderFamilyName := r.FormValue("accountHolderFamilyName")
 	accountHolderDateOfBirth := r.FormValue("accountHolderDateOfBirth")
 	accountHolderIdentificationNumber := r.FormValue("accountHolderIdentificationNumber")
+	accountHolderIdentificationType := r.FormValue("accountHolderIdentificationType")
 	accountHolderContactNumber1 := r.FormValue("accountHolderContactNumber1")
-	accountHolderContactNumber2 := r.FormValue("accountHolderContactNumber1")
+	accountHolderContactNumber2 := r.FormValue("accountHolderContactNumber2")
 	accountHolderEmailAddress := r.FormValue("accountHolderEmailAddress")
 	accountHolderAddressLine1 := r.FormValue("accountHolderAddressLine1")
 	accountHolderAddressLine2 := r.FormValue("accountHolderAddressLine2")
 	accountHolderAddressLine3 := r.FormValue("accountHolderAddressLine3")
 	accountHolderPostalCode := r.FormValue("accountHolderPostalCode")
-
+	accountHolderCountry := r.FormValue("country")
 	profileImage, err := ImagetoHexacimal(r)
 	if err != nil {
 		log.Println(err)
@@ -398,6 +401,8 @@ func (app *application) AccountCreate(w http.ResponseWriter, r *http.Request) {
 		accountHolderAddressLine3,
 		accountHolderPostalCode,
 		profileImage,
+		accountHolderIdentificationType,
+		accountHolderCountry,
 	}
 
 	response, err := accounts.ProcessAccount(req)
@@ -462,7 +467,91 @@ func (app *application) AccountGet(w http.ResponseWriter, r *http.Request) {
 	}
 	app.writeJSON(w, http.StatusOK, data, nil)
 }
+func (app *application) AccountUpdate(w http.ResponseWriter, r *http.Request) {
+	_, err := app.getTokenFromHeader(w, r)
+	if err != nil {
+		// there was error
+		data := envelope{
+			"responseCode": "06",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
 
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+	// Parse form data
+	err = r.ParseMultipartForm(10 << 20)
+	if err != nil {
+		http.Error(w, "Failed to parse form data", http.StatusInternalServerError)
+		return
+	}
+	accountNumber := r.FormValue("accountNumber")
+	accountHolderGivenName := r.FormValue("accountHolderGivenName")
+	accountHolderFamilyName := r.FormValue("accountHolderFamilyName")
+	accountHolderDateOfBirth := r.FormValue("accountHolderDateOfBirth")
+	accountHolderIdentificationNumber := r.FormValue("accountHolderIdentificationNumber")
+	accountHolderIdentificationType := r.FormValue("accountHolderIdentificationType")
+	accountHolderContactNumber1 := r.FormValue("accountHolderContactNumber1")
+	accountHolderContactNumber2 := r.FormValue("accountHolderContactNumber2")
+	accountHolderEmailAddress := r.FormValue("accountHolderEmailAddress")
+	accountHolderAddressLine1 := r.FormValue("accountHolderAddressLine1")
+	accountHolderAddressLine2 := r.FormValue("accountHolderAddressLine2")
+	accountHolderAddressLine3 := r.FormValue("accountHolderAddressLine3")
+	accountHolderPostalCode := r.FormValue("accountHolderPostalCode")
+	accountHolderCountry := r.FormValue("country")
+
+	profileImage, err := ImagetoHexacimal(r)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	// Initialize variables with actual data
+
+	req := []string{
+		"0",
+		"acmt",
+		"1007",
+		accountHolderGivenName,
+		accountHolderFamilyName,
+		accountHolderDateOfBirth,
+		accountHolderIdentificationNumber,
+		accountHolderContactNumber1,
+		accountHolderContactNumber2,
+		accountHolderEmailAddress,
+		accountHolderAddressLine1,
+		accountHolderAddressLine2,
+		accountHolderAddressLine3,
+		accountHolderPostalCode,
+		profileImage,
+		accountHolderIdentificationType,
+		accountHolderCountry,
+		accountNumber,
+	}
+
+	response, err := accounts.ProcessAccount(req)
+	if err != nil {
+		//there was error
+		data := envelope{
+			"responseCode": "06",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+	//Response(response, err, w, r)
+
+	data := envelope{
+		"responseCode": "00",
+		"status":       "Success",
+		"message":      response,
+	}
+	app.writeJSON(w, http.StatusOK, data, nil)
+
+}
 func (app *application) AccountGetAll(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Account GetAll")
 	token, err := app.getTokenFromHeader(w, r)

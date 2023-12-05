@@ -7,6 +7,24 @@ import (
 	"time"
 )
 
+type NewAccountRequest struct {
+	AccountHolderGivenName          string `json:"accountHolderGivenName"`
+	AccountHolderFamilyName         string `json:"accountHolderFamilyName"`
+	AccountHolderDateOfBirth        string `json:"accountHolderDateOfBirth"`
+	AccountHolderIdentificationNum  string `json:"accountHolderIdentificationNumber"`
+	AccountHolderIdentificationType string `json:"accountHolderIdentificationType"`
+	AccountHolderContactNumber1     string `json:"accountHolderContactNumber1"`
+	AccountHolderContactNumber2     string `json:"accountHolderContactNumber2"`
+	AccountHolderEmailAddress       string `json:"accountHolderEmailAddress"`
+	AccountHolderAddressLine1       string `json:"accountHolderAddressLine1"`
+	AccountHolderAddressLine2       string `json:"accountHolderAddressLine2"`
+	AccountHolderAddressLine3       string `json:"accountHolderAddressLine3"`
+	AccountHolderPostalCode         string `json:"accountHolderPostalCode"`
+	AccountNumber                   string `json:"accountNumber"`
+	Image                           string `json:"image"`
+	Country                         string `json:"country"`
+}
+
 type AccountID struct {
 	AccountID string `json:"accountID"`
 }

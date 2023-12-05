@@ -47,6 +47,22 @@ func createAccount(accountDetails *AccountDetails, accountHolderDetails *Account
 
 	return
 }
+func updateAccount(accountHolderDetails *AccountHolderDetails) (err error) {
+	// Convert variables
+
+	err = doUpdateAccount(accountHolderDetails)
+	if err != nil {
+		return errors.New("accounts.createAccount: " + err.Error())
+	}
+
+	err = doUpdateAccountMeta(
+		accountHolderDetails)
+	if err != nil {
+		return errors.New("accounts.createAccount: " + err.Error())
+	}
+
+	return
+}
 
 func deleteAccount(accountDetails *AccountDetails, accountHolderDetails *AccountHolderDetails) (err error) {
 	err = doDeleteAccount(accountDetails)
@@ -84,6 +100,24 @@ func doCreateAccount(accountDetails *AccountDetails) (err error) {
 	}
 	return
 }
+func doUpdateAccount(accountDetails *AccountHolderDetails) (err error) {
+	AccountName := accountDetails.FamilyName + "," + accountDetails.GivenName
+	// Create account
+	updateStatement := "UPDATE accounts SET `accountHolderName`=? WHERE `accountNumber`=?"
+	stmtUpdate, err := Config.Db.Prepare(updateStatement)
+	if err != nil {
+		return errors.New("accounts.doUpdateAccount: " + err.Error())
+	}
+
+	// Prepare statement for updating data
+	defer stmtUpdate.Close() // Close the statement when we leave main() / the program terminates
+
+	_, err = stmtUpdate.Exec(AccountName, accountDetails.AccountNumber)
+	if err != nil {
+		return errors.New("accounts.doUpdateAccount: " + err.Error())
+	}
+	return
+}
 
 func doDeleteAccount(accountDetails *AccountDetails) (err error) {
 	// Create account
@@ -106,8 +140,8 @@ func doDeleteAccount(accountDetails *AccountDetails) (err error) {
 
 func doCreateAccountMeta(accountHolderDetails *AccountHolderDetails, accountDetails *AccountDetails) (err error) {
 	// Create account meta
-	insertStatement := "INSERT INTO accounts_meta (`accountNumber`, `bankNumber`, `accountHolderGivenName`, `accountHolderFamilyName`, `accountHolderDateOfBirth`, `accountHolderIdentificationNumber`, `accountHolderContactNumber1`, `accountHolderContactNumber2`, `accountHolderEmailAddress`, `accountHolderAddressLine1`, `accountHolderAddressLine2`, `accountHolderAddressLine3`, `accountHolderPostalCode`,`image`) "
-	insertStatement += "VALUES( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)"
+	insertStatement := "INSERT INTO accounts_meta (`accountNumber`, `bankNumber`, `accountHolderGivenName`, `accountHolderFamilyName`, `accountHolderDateOfBirth`, `accountHolderIdentificationNumber`, `accountHolderContactNumber1`, `accountHolderContactNumber2`, `accountHolderEmailAddress`, `accountHolderAddressLine1`, `accountHolderAddressLine2`, `accountHolderAddressLine3`, `accountHolderPostalCode`,`image`,`country`,`identificationType`) "
+	insertStatement += "VALUES( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?,?,?)"
 	stmtIns, err := Config.Db.Prepare(insertStatement)
 	if err != nil {
 		return errors.New("accounts.doCreateAccountMeta: " + err.Error())
@@ -117,10 +151,31 @@ func doCreateAccountMeta(accountHolderDetails *AccountHolderDetails, accountDeta
 	accountHolderDetails.AccountNumber = accountDetails.AccountNumber
 
 	_, err = stmtIns.Exec(accountHolderDetails.AccountNumber, accountHolderDetails.BankNumber, accountHolderDetails.GivenName, accountHolderDetails.FamilyName, accountHolderDetails.DateOfBirth, accountHolderDetails.IdentificationNumber, accountHolderDetails.ContactNumber1, accountHolderDetails.ContactNumber2, accountHolderDetails.EmailAddress, accountHolderDetails.AddressLine1, accountHolderDetails.AddressLine2, accountHolderDetails.AddressLine3,
-		accountHolderDetails.PostalCode, accountHolderDetails.Image)
+		accountHolderDetails.PostalCode, accountHolderDetails.Image, accountHolderDetails.Country, accountHolderDetails.IdentificationType)
 
 	if err != nil {
 		return errors.New("accounts.doCreateAccountMeta: " + err.Error())
+	}
+
+	return
+}
+func doUpdateAccountMeta(accountHolderDetails *AccountHolderDetails) (err error) {
+
+	// Create account meta
+	updateStatement := "UPDATE accounts_meta SET `accountHolderGivenName`=?, `accountHolderFamilyName`=?, `accountHolderDateOfBirth`=?, `accountHolderIdentificationNumber`=?, `accountHolderContactNumber1`=?, `accountHolderContactNumber2`=?, `accountHolderEmailAddress`=?, `accountHolderAddressLine1`=?, `accountHolderAddressLine2`=?, `accountHolderAddressLine3`=?, `accountHolderPostalCode`=?,  `country`=?, `identificationType`=? WHERE `accountNumber`=?"
+	stmtUpdate, err := Config.Db.Prepare(updateStatement)
+	if err != nil {
+		return errors.New("accounts.doUpdateAccountMeta: " + err.Error())
+	}
+	defer stmtUpdate.Close() // Close the statement when we leave main() / the program terminates
+
+	_, err = stmtUpdate.Exec(
+		accountHolderDetails.GivenName, accountHolderDetails.FamilyName, accountHolderDetails.DateOfBirth, accountHolderDetails.IdentificationNumber, accountHolderDetails.ContactNumber1, accountHolderDetails.ContactNumber2, accountHolderDetails.EmailAddress, accountHolderDetails.AddressLine1, accountHolderDetails.AddressLine2, accountHolderDetails.AddressLine3,
+		accountHolderDetails.PostalCode, accountHolderDetails.Country, accountHolderDetails.IdentificationType, accountHolderDetails.AccountNumber,
+	)
+
+	if err != nil {
+		return errors.New("accounts.doUpdateAccountMeta: " + err.Error())
 	}
 
 	return
