@@ -57,6 +57,7 @@ Accounts (acmt) transactions are as follows:
 1005 - AccountMetaData
 1006 - AllAccounts
 1007 - UpdateAccountInformation
+1008 - AllTransactions
 
 */
 
@@ -210,6 +211,16 @@ func ProcessAccount(data []string) (result interface{}, err error) {
 			return "", errors.New("accounts.ProcessAccount: " + err.Error())
 		}
 		break
+	case 1008:
+		if len(data) < 3 {
+			err = errors.New("accounts.ProcessAccount: Not all fields present")
+			return
+		}
+		result, err = allTransactions(data)
+		if err != nil {
+			return "", errors.New("accounts.ProcessAccount: " + err.Error())
+		}
+		break
 
 	default:
 		err = errors.New("accounts.ProcessAccount: ACMT transaction code invalid")
@@ -244,6 +255,16 @@ func FetchAccountMeta(accountNumber string) (AccountHolderDetails *AccountHolder
 
 	return &accountMeta, nil
 }
+func allTransactions(data []string) (result []Transaction, err error) {
+	// Fetch all accounts. This fetches non-sensitive information (no balances)
+	transactions, err := getAllTransactions()
+	if err != nil {
+		return nil, errors.New("accounts.allTransactions: " + err.Error())
+	}
+
+	return transactions, nil
+}
+
 func fetchAccounts(data []string) (result []AccountDetails, err error) {
 	// Fetch all accounts. This fetches non-sensitive information (no balances)
 	accounts, err := getAllAccountDetails()

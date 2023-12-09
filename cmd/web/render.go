@@ -14,6 +14,9 @@ type BalanceEnquiryPageData struct {
 type AllAccountPageData struct {
 	Accounts []accounts.AccountDetails
 }
+type AllTransactionsPageData struct {
+	Transactions []accounts.Transaction
+}
 
 // RenderIndexPage renders a HTML page
 func (app *application) RenderIndexPage(w http.ResponseWriter, r *http.Request) {
@@ -57,6 +60,23 @@ func (app *application) RenderBalanceEnquiry(w http.ResponseWriter, r *http.Requ
 
 func (app *application) RenderAccountHistory(w http.ResponseWriter, r *http.Request) {
 	app.RenderTemplate(w, []string{"cmd/web/views/accountHistory.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, nil, "cmd/web/views/accountHistory.html", nil)
+}
+func (app *application) RenderTransactionsPage(w http.ResponseWriter, r *http.Request) {
+	//get all transactions
+	data, err := accounts.ProcessAccount([]string{"", "acmt", "1008"})
+	if err != nil {
+		fmt.Println(err)
+	}
+	Transactions, ok := data.([]accounts.Transaction)
+	if !ok {
+		fmt.Println("Failed to convert to []AccountDetails")
+		return
+	}
+
+	pageData := AllTransactionsPageData{
+		Transactions: Transactions,
+	}
+	app.RenderTemplate(w, []string{"cmd/web/views/allTransactions.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, pageData, "cmd/web/views/allTransactions.html", nil)
 }
 
 // RenderBatchTransactionPage renders a HTML page

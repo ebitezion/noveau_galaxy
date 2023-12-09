@@ -258,7 +258,37 @@ func getAccountMeta(id string) (accountDetails AccountHolderDetails, err error) 
 
 	return
 }
+func getAllTransactions() ([]Transaction, error) {
+	query := "SELECT transaction, type, senderAccountNumber, senderBankNumber, receiverAccountNumber, receiverBankNumber, transactionAmount, feeAmount, timestamp FROM transactions "
 
+	var transactions []Transaction // Slice to hold multiple transaction records.
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	// Use the QueryContext method to execute the query, passing in the context.
+	rows, err := Config.Db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	// Iterate through the result set and scan each row into a Transaction struct.
+	for rows.Next() {
+		var t Transaction
+		err := rows.Scan(&t.Transaction, &t.Type, &t.SenderAccountNumber, &t.SenderBankNumber, &t.ReceiverAccountNumber, &t.ReceiverBankNumber, &t.TransactionAmount, &t.FeeAmount, &t.Timestamp)
+		if err != nil {
+			return nil, err
+		}
+		transactions = append(transactions, t)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return transactions, nil
+}
 func getAllAccountDetails() (allAccounts []AccountDetails, err error) {
 	query := `
 		SELECT 
