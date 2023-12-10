@@ -32,10 +32,11 @@
         function submitForm() {
 			event.preventDefault();
             var formdata = new FormData(document.getElementById("myform"));
+            var storedValue = sessionStorage.getItem('token');
             var requestOptions = {
                 method: 'POST',
                 headers: {
-                    'X-Auth-Token': 'a21b933d-ee29-41d3-8a87-3a9c969ac3bc',
+                    'X-Auth-Token': storedValue,
                 },
                 body: formdata,
             };

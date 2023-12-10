@@ -91,8 +91,21 @@ func (app *application) AuthLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response, err := appauth.ProcessAppAuth([]string{"0", "appauth", "2", accountNumber, password})
+	//get token
+	token, err := appauth.ProcessAppAuth([]string{"0", "appauth", "2", accountNumber, password})
+	if err != nil {
+		//there was error
+		data := envelope{
+			"responseCode": "06",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
 
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+	//set jwt token
+	err = app.SetJwtSession(w, r, accountNumber)
 	if err != nil {
 		//there was error
 		data := envelope{
@@ -105,10 +118,11 @@ func (app *application) AuthLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//send success response
 	data := envelope{
 		"responseCode": "00",
 		"status":       "Success",
-		"message":      response,
+		"message":      token,
 	}
 	app.writeJSON(w, http.StatusOK, data, nil)
 

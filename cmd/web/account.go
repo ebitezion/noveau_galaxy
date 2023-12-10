@@ -585,14 +585,15 @@ func (app *application) BalanceEnquiry(w http.ResponseWriter, r *http.Request) {
 	token, err := app.getTokenFromHeader(w, r)
 
 	if err != nil {
-		//there was error
-		data := envelope{
-			"responseCode": "06",
-			"status":       "Failed",
-			"message":      err,
-		}
+		http.Redirect(w, r, "/v1/loginpage", http.StatusSeeOther)
+		// //there was error
+		// data := envelope{
+		// 	"responseCode": "06",
+		// 	"status":       "Failed",
+		// 	"message":      err,
+		// }
 
-		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		// app.writeJSON(w, http.StatusBadRequest, data, nil)
 		return
 
 	}
@@ -666,6 +667,7 @@ func (app *application) AccountHistory(w http.ResponseWriter, r *http.Request) {
 
 func (app *application) AllTransactions(w http.ResponseWriter, r *http.Request) {
 	token, err := app.getTokenFromHeader(w, r)
+
 	if err != nil {
 		// there was error
 		data := envelope{

@@ -33,13 +33,13 @@ func (app *application) AuthenticationMiddleware(next http.HandlerFunc) http.Han
 		session, err := store.Get(r, "JwtToken")
 		if err != nil {
 			log.Println("Error getting  session-----Unauthorized Access")
-			http.Error(w, "Unauthorized Access", http.StatusInternalServerError)
+			http.Redirect(w, r, "/v1/loginpage", http.StatusSeeOther)
 			return
 		}
 		token, ok := session.Values["token"].(string)
 		if !ok || token == "" {
 			log.Println("Token is missing or invalid-----Unauthorized Access")
-			http.Error(w, "Unauthorized Access", http.StatusInternalServerError)
+			http.Redirect(w, r, "/v1/loginpage", http.StatusSeeOther)
 			return
 		}
 		// validate jwt
@@ -53,7 +53,7 @@ func (app *application) AuthenticationMiddleware(next http.HandlerFunc) http.Han
 		})
 		if err != nil || !ParsedToken.Valid {
 			log.Println("Token is invalid-----Unauthorized Access")
-			http.Error(w, "Unauthorized Access", http.StatusInternalServerError)
+			http.Redirect(w, r, "/v1/loginpage", http.StatusSeeOther)
 			return
 		}
 		// Token is valid, continue with the next handler

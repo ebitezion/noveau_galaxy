@@ -12,6 +12,7 @@ import (
 
 func (app *application) FullAccessCreditInitiation(w http.ResponseWriter, r *http.Request) {
 	token, err := app.getTokenFromHeader(w, r)
+
 	if err != nil {
 
 		// there was error
