@@ -634,6 +634,116 @@ func (app *application) BalanceEnquiry(w http.ResponseWriter, r *http.Request) {
 	app.writeJSON(w, http.StatusOK, data, nil)
 }
 
+func (app *application) AllTransactions(w http.ResponseWriter, r *http.Request) {
+	token, err := app.getTokenFromHeader(w, r)
+	if err != nil {
+		// there was error
+		data := envelope{
+			"responseCode": "06",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+
+	response, err := accounts.ProcessAccount([]string{token, "acmt", "1008"})
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	data := envelope{
+		"responseCode": "00",
+		"status":       "Success",
+		"message":      response,
+	}
+	app.writeJSON(w, http.StatusOK, data, nil)
+}
+func (app *application) ExcelTransactions(w http.ResponseWriter, r *http.Request) {
+	token, err := app.getTokenFromHeader(w, r)
+	if err != nil {
+		// there was error
+		data := envelope{
+			"responseCode": "06",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+
+	response, err := accounts.ProcessAccount([]string{token, "acmt", "1008"})
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	path, err := createExcelSheet(response)
+	if err != nil {
+		// there was error
+		data := envelope{
+			"responseCode": "06",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+
+	fmt.Println(path)
+	data := envelope{
+		"responseCode": "00",
+		"status":       "Success",
+		"message":      response,
+	}
+	app.writeJSON(w, http.StatusOK, data, nil)
+}
+func (app *application) PdfTransactions(w http.ResponseWriter, r *http.Request) {
+	token, err := app.getTokenFromHeader(w, r)
+	if err != nil {
+		// there was error
+		data := envelope{
+			"responseCode": "06",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+
+	response, err := accounts.ProcessAccount([]string{token, "acmt", "1008"})
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+	path, err := createPdf(response)
+
+	if err != nil {
+		// there was error
+		data := envelope{
+			"responseCode": "06",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+
+	fmt.Println(path)
+
+	data := envelope{
+		"responseCode": "00",
+		"status":       "Success",
+		"message":      response,
+	}
+	app.writeJSON(w, http.StatusOK, data, nil)
+}
 func (app *application) AccountHistory(w http.ResponseWriter, r *http.Request) {
 	token, err := app.getTokenFromHeader(w, r)
 	if err != nil {

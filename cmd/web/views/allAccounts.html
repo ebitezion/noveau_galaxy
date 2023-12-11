@@ -161,10 +161,11 @@
 			
             event.preventDefault();
             var formdata = new FormData(document.getElementById("myform"));
+            var storedValue = sessionStorage.getItem('token');
             var requestOptions = {
                 method: 'POST',
                 headers: {
-                    'X-Auth-Token': '02c01f6a-c356-4a5b-b246-3e10f8677153',
+                    'X-Auth-Token': storedValue,
                 },
                 body: formdata,
             };

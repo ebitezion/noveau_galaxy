@@ -53,6 +53,7 @@ type application struct {
 var store = sessions.NewCookieStore([]byte(os.Getenv("SESSIONSTORE")))
 
 func main() {
+
 	// Define a file server to serve static files
 	fs := http.FileServer(http.Dir("cmd/web/static"))
 
