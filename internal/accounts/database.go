@@ -536,15 +536,14 @@ func GetAccountHistory(accountNumber string) ([]Transaction, error) {
 }
 
 func StoreBeneficiary(Data *data.Beneficiary, UserId string) error {
-	insertStatement := "INSERT INTO beneficiaries ( user_id, full_name, bank_name, bank_account_number, bank_routing_number, swift_code)"
+	insertStatement := "INSERT INTO beneficiaries (userId, fullName, bankName, bankAccountNumber, bankRoutingNumber, swiftCode) VALUES (?, ?, ?, ?, ?, ?)"
 
 	stmtIns, err := Config.Db.Prepare(insertStatement)
 	if err != nil {
 		return errors.New("accounts.StoreBeneficiary: " + err.Error())
 	}
 
-	// Prepare statement for inserting data
-	defer stmtIns.Close() // Close the statement when we leave main() / the program terminates
+	defer stmtIns.Close()
 
 	_, err = stmtIns.Exec(UserId, Data.FullName, Data.BankName, Data.BankAccountNumber, Data.BankRoutingNumber, Data.SwiftCode)
 	if err != nil {
@@ -554,7 +553,7 @@ func StoreBeneficiary(Data *data.Beneficiary, UserId string) error {
 }
 
 func GetUserId(userID string) (accountID string, err error) {
-	rows, err := Config.Db.Query("SELECT userId FROM accounts WHERE accountNumber = ? ", userID)
+	rows, err := Config.Db.Query("SELECT id FROM accounts WHERE accountNumber = ? ", userID)
 	if err != nil {
 		return "", errors.New("accounts.getSingleAccountNumberByID: " + err.Error())
 	}
@@ -576,7 +575,8 @@ func GetUserId(userID string) (accountID string, err error) {
 	return
 }
 func FetchBenefciaries(UserId string) ([]data.Beneficiary, error) {
-	query := `SELECT  full_name, bank_name, bank_account_number, bank_routing_number, swift_code 	FROM beneficiaries WHERE user_id  = ?`
+
+	query := `SELECT  fullName, bankName, bankAccountNumber, bankRoutingNumber, swiftCode	FROM beneficiaries WHERE userId  = ?`
 
 	var Beneficiaries []data.Beneficiary // Slice to hold multiple transaction records.
 

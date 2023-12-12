@@ -273,12 +273,14 @@ func GetBenefciaries(accountNumber string) (beneficiaries []data.Beneficiary, er
 			return nil, err
 		}
 	}
+
 	//get beneficiaries
 	beneficiaries, err = FetchBenefciaries(userId)
 	if err != nil {
 		return nil, err
 
 	}
+
 	return beneficiaries, nil
 }
 

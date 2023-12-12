@@ -54,10 +54,10 @@ func (app *application) routes() *httprouter.Router {
 	router.HandlerFunc(http.MethodGet, "/v1/api/excelTransactions", app.ExcelTransactions)
 	//ACCOUNT V2
 	router.HandlerFunc(http.MethodPost, "/v1/api/accounts/create", app.AccountCreate)
-	router.HandlerFunc(http.MethodPost, "/v1/accounts/update", app.AccountUpdate)
-	router.HandlerFunc(http.MethodGet, "/v1/accounts", app.AccountGet)
-	router.HandlerFunc(http.MethodPost, "/v1/beneficiary/new", app.NewBeneficiary)
-	router.HandlerFunc(http.MethodPost, "/v1/beneficiary", app.GetBeneficiaries)
+	router.HandlerFunc(http.MethodPost, "/v1/api/accounts/update", app.AccountUpdate)
+	router.HandlerFunc(http.MethodGet, "/v1/api/accounts", app.AccountGet)
+	router.HandlerFunc(http.MethodPost, "/v1/api/beneficiary/new", app.NewBeneficiary)
+	router.HandlerFunc(http.MethodPost, "/v1/api/beneficiary", app.GetBeneficiaries)
 	//Currency Exchange
 	router.HandlerFunc(http.MethodGet, "/v1/availableCurrencies", app.AvailableCurrenciesHandler)
 

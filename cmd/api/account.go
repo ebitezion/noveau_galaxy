@@ -735,9 +735,21 @@ func customDateValidator(fl Validate.FieldLevel) bool {
 
 // NewBeneficiary creates a new beneficiary tied to an account
 func (app *application) NewBeneficiary(w http.ResponseWriter, r *http.Request) {
+	_, err := app.getTokenFromHeader(w, r)
+	if err != nil {
+		// there was error
+		data := envelope{
+			"responseCode": "07",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
 	Request := data.Beneficiary{}
 	// read the incoming request body
-	err := app.readJSON(w, r, &Request)
+	err = app.readJSON(w, r, &Request)
 	if err != nil {
 		app.badRequestResponse(w, r, err)
 		return
@@ -756,7 +768,7 @@ func (app *application) NewBeneficiary(w http.ResponseWriter, r *http.Request) {
 		data := envelope{
 			"responseCode": "06",
 			"status":       "Failed",
-			"message":      err,
+			"message":      err.Error(),
 		}
 
 		app.writeJSON(w, http.StatusBadRequest, data, nil)
@@ -779,9 +791,22 @@ func (app *application) NewBeneficiary(w http.ResponseWriter, r *http.Request) {
 
 // GetBeneficiaries gets all the beneficiaries tied to an account
 func (app *application) GetBeneficiaries(w http.ResponseWriter, r *http.Request) {
+	_, err := app.getTokenFromHeader(w, r)
+	if err != nil {
+		// there was error
+		data := envelope{
+			"responseCode": "07",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+
 	Request := data.User{}
 	// read the incoming request body
-	err := app.readJSON(w, r, &Request)
+	err = app.readJSON(w, r, &Request)
 	if err != nil {
 		app.badRequestResponse(w, r, err)
 		return
