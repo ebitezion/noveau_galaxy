@@ -33,7 +33,6 @@ func (app *application) routes() *httprouter.Router {
 	router.HandlerFunc(http.MethodGet, "/v1/batchTransactionPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderBatchTransactionPage)))
 	router.HandlerFunc(http.MethodGet, "/v1/allAccountsPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderAllAccountsPage)))
 	router.HandlerFunc(http.MethodGet, "/v1/allTransactionsPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderTransactionsPage)))
-
 	router.HandlerFunc(http.MethodGet, "/v1/businessPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderBusinessesPage)))
 	router.HandlerFunc(http.MethodGet, "/v1/partnersPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderPartnersPage)))
 	router.HandlerFunc(http.MethodGet, "/v1/kycPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderKycPage)))
@@ -52,8 +51,7 @@ func (app *application) routes() *httprouter.Router {
 	// router.HandlerFunc(http.MethodPost, "/v1/accounts", app.RetreiveAccounts)
 	// router.HandlerFunc(http.MethodPost, "/v1/balanceEnquiry", app.BalanceEnquiry)
 	// router.HandlerFunc(http.MethodPost, "/v1/retrieveAccounts", app.RetreiveAccounts)
-	// router.HandlerFunc(http.MethodPost, "/v1/beneficiary/new", app.NewBeneficiary)
-	// router.HandlerFunc(http.MethodPost, "/v1/beneficiary", app.GetBeneficiaries)
+
 	router.HandlerFunc(http.MethodGet, "/v1/accounts", app.AccountGet)
 	router.HandlerFunc(http.MethodPost, "/v1/login", app.AuthLogin)
 	router.HandlerFunc(http.MethodPost, "/v1/create", app.AuthCreate)
@@ -67,6 +65,7 @@ func (app *application) routes() *httprouter.Router {
 	router.HandlerFunc(http.MethodPost, "/v1/balanceEnquiry", app.BalanceEnquiry)
 	router.HandlerFunc(http.MethodPost, "/v1/accountHistory", app.AccountHistory)
 	router.HandlerFunc(http.MethodGet, "/v1/allTransactions", app.AllTransactions)
+
 	//@TODO i have to update the frontend to call the backend then it should be able to download
 	//the updated pdf /  excel sheet
 	router.HandlerFunc(http.MethodGet, "/v1/pdfTransactions", app.PdfTransactions)

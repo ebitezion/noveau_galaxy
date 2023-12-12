@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/ebitezion/backend-framework/internal/configuration"
+	"github.com/ebitezion/backend-framework/internal/data"
 )
 
 var Config configuration.Configuration
@@ -532,4 +533,77 @@ func GetAccountHistory(accountNumber string) ([]Transaction, error) {
 	}
 
 	return transactions, nil
+}
+
+func StoreBeneficiary(Data *data.Beneficiary, UserId string) error {
+	insertStatement := "INSERT INTO beneficiaries ( user_id, full_name, bank_name, bank_account_number, bank_routing_number, swift_code)"
+
+	stmtIns, err := Config.Db.Prepare(insertStatement)
+	if err != nil {
+		return errors.New("accounts.StoreBeneficiary: " + err.Error())
+	}
+
+	// Prepare statement for inserting data
+	defer stmtIns.Close() // Close the statement when we leave main() / the program terminates
+
+	_, err = stmtIns.Exec(UserId, Data.FullName, Data.BankName, Data.BankAccountNumber, Data.BankRoutingNumber, Data.SwiftCode)
+	if err != nil {
+		return errors.New("accounts.doCreateAccount: " + err.Error())
+	}
+	return nil
+}
+
+func GetUserId(userID string) (accountID string, err error) {
+	rows, err := Config.Db.Query("SELECT userId FROM accounts WHERE accountNumber = ? ", userID)
+	if err != nil {
+		return "", errors.New("accounts.getSingleAccountNumberByID: " + err.Error())
+	}
+	defer rows.Close()
+
+	count := 0
+	// @TODO Right now this will return the latest account only, if there are two accounts
+	for rows.Next() {
+		if err := rows.Scan(&accountID); err != nil {
+			break
+		}
+		count++
+	}
+
+	if count == 0 {
+		return "", errors.New("accounts.getSingleAccountNumberByID: Account not found")
+	}
+
+	return
+}
+func FetchBenefciaries(UserId string) ([]data.Beneficiary, error) {
+	query := `SELECT  full_name, bank_name, bank_account_number, bank_routing_number, swift_code 	FROM beneficiaries WHERE user_id  = ?`
+
+	var Beneficiaries []data.Beneficiary // Slice to hold multiple transaction records.
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	// Use the QueryContext method to execute the query, passing in the context.
+	rows, err := Config.Db.QueryContext(ctx, query, UserId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	// Iterate through the result set and scan each row into a Transaction struct.
+	for rows.Next() {
+		var B data.Beneficiary
+		err := rows.Scan(&B.FullName, &B.BankName, &B.BankAccountNumber, &B.BankRoutingNumber, &B.SwiftCode)
+		if err != nil {
+			return nil, err
+		}
+		Beneficiaries = append(Beneficiaries, B)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return Beneficiaries, nil
+
 }

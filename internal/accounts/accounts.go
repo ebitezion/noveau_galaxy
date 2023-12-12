@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/ebitezion/backend-framework/internal/appauth"
+	"github.com/ebitezion/backend-framework/internal/data"
 	"github.com/ebitezion/backend-framework/internal/nuban"
 	"github.com/ebitezion/backend-framework/internal/ukaccountgen"
 	"github.com/shopspring/decimal"
@@ -59,6 +60,8 @@ Accounts (acmt) transactions are as follows:
 1007 - UpdateAccountInformation
 1008 - AllTransactions
 1009 - CreateSpecialAccount
+1010 - NewBeneficiary
+1011 - GetBeneficiary
 
 */
 
@@ -252,9 +255,55 @@ func ProcessAccount(data []string) (result interface{}, err error) {
 	default:
 		err = errors.New("accounts.ProcessAccount: ACMT transaction code invalid")
 		break
+
 	}
 
 	return
+}
+
+func GetBenefciaries(accountNumber string) (beneficiaries []data.Beneficiary, err error) {
+
+	//get user_id
+	userId, err := GetUserId(accountNumber)
+	if err != nil {
+		if err == data.ErrRecordNotFound {
+			return nil, errors.New("accounts.CreateBeneficiary: No records found")
+
+		} else {
+			return nil, err
+		}
+	}
+	//get beneficiaries
+	beneficiaries, err = FetchBenefciaries(userId)
+	if err != nil {
+		return nil, err
+
+	}
+	return beneficiaries, nil
+}
+
+// CreateBeneficiary creates a new beneficiary tied to an account
+func CreateBeneficiary(beneficiary *data.Beneficiary) error {
+
+	//get user_id
+	userId, err := GetUserId(beneficiary.UserAccountNumber)
+	if err != nil {
+		if err == data.ErrRecordNotFound {
+			return errors.New("accounts.CreateBeneficiary: No records found")
+
+		} else {
+			return err
+		}
+	}
+
+	//create new beneficiary
+	err = StoreBeneficiary(beneficiary, userId)
+	if err != nil {
+		return err
+
+	}
+	return nil
+
 }
 func FetchAccountNumber(username string) (AccountNumber string, err error) {
 
