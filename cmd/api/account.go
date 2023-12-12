@@ -379,7 +379,7 @@ func (app *application) AccountCreate(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		// there was error
 		data := envelope{
-			"responseCode": "06",
+			"responseCode": "07",
 			"status":       "Failed",
 			"message":      err.Error(),
 		}
@@ -443,7 +443,7 @@ func (app *application) AccountUpdate(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		// there was error
 		data := envelope{
-			"responseCode": "06",
+			"responseCode": "07",
 			"status":       "Failed",
 			"message":      err.Error(),
 		}
@@ -524,7 +524,7 @@ func (app *application) AccountGet(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		// there was error
 		data := envelope{
-			"responseCode": "06",
+			"responseCode": "07",
 			"status":       "Failed",
 			"message":      err.Error(),
 		}
@@ -594,7 +594,7 @@ func (app *application) BalanceEnquiry(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		// there was error
 		data := envelope{
-			"responseCode": "06",
+			"responseCode": "07",
 			"status":       "Failed",
 			"message":      err.Error(),
 		}
@@ -639,7 +639,7 @@ func (app *application) AllTransactions(w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		// there was error
 		data := envelope{
-			"responseCode": "06",
+			"responseCode": "07",
 			"status":       "Failed",
 			"message":      err.Error(),
 		}
@@ -666,7 +666,7 @@ func (app *application) ExcelTransactions(w http.ResponseWriter, r *http.Request
 	if err != nil {
 		// there was error
 		data := envelope{
-			"responseCode": "06",
+			"responseCode": "07",
 			"status":       "Failed",
 			"message":      err.Error(),
 		}
@@ -707,7 +707,7 @@ func (app *application) PdfTransactions(w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		// there was error
 		data := envelope{
-			"responseCode": "06",
+			"responseCode": "07",
 			"status":       "Failed",
 			"message":      err.Error(),
 		}
@@ -749,7 +749,7 @@ func (app *application) AccountHistory(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		// there was error
 		data := envelope{
-			"responseCode": "06",
+			"responseCode": "07",
 			"status":       "Failed",
 			"message":      err.Error(),
 		}

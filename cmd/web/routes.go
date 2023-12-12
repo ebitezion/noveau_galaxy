@@ -33,6 +33,14 @@ func (app *application) routes() *httprouter.Router {
 	router.HandlerFunc(http.MethodGet, "/v1/batchTransactionPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderBatchTransactionPage)))
 	router.HandlerFunc(http.MethodGet, "/v1/allAccountsPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderAllAccountsPage)))
 	router.HandlerFunc(http.MethodGet, "/v1/allTransactionsPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderTransactionsPage)))
+
+	router.HandlerFunc(http.MethodGet, "/v1/businessPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderBusinessesPage)))
+	router.HandlerFunc(http.MethodGet, "/v1/partnersPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderPartnersPage)))
+	router.HandlerFunc(http.MethodGet, "/v1/kycPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderKycPage)))
+	router.HandlerFunc(http.MethodGet, "/v1/currencyConversionPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderCurrencyConversionPage)))
+	router.HandlerFunc(http.MethodGet, "/v1/teamsPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderTeamsPage)))
+	router.HandlerFunc(http.MethodGet, "/v1/rolesPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderRolesPage)))
+	router.HandlerFunc(http.MethodGet, "/v1/systemLogsPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderSystemLogsPage)))
 	// Likewise, convert the methodNotAllowedResponse() helper to a http.Handler and set
 	// it as the custom error handler for 405 Method Not Allowed responses.
 	router.MethodNotAllowed = http.HandlerFunc(app.methodNotAllowedResponse)
@@ -50,6 +58,7 @@ func (app *application) routes() *httprouter.Router {
 	router.HandlerFunc(http.MethodPost, "/v1/login", app.AuthLogin)
 	router.HandlerFunc(http.MethodPost, "/v1/create", app.AuthCreate)
 	router.HandlerFunc(http.MethodPost, "/v1/authindex", app.AuthIndex)
+	router.HandlerFunc(http.MethodGet, "/v1/signout", app.StaffSignOutProcess)
 	router.HandlerFunc(http.MethodPost, "/v1/deposit", app.PaymentDepositInitiation)
 	router.HandlerFunc(http.MethodPost, "/v1/credit", app.PaymentCreditInitiation)
 	router.HandlerFunc(http.MethodPost, "/v1/fullAccessCredit", app.FullAccessCreditInitiation)
@@ -58,11 +67,14 @@ func (app *application) routes() *httprouter.Router {
 	router.HandlerFunc(http.MethodPost, "/v1/balanceEnquiry", app.BalanceEnquiry)
 	router.HandlerFunc(http.MethodPost, "/v1/accountHistory", app.AccountHistory)
 	router.HandlerFunc(http.MethodGet, "/v1/allTransactions", app.AllTransactions)
+	//@TODO i have to update the frontend to call the backend then it should be able to download
+	//the updated pdf /  excel sheet
 	router.HandlerFunc(http.MethodGet, "/v1/pdfTransactions", app.PdfTransactions)
 	router.HandlerFunc(http.MethodGet, "/v1/excelTransactions", app.ExcelTransactions)
 
 	//ACCOUNT V2
 	router.HandlerFunc(http.MethodPost, "/v1/accounts/create", app.AccountCreate)
+	router.HandlerFunc(http.MethodPost, "/v1/accounts/special", app.AccountCreateSpecial)
 	router.HandlerFunc(http.MethodPost, "/v1/accounts/update", app.AccountUpdate)
 	//Currency Exchange
 	router.HandlerFunc(http.MethodGet, "/v1/availableCurrencies", app.AvailableCurrenciesHandler)

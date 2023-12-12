@@ -8,11 +8,11 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"log"
 	"time"
 
 	"github.com/ebitezion/backend-framework/internal/configuration"
-	"github.com/twinj/uuid"
 )
 
 var Config configuration.Configuration
@@ -33,7 +33,7 @@ func loadDatabase() (db *sql.DB, err error) {
 
 func createAccount(accountDetails *AccountDetails, accountHolderDetails *AccountHolderDetails) (err error) {
 	// Convert variables
-
+	fmt.Println(accountDetails, accountHolderDetails, "details.............................")
 	err = doCreateAccount(accountDetails)
 	if err != nil {
 		return errors.New("accounts.createAccount: " + err.Error())
@@ -41,6 +41,22 @@ func createAccount(accountDetails *AccountDetails, accountHolderDetails *Account
 
 	err = doCreateAccountMeta(
 		accountHolderDetails, accountDetails)
+	if err != nil {
+		return errors.New("accounts.createAccount: " + err.Error())
+	}
+
+	return
+}
+func createSpecialAccount(accountDetails *SpecialAccountDetails) (err error) {
+	// Convert variables
+	fmt.Println(accountDetails)
+	err = doCreateSpecialAccount(accountDetails)
+	if err != nil {
+		return errors.New("accounts.createAccount: " + err.Error())
+	}
+
+	err = doCreateSpecialAccountProfile(
+		accountDetails)
 	if err != nil {
 		return errors.New("accounts.createAccount: " + err.Error())
 	}
@@ -90,16 +106,49 @@ func doCreateAccount(accountDetails *AccountDetails) (err error) {
 	// Prepare statement for inserting data
 	defer stmtIns.Close() // Close the statement when we leave main() / the program terminates
 
-	// Generate account number
-	newUuid := uuid.NewV4()
-	accountDetails.AccountNumber = newUuid.String()
-
 	_, err = stmtIns.Exec(accountDetails.AccountNumber, accountDetails.BankNumber, accountDetails.AccountHolderName, accountDetails.AccountBalance, accountDetails.Overdraft, accountDetails.AvailableBalance)
 	if err != nil {
 		return errors.New("accounts.doCreateAccount: " + err.Error())
 	}
 	return
 }
+func doCreateSpecialAccount(accountDetails *SpecialAccountDetails) (err error) {
+	// Create account
+	insertStatement := "INSERT INTO accounts (`accountNumber`, `bankNumber`, `accountHolderName`, `accountBalance`, `overdraft`, `availableBalance`) "
+	insertStatement += "VALUES(?, ?, ?, ?, ?, ?)"
+	stmtIns, err := Config.Db.Prepare(insertStatement)
+	if err != nil {
+		return errors.New("accounts.doCreateSpecialAccount: " + err.Error())
+	}
+
+	// Prepare statement for inserting data
+	defer stmtIns.Close() // Close the statement when we leave main() / the program terminates
+
+	_, err = stmtIns.Exec(accountDetails.AccountNumber, accountDetails.BankNumber, accountDetails.AccountHolderName, accountDetails.AccountBalance, accountDetails.Overdraft, accountDetails.AvailableBalance)
+	if err != nil {
+		return errors.New("accounts.doCreateSpecialAccount: " + err.Error())
+	}
+	return
+}
+func doCreateSpecialAccountProfile(accountDetails *SpecialAccountDetails) (err error) {
+	// Create account
+	insertStatement := "INSERT INTO accounts_profiles (`accountNumber`, `bankNumber`, `accountHolderName`, `creator`, `purpose`) "
+	insertStatement += "VALUES(?, ?, ?, ?, ?)"
+	stmtIns, err := Config.Db.Prepare(insertStatement)
+	if err != nil {
+		return errors.New("accounts.doCreateSpecialAccountProfile: " + err.Error())
+	}
+
+	// Prepare statement for inserting data
+	defer stmtIns.Close() // Close the statement when we leave main() / the program terminates
+
+	_, err = stmtIns.Exec(accountDetails.AccountNumber, accountDetails.BankNumber, accountDetails.AccountHolderName, accountDetails.AccountProfile.Creator, accountDetails.AccountProfile.Purpose)
+	if err != nil {
+		return errors.New("accounts.doCreateAccount: " + err.Error())
+	}
+	return
+}
+
 func doUpdateAccount(accountDetails *AccountHolderDetails) (err error) {
 	AccountName := accountDetails.FamilyName + "," + accountDetails.GivenName
 	// Create account
@@ -140,7 +189,7 @@ func doDeleteAccount(accountDetails *AccountDetails) (err error) {
 
 func doCreateAccountMeta(accountHolderDetails *AccountHolderDetails, accountDetails *AccountDetails) (err error) {
 	// Create account meta
-	insertStatement := "INSERT INTO accounts_meta (`accountNumber`, `bankNumber`, `accountHolderGivenName`, `accountHolderFamilyName`, `accountHolderDateOfBirth`, `accountHolderIdentificationNumber`, `accountHolderContactNumber1`, `accountHolderContactNumber2`, `accountHolderEmailAddress`, `accountHolderAddressLine1`, `accountHolderAddressLine2`, `accountHolderAddressLine3`, `accountHolderPostalCode`,`image`,`country`,`identificationType`) "
+	insertStatement := "INSERT INTO accounts_meta (`accountNumber`, `bankNumber`, `accountHolderGivenName`, `accountHolderFamilyName`, `accountHolderDateOfBirth`, `accountHolderIdentificationNumber`, `accountHolderContactNumber1`, `accountHolderContactNumber2`, `accountHolderEmailAddress`, `accountHolderAddressLine1`, `accountHolderAddressLine2`, `accountHolderAddressLine3`, `accountHolderPostalCode`,`image`,`country`,`accountHolderIdentificationType`) "
 	insertStatement += "VALUES( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?,?,?)"
 	stmtIns, err := Config.Db.Prepare(insertStatement)
 	if err != nil {

@@ -52,12 +52,13 @@ Accounts (acmt) transactions are as follows:
 1000 - ListAllAccounts (@FIXME Used for now by anyone, close down later)
 1001 - ListSingleAccount
 1002 - CheckAccountByID
-1003 -  BalanceEnquiry
+1003 - BalanceEnquiry
 1004 - AccountHistory
 1005 - AccountMetaData
 1006 - AllAccounts
 1007 - UpdateAccountInformation
 1008 - AllTransactions
+1009 - CreateSpecialAccount
 
 */
 
@@ -98,6 +99,22 @@ type AccountHolderDetails struct {
 	PostalCode           string
 	Image                string
 	Country              string
+}
+type SpecialAccountDetails struct {
+	AccountNumber     string
+	BankNumber        string
+	AccountHolderName string
+	AccountBalance    decimal.Decimal
+	Overdraft         decimal.Decimal
+	AvailableBalance  decimal.Decimal
+	AccountProfile    AccountProfile
+}
+type AccountProfile struct {
+	Creator       string
+	AccountName   string
+	Purpose       string
+	AccountNumber string
+	BankNumber    string
 }
 
 type AccountDetails struct {
@@ -221,6 +238,16 @@ func ProcessAccount(data []string) (result interface{}, err error) {
 			return "", errors.New("accounts.ProcessAccount: " + err.Error())
 		}
 		break
+	case 1009:
+		if len(data) < 3 {
+			err = errors.New("accounts.ProcessAccount: Not all fields present")
+			return
+		}
+		result, err = openSpecialAccount(data)
+		if err != nil {
+			return "", errors.New("accounts.ProcessAccount: " + err.Error())
+		}
+		break
 
 	default:
 		err = errors.New("accounts.ProcessAccount: ACMT transaction code invalid")
@@ -232,7 +259,7 @@ func ProcessAccount(data []string) (result interface{}, err error) {
 func FetchAccountNumber(username string) (AccountNumber string, err error) {
 
 	if username == "" {
-		return "", errors.New("accounts.fetchAccountMeta: Account number not present")
+		return "", errors.New("accounts.fetchAccountMeta: Username not present")
 	}
 
 	accountNumber, err := getSingleAccountNumberByUsername(username)
@@ -273,6 +300,34 @@ func fetchAccounts(data []string) (result []AccountDetails, err error) {
 	}
 
 	return accounts, nil
+}
+func openSpecialAccount(data []string) (result string, err error) {
+	// Validate string against required info/length
+	if len(data) < 3 {
+		err = errors.New("accounts.openAccount: Not all fields present")
+		//@TODO Add to documentation rather than returning here
+		//result = "ERROR: acmt transactions must be as follows:acmt~AcmtType~AccountHolderGivenName~AccountHolderFamilyName~AccountHolderDateOfBirth~AccountHolderIdentificationNumber~AccountHolderContactNumber1~AccountHolderContactNumber2~AccountHolderEmailAddress~AccountHolderAddressLine1~AccountHolderAddressLine2~AccountHolderAddressLine3~AccountHolderPostalCode"
+		return
+	}
+
+	//@TODO add check to know if an account already exist
+
+	// @FIXME: Remove new line from data
+	data[len(data)-1] = strings.Replace(data[len(data)-1], "\n", "", -1)
+
+	// Create account
+	accountDetails, err := setSpecialAccountDetails(data)
+	if err != nil {
+		return "", errors.New("accounts.openAccount: " + err.Error())
+	}
+
+	err = createSpecialAccount(&accountDetails)
+	if err != nil {
+		return "", errors.New("accounts.openAccount: " + err.Error())
+	}
+
+	result = accountDetails.AccountNumber
+	return
 }
 func openAccount(data []string) (result string, err error) {
 	// Validate string against required info/length
@@ -393,6 +448,36 @@ func setAccountDetails(data []string) (accountDetails AccountDetails, err error)
 	return
 }
 
+func setSpecialAccountDetails(data []string) (specialAccountDetails SpecialAccountDetails, err error) {
+	if len(data) < 3 {
+		return SpecialAccountDetails{}, errors.New("accounts.setAccountHolderDetails: Not all field values present")
+	}
+	//@TODO: Test date parsing in format ddmmyyyy
+	if data[4] == "" {
+		return SpecialAccountDetails{}, errors.New("accounts.setAccountHolderDetails:  cannot be empty")
+	}
+	if data[3] == "" {
+		return SpecialAccountDetails{}, errors.New("accounts.setAccountHolderDetails: accountName name cannot be empty")
+	}
+
+	// @TODO Integrity checks
+	nubanGenerator := nuban.NewNUBANGenerator()
+	nuban := nubanGenerator.GenerateNUBAN()
+
+	ukaccountgenerator := ukaccountgen.New().GenerateUKAccountNumber()
+
+	specialAccountDetails.AccountNumber = ukaccountgenerator
+	specialAccountDetails.BankNumber = nuban
+	specialAccountDetails.AccountHolderName = data[3] //AcccountName
+	specialAccountDetails.AccountBalance = decimal.NewFromFloat(OPENING_BALANCE)
+	specialAccountDetails.Overdraft = decimal.NewFromFloat(OPENING_OVERDRAFT)
+	specialAccountDetails.AvailableBalance = decimal.NewFromFloat(OPENING_BALANCE + OPENING_OVERDRAFT)
+	specialAccountDetails.AccountProfile.AccountName = data[3] //AcccountName
+	specialAccountDetails.AccountProfile.Creator = data[4]
+	specialAccountDetails.AccountProfile.Purpose = data[5]
+
+	return
+}
 func setAccountHolderDetails(data []string) (accountHolderDetails AccountHolderDetails, err error) {
 	if len(data) < 14 {
 		return AccountHolderDetails{}, errors.New("accounts.setAccountHolderDetails: Not all field values present")

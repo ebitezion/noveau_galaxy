@@ -61,6 +61,29 @@ func (app *application) RenderBalanceEnquiry(w http.ResponseWriter, r *http.Requ
 func (app *application) RenderAccountHistory(w http.ResponseWriter, r *http.Request) {
 	app.RenderTemplate(w, []string{"cmd/web/views/accountHistory.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, nil, "cmd/web/views/accountHistory.html", nil)
 }
+
+func (app *application) RenderBusinessesPage(w http.ResponseWriter, r *http.Request) {
+	app.RenderTemplate(w, []string{"cmd/web/views/businesses.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, nil, "cmd/web/views/businesses.html", nil)
+}
+func (app *application) RenderPartnersPage(w http.ResponseWriter, r *http.Request) {
+	app.RenderTemplate(w, []string{"cmd/web/views/partners.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, nil, "cmd/web/views/partners.html", nil)
+}
+func (app *application) RenderKycPage(w http.ResponseWriter, r *http.Request) {
+	app.RenderTemplate(w, []string{"cmd/web/views/kyc.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, nil, "cmd/web/views/kyc.html", nil)
+}
+func (app *application) RenderCurrencyConversionPage(w http.ResponseWriter, r *http.Request) {
+	app.RenderTemplate(w, []string{"cmd/web/views/currencyConverter.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, nil, "cmd/web/views/currencyConverter.html", nil)
+}
+func (app *application) RenderTeamsPage(w http.ResponseWriter, r *http.Request) {
+	app.RenderTemplate(w, []string{"cmd/web/views/teams.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, nil, "cmd/web/views/teams.html", nil)
+}
+func (app *application) RenderRolesPage(w http.ResponseWriter, r *http.Request) {
+	app.RenderTemplate(w, []string{"cmd/web/views/roles.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, nil, "cmd/web/views/roles.html", nil)
+}
+func (app *application) RenderSystemLogsPage(w http.ResponseWriter, r *http.Request) {
+	app.RenderTemplate(w, []string{"cmd/web/views/systemLogs.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, nil, "cmd/web/views/systemLogs.html", nil)
+}
+
 func (app *application) RenderTransactionsPage(w http.ResponseWriter, r *http.Request) {
 	//get all transactions
 	data, err := accounts.ProcessAccount([]string{"", "acmt", "1008"})

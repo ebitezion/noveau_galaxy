@@ -315,7 +315,7 @@ func (app *application) AccountIndex(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		//there was error
 		data := envelope{
-			"responseCode": "06",
+			"responseCode": "07",
 			"status":       "Failed",
 			"message":      err,
 		}
@@ -351,7 +351,7 @@ func (app *application) AccountCreate(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		// there was error
 		data := envelope{
-			"responseCode": "06",
+			"responseCode": "07",
 			"status":       "Failed",
 			"message":      err.Error(),
 		}
@@ -428,14 +428,69 @@ func (app *application) AccountCreate(w http.ResponseWriter, r *http.Request) {
 	}
 	app.writeJSON(w, http.StatusOK, data, nil)
 }
+func (app *application) AccountCreateSpecial(w http.ResponseWriter, r *http.Request) {
+	_, err := app.getTokenFromHeader(w, r)
+	if err != nil {
+		// there was error
+		data := envelope{
+			"responseCode": "07",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
 
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+
+	// Parse form data
+	err = r.ParseMultipartForm(10 << 20)
+	if err != nil {
+		http.Error(w, "Failed to parse form data", http.StatusInternalServerError)
+		return
+	}
+	accountHolderName := r.FormValue("accountHolderName")
+	purpose := r.FormValue("purpose")
+	creator := r.FormValue("creator")
+
+	// Initialize variables with actual data
+
+	req := []string{
+		"0",
+		"acmt",
+		"1009",
+		accountHolderName,
+		creator,
+		purpose,
+	}
+
+	response, err := accounts.ProcessAccount(req)
+	if err != nil {
+		//there was error
+		data := envelope{
+			"responseCode": "06",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+	//Response(response, err, w, r)
+
+	data := envelope{
+		"responseCode": "00",
+		"status":       "Success",
+		"message":      response,
+	}
+	app.writeJSON(w, http.StatusOK, data, nil)
+}
 func (app *application) AccountGet(w http.ResponseWriter, r *http.Request) {
 
 	token, err := app.getTokenFromHeader(w, r)
 	if err != nil {
 		// there was error
 		data := envelope{
-			"responseCode": "06",
+			"responseCode": "07",
 			"status":       "Failed",
 			"message":      err.Error(),
 		}
@@ -474,7 +529,7 @@ func (app *application) AccountUpdate(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		// there was error
 		data := envelope{
-			"responseCode": "06",
+			"responseCode": "07",
 			"status":       "Failed",
 			"message":      err.Error(),
 		}
@@ -560,7 +615,7 @@ func (app *application) AccountGetAll(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		//there was error
 		data := envelope{
-			"responseCode": "06",
+			"responseCode": "07",
 			"status":       "Failed",
 			"message":      err,
 		}
@@ -585,15 +640,15 @@ func (app *application) BalanceEnquiry(w http.ResponseWriter, r *http.Request) {
 	token, err := app.getTokenFromHeader(w, r)
 
 	if err != nil {
-		http.Redirect(w, r, "/v1/loginpage", http.StatusSeeOther)
-		// //there was error
-		// data := envelope{
-		// 	"responseCode": "06",
-		// 	"status":       "Failed",
-		// 	"message":      err,
-		// }
 
-		// app.writeJSON(w, http.StatusBadRequest, data, nil)
+		//there was error
+		data := envelope{
+			"responseCode": "07",
+			"status":       "Failed",
+			"message":      err,
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
 		return
 
 	}
@@ -631,7 +686,7 @@ func (app *application) AccountHistory(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		//there was error
 		data := envelope{
-			"responseCode": "06",
+			"responseCode": "07",
 			"status":       "Failed",
 			"message":      err,
 		}
@@ -671,7 +726,7 @@ func (app *application) AllTransactions(w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		// there was error
 		data := envelope{
-			"responseCode": "06",
+			"responseCode": "07",
 			"status":       "Failed",
 			"message":      err.Error(),
 		}
@@ -705,7 +760,7 @@ func (app *application) ExcelTransactions(w http.ResponseWriter, r *http.Request
 	if err != nil {
 		// there was error
 		data := envelope{
-			"responseCode": "06",
+			"responseCode": "07",
 			"status":       "Failed",
 			"message":      err.Error(),
 		}
@@ -775,7 +830,7 @@ func (app *application) PdfTransactions(w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		// there was error
 		data := envelope{
-			"responseCode": "06",
+			"responseCode": "07",
 			"status":       "Failed",
 			"message":      err.Error(),
 		}
