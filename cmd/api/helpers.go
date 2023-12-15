@@ -424,7 +424,7 @@ func createPdf(data interface{}) (string, error) {
 		pdf.Ln(34) // Increased spacing between transactions
 	}
 
-	pdfPath := "Transactions.pdf"
+	pdfPath := "cmd/web/static/files/Transactions.pdf"
 	// Save the PDF to a file or do something else with it
 	err = pdf.OutputFileAndClose(pdfPath)
 	if err != nil {
@@ -472,7 +472,7 @@ func createExcelSheet(data interface{}) (string, error) {
 	// Set active sheet of the workbook.
 	f.SetActiveSheet(index)
 
-	excelPath := "Transactions.xlsx"
+	excelPath := "cmd/web/static/files/Transactions.xlsx"
 	// Save spreadsheet by the given path.
 	if err := f.SaveAs(excelPath); err != nil {
 		return "", fmt.Errorf("error saving excel:", err)

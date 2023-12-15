@@ -2,7 +2,7 @@
 <div class="container-fluid">
 	<!-- Page Heading -->
 	<div class="d-sm-flex align-items-center justify-content-between mb-4">
-		<h1 class="h3 mb-0 text-gray-800 mx-auto">Credit Initiation</h1>
+		<h1 class="h3 mb-0 text-gray-800 mx-auto">Block Account</h1>
 	</div>
 		<div class="w-50 mx-auto">
 			<form class="user" id="myform" >
@@ -10,19 +10,9 @@
  		 </div>
 		<div id="failureAlert" class="alert alert-danger mt-3" style="display: none;">	
 		</div>
-			<div class="mb-3">
-				<label for="sendersAccountNumber" class="form-label">Sender's Account Number</label>
-				<input type="text" class="form-control" id="sendersAccountNumber" name="sendersAccountNumber" required />
-			</div>
-
-			<div class="mb-3">
-				<label for="receiversAccountNumber" class="form-label">Receiver's Account Number</label>
-				<input type="text" class="form-control" id="receiversAccountNumber" name="receiversAccountNumber" required />
-			</div>
-
-			<div class="mb-3">
-				<label for="Amount" class="form-label">Amount</label>
-				<input type="text" class="form-control" id="Amount" name="Amount" required />
+				<div class="mb-3">
+				<label for="accountNumber" class="form-label">Account Number</label>
+				<input type="text" class="form-control" id="accountNumber" name="accountNumber" required />
 			</div>
 
 		   <button onclick="submitForm()" class="btn btn-custom btn-user btn-block">Submit</button>           
@@ -44,7 +34,7 @@
                 body: formdata,
             };
 
-            fetch("http://localhost:4000/v1/fullAccessCredit", requestOptions)
+            fetch("http://localhost:4000//v1/accounts/block", requestOptions)
                 .then(response => response.json()) // Parse the response as JSON
                 .then(result => {
 					

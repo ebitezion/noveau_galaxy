@@ -16,3 +16,6 @@ background-color: #3d4048;
 border-color: #ffffff;
 }
 
+.side-link{
+    cursor: pointer;
+}

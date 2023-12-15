@@ -72,6 +72,7 @@ func (app *application) SetJwtSession(w http.ResponseWriter, r *http.Request, ac
 	}
 
 	// Set the token in an HTTP-only cookie
+	//@TODO change it to being stored on redis
 	session, err := store.Get(r, "JwtToken")
 	if err != nil {
 		log.Println("Error creating session ")

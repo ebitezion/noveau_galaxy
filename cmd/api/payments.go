@@ -18,7 +18,7 @@ func (app *application) FullAccessCreditInitiation(w http.ResponseWriter, r *htt
 
 		// there was error
 		data := envelope{
-			"responseCode": "06",
+			"responseCode": "07",
 			"status":       "Failed",
 			"message":      err.Error(),
 		}
@@ -85,7 +85,7 @@ func (app *application) FullAccessDepositInitiation(w http.ResponseWriter, r *ht
 
 		// there was error
 		data := envelope{
-			"responseCode": "06",
+			"responseCode": "07",
 			"status":       "Failed",
 			"message":      err.Error(),
 		}
@@ -151,7 +151,7 @@ func (app *application) PaymentCreditInitiation(w http.ResponseWriter, r *http.R
 
 		// there was error
 		data := envelope{
-			"responseCode": "06",
+			"responseCode": "07",
 			"status":       "Failed",
 			"message":      err.Error(),
 		}
@@ -200,10 +200,10 @@ func (app *application) PaymentCreditInitiation(w http.ResponseWriter, r *http.R
 	}
 
 	//send notification
-	err = Notification(token, sendersAccountNumber, receiversAccountNumber, amount)
-	if err != nil {
-		fmt.Println(err)
-	}
+	// err = Notification(token, sendersAccountNumber, receiversAccountNumber, amount)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
 
 	data := envelope{
 		"responseCode": "00",
@@ -219,7 +219,7 @@ func (app *application) PaymentDebitInitiation(w http.ResponseWriter, r *http.Re
 
 		// there was error
 		data := envelope{
-			"responseCode": "06",
+			"responseCode": "07",
 			"status":       "Failed",
 			"message":      err.Error(),
 		}
@@ -274,7 +274,7 @@ func (app *application) PaymentDepositInitiation(w http.ResponseWriter, r *http.
 
 		// there was error
 		data := envelope{
-			"responseCode": "06",
+			"responseCode": "07",
 			"status":       "Failed",
 			"message":      err.Error(),
 		}
@@ -318,15 +318,15 @@ func (app *application) PaymentDepositInitiation(w http.ResponseWriter, r *http.
 		return
 	}
 	//send notification
-	err = Notification(token, sendersAccountNumber, receiversAccountNumber, amount)
-	if err != nil {
-		fmt.Println(err)
-	}
+	// err = Notification(token, sendersAccountNumber, receiversAccountNumber, amount)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
 
 	data := envelope{
 		"responseCode": "00",
 		"status":       "Success",
-		"message":      response,
+		"message":      response + "Deposit Made Sucessfully",
 	}
 	app.writeJSON(w, http.StatusOK, data, nil)
 }

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/ebitezion/backend-framework/internal/appauth"
+	"github.com/ebitezion/backend-framework/internal/data"
 	"github.com/ebitezion/backend-framework/internal/nuban"
 	"github.com/ebitezion/backend-framework/internal/ukaccountgen"
 	"github.com/shopspring/decimal"
@@ -52,12 +53,15 @@ Accounts (acmt) transactions are as follows:
 1000 - ListAllAccounts (@FIXME Used for now by anyone, close down later)
 1001 - ListSingleAccount
 1002 - CheckAccountByID
-1003 -  BalanceEnquiry
+1003 - BalanceEnquiry
 1004 - AccountHistory
 1005 - AccountMetaData
 1006 - AllAccounts
 1007 - UpdateAccountInformation
 1008 - AllTransactions
+1009 - CreateSpecialAccount
+1010 - BlockAccount
+1011 - UnblockAccount
 
 */
 
@@ -99,11 +103,29 @@ type AccountHolderDetails struct {
 	Image                string
 	Country              string
 }
+type SpecialAccountDetails struct {
+	AccountNumber     string
+	BankNumber        string
+	AccountHolderName string
+	Status            string
+	AccountBalance    decimal.Decimal
+	Overdraft         decimal.Decimal
+	AvailableBalance  decimal.Decimal
+	AccountProfile    AccountProfile
+}
+type AccountProfile struct {
+	Creator       string
+	AccountName   string
+	Purpose       string
+	AccountNumber string
+	BankNumber    string
+}
 
 type AccountDetails struct {
 	AccountNumber        string
 	BankNumber           string
 	AccountHolderName    string
+	Status               string
 	AccountBalance       decimal.Decimal
 	Overdraft            decimal.Decimal
 	AvailableBalance     decimal.Decimal
@@ -114,6 +136,7 @@ type BalanceEnquiry struct {
 	AccountHolderName string `json:"accountHolderName"`
 	AccountNumber     string `json:"accountNumber"`
 	LedgerBalance     string `json:"ledgerBalance"`
+	Status            string `json:"status"`
 }
 
 type Transaction struct {
@@ -125,6 +148,7 @@ type Transaction struct {
 	ReceiverAccountNumber string  `json:"receiverAccountNumber"`
 	ReceiverBankNumber    string  `json:"receiverBankNumber"`
 	TransactionAmount     float64 `json:"transactionAmount"`
+	Narration             string  `json:"narration"`
 	FeeAmount             float64 `json:"feeAmount"`
 	Timestamp             string  `json:"timestamp"`
 }
@@ -185,7 +209,7 @@ func ProcessAccount(data []string) (result interface{}, err error) {
 			err = errors.New("accounts.ProcessAccount: Not all fields present")
 			return
 		}
-		result, err = fetchAccountBalance(data)
+		result, err = fetchAccountDetails(data)
 
 		if err != nil {
 			return "", errors.New("accounts.ProcessAccount: " + err.Error())
@@ -221,18 +245,137 @@ func ProcessAccount(data []string) (result interface{}, err error) {
 			return "", errors.New("accounts.ProcessAccount: " + err.Error())
 		}
 		break
+	case 1009:
+		if len(data) < 2 {
+			err = errors.New("accounts.ProcessAccount: Not all fields present")
+			return
+		}
+		result, err = openSpecialAccount(data)
+		if err != nil {
+			return "", errors.New("accounts.ProcessAccount: " + err.Error())
+		}
+		break
+	case 1010:
+		if len(data) < 2 {
+			err = errors.New("accounts.ProcessAccount: Not all fields present")
+			return
+		}
+		result, err = blockAccount(data)
+		if err != nil {
+			return "", errors.New("accounts.ProcessAccount: " + err.Error())
+		}
+		break
+	case 1011:
+		if len(data) < 3 {
+			err = errors.New("accounts.ProcessAccount: Not all fields present")
+			return
+		}
+		result, err = unblockAccount(data)
+		if err != nil {
+			return "", errors.New("accounts.ProcessAccount: " + err.Error())
+		}
+		break
 
 	default:
 		err = errors.New("accounts.ProcessAccount: ACMT transaction code invalid")
 		break
+
 	}
 
 	return
 }
+func unblockAccount(data []string) (result string, err error) {
+	// Validate string against required info/length
+	if len(data) < 2 {
+		err := errors.New("accounts.closeAccount: Not all fields present")
+		return "", err
+	}
+
+	// Check if account already exists, check on ID number
+	accountHolder, _ := getAccountMeta(data[3])
+	if accountHolder.AccountNumber == "" {
+		return "", errors.New("accounts.closeAccount: Account does not exist. " + accountHolder.AccountNumber)
+	}
+
+	err = doUnblockAccount(accountHolder.AccountNumber)
+	if err != nil {
+		return "", errors.New("accounts.closeAccount: " + err.Error())
+	}
+
+	return "Account Unblocked Successfully", nil
+}
+func blockAccount(data []string) (result string, err error) {
+	// Validate string against required info/length
+	if len(data) < 2 {
+		err := errors.New("accounts.closeAccount: Not all fields present")
+		return "", err
+	}
+	fmt.Println(data[3])
+	// Check if account already exists, check on ID number
+	accountHolder, _ := getAccountMeta(data[3])
+	if accountHolder.AccountNumber == "" {
+		return "", errors.New("accounts.closeAccount: Account does not exist. " + accountHolder.AccountNumber)
+	}
+
+	err = doBlockAccount(accountHolder.AccountNumber)
+	if err != nil {
+		return "", errors.New("accounts.closeAccount: " + err.Error())
+	}
+
+	return "Account Blocked Successfully", nil
+}
+
+// GetBenefciaries gets all bebeficiaries related to a particular user
+func GetBenefciaries(accountNumber string) (beneficiaries []data.Beneficiary, err error) {
+
+	//get user_id
+	userId, err := GetUserId(accountNumber)
+	if err != nil {
+		if err == data.ErrRecordNotFound {
+			return nil, errors.New("accounts.CreateBeneficiary: No records found")
+
+		} else {
+			return nil, err
+		}
+	}
+
+	//get beneficiaries
+	beneficiaries, err = FetchBenefciaries(userId)
+	if err != nil {
+		return nil, err
+
+	}
+
+	return beneficiaries, nil
+}
+
+// CreateBeneficiary creates a new beneficiary tied to an account
+func CreateBeneficiary(beneficiary *data.Beneficiary) error {
+
+	//get user_id
+	userId, err := GetUserId(beneficiary.UserAccountNumber)
+	if err != nil {
+		if err == data.ErrRecordNotFound {
+			return errors.New("accounts.CreateBeneficiary: No records found")
+
+		} else {
+			return err
+		}
+	}
+
+	//create new beneficiary
+	err = StoreBeneficiary(beneficiary, userId)
+	if err != nil {
+		return err
+
+	}
+	return nil
+
+}
 func FetchAccountNumber(username string) (AccountNumber string, err error) {
 
 	if username == "" {
-		return "", errors.New("accounts.fetchAccountMeta: Account number not present")
+		return "", errors.New("accounts.fetchAccountMeta: Username not present")
 	}
 
 	accountNumber, err := getSingleAccountNumberByUsername(username)
@@ -258,6 +401,7 @@ func FetchAccountMeta(accountNumber string) (AccountHolderDetails *AccountHolder
 func allTransactions(data []string) (result []Transaction, err error) {
 	// Fetch all accounts. This fetches non-sensitive information (no balances)
 	transactions, err := getAllTransactions()
+
 	if err != nil {
 		return nil, errors.New("accounts.allTransactions: " + err.Error())
 	}
@@ -274,6 +418,34 @@ func fetchAccounts(data []string) (result []AccountDetails, err error) {
 
 	return accounts, nil
 }
+func openSpecialAccount(data []string) (result string, err error) {
+	// Validate string against required info/length
+	if len(data) < 3 {
+		err = errors.New("accounts.openAccount: Not all fields present")
+		//@TODO Add to documentation rather than returning here
+		//result = "ERROR: acmt transactions must be as follows:acmt~AcmtType~AccountHolderGivenName~AccountHolderFamilyName~AccountHolderDateOfBirth~AccountHolderIdentificationNumber~AccountHolderContactNumber1~AccountHolderContactNumber2~AccountHolderEmailAddress~AccountHolderAddressLine1~AccountHolderAddressLine2~AccountHolderAddressLine3~AccountHolderPostalCode"
+		return
+	}
+
+	//@TODO add check to know if an account already exist
+
+	// @FIXME: Remove new line from data
+	data[len(data)-1] = strings.Replace(data[len(data)-1], "\n", "", -1)
+
+	// Create account
+	accountDetails, err := setSpecialAccountDetails(data)
+	if err != nil {
+		return "", errors.New("accounts.openAccount: " + err.Error())
+	}
+
+	err = createSpecialAccount(&accountDetails)
+	if err != nil {
+		return "", errors.New("accounts.openAccount: " + err.Error())
+	}
+
+	result = accountDetails.AccountNumber
+	return
+}
 func openAccount(data []string) (result string, err error) {
 	// Validate string against required info/length
 	if len(data) < 14 {
@@ -286,7 +458,7 @@ func openAccount(data []string) (result string, err error) {
 	// Test: acmt~1~Kyle~Redelinghuys~19000101~190001011234098~1112223456~~email@domain.com~Physical Address 1~~~1000
 	// Check if account already exists, check on ID number
 	accountHolder, _ := getAccountMeta(data[6])
-	fmt.Println(accountHolder.AccountNumber, accountHolder)
+
 	if accountHolder.AccountNumber != "" {
 		return "", errors.New("accounts.openAccount: Account already open. " + accountHolder.AccountNumber)
 	}
@@ -393,6 +565,36 @@ func setAccountDetails(data []string) (accountDetails AccountDetails, err error)
 	return
 }
 
+func setSpecialAccountDetails(data []string) (specialAccountDetails SpecialAccountDetails, err error) {
+	if len(data) < 3 {
+		return SpecialAccountDetails{}, errors.New("accounts.setAccountHolderDetails: Not all field values present")
+	}
+	//@TODO: Test date parsing in format ddmmyyyy
+	if data[4] == "" {
+		return SpecialAccountDetails{}, errors.New("accounts.setAccountHolderDetails:  cannot be empty")
+	}
+	if data[3] == "" {
+		return SpecialAccountDetails{}, errors.New("accounts.setAccountHolderDetails: accountName name cannot be empty")
+	}
+
+	// @TODO Integrity checks
+	nubanGenerator := nuban.NewNUBANGenerator()
+	nuban := nubanGenerator.GenerateNUBAN()
+
+	ukaccountgenerator := ukaccountgen.New().GenerateUKAccountNumber()
+
+	specialAccountDetails.AccountNumber = ukaccountgenerator
+	specialAccountDetails.BankNumber = nuban
+	specialAccountDetails.AccountHolderName = data[3] //AcccountName
+	specialAccountDetails.AccountBalance = decimal.NewFromFloat(OPENING_BALANCE)
+	specialAccountDetails.Overdraft = decimal.NewFromFloat(OPENING_OVERDRAFT)
+	specialAccountDetails.AvailableBalance = decimal.NewFromFloat(OPENING_BALANCE + OPENING_OVERDRAFT)
+	specialAccountDetails.AccountProfile.AccountName = data[3] //AcccountName
+	specialAccountDetails.AccountProfile.Creator = data[4]
+	specialAccountDetails.AccountProfile.Purpose = data[5]
+
+	return
+}
 func setAccountHolderDetails(data []string) (accountHolderDetails AccountHolderDetails, err error) {
 	if len(data) < 14 {
 		return AccountHolderDetails{}, errors.New("accounts.setAccountHolderDetails: Not all field values present")
@@ -500,7 +702,7 @@ func fetchSingleAccountByID(data []string) (result string, err error) {
 	result = userAccountNumber
 	return
 }
-func fetchAccountBalance(data []string) (result *BalanceEnquiry, err error) {
+func fetchAccountDetails(data []string) (result *BalanceEnquiry, err error) {
 	accountNumber := data[3]
 	if accountNumber == "" {
 		return nil, errors.New("accounts.fetchSingleAccountByID: Account number not present")

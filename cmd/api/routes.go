@@ -38,7 +38,6 @@ func (app *application) routes() *httprouter.Router {
 	//authentication
 	router.HandlerFunc(http.MethodPost, "/v1/api/login", app.AuthLogin)
 	router.HandlerFunc(http.MethodPost, "/v1/api/create", app.AuthCreate)
-
 	router.HandlerFunc(http.MethodPost, "/v1/authindex", app.AuthIndex)
 
 	//Transactions and account management
@@ -52,10 +51,16 @@ func (app *application) routes() *httprouter.Router {
 	router.HandlerFunc(http.MethodGet, "/v1/api/allTransactions", app.AllTransactions)
 	router.HandlerFunc(http.MethodGet, "/v1/api/pdfTransactions", app.PdfTransactions)
 	router.HandlerFunc(http.MethodGet, "/v1/api/excelTransactions", app.ExcelTransactions)
+	router.HandlerFunc(http.MethodPost, "/v1/api/proofOfAddress", app.ProofOfAddress)
+
 	//ACCOUNT V2
 	router.HandlerFunc(http.MethodPost, "/v1/api/accounts/create", app.AccountCreate)
-	router.HandlerFunc(http.MethodPost, "/v1/accounts/update", app.AccountUpdate)
-	router.HandlerFunc(http.MethodGet, "/v1/accounts", app.AccountGet)
+	router.HandlerFunc(http.MethodPost, "/v1/api/accounts/update", app.AccountUpdate)
+	router.HandlerFunc(http.MethodGet, "/v1/api/accounts", app.AccountGet)
+	router.HandlerFunc(http.MethodPost, "/v1/api/accounts/block", app.BlockAccount)
+	router.HandlerFunc(http.MethodPost, "/v1/api/accounts/unblock", app.UnblockAccount)
+	router.HandlerFunc(http.MethodPost, "/v1/api/beneficiary/new", app.NewBeneficiary)
+	router.HandlerFunc(http.MethodPost, "/v1/api/beneficiary", app.GetBeneficiaries)
 
 	//Currency Exchange
 	router.HandlerFunc(http.MethodGet, "/v1/availableCurrencies", app.AvailableCurrenciesHandler)

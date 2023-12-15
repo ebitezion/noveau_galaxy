@@ -37,7 +37,7 @@ func (app *application) AuthIndex(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		//there was error
 		data := envelope{
-			"responseCode": "06",
+			"responseCode": "07",
 			"status":       "Failed",
 			"message":      err,
 		}
@@ -174,7 +174,7 @@ func (app *application) AuthRemove(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		//there was error
 		data := envelope{
-			"responseCode": "06",
+			"responseCode": "07",
 			"status":       "Failed",
 			"message":      err,
 		}

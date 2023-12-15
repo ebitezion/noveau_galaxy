@@ -557,11 +557,14 @@ func createPdf(data interface{}) (string, error) {
 		pdf.Cell(0, 10, fmt.Sprintf("Fee Amount: $%.2f", t.FeeAmount))
 		pdf.Ln(16)
 
+		pdf.Cell(0, 10, fmt.Sprintf("Fee Amount: $%s", t.Narration))
+		pdf.Ln(16)
+
 		pdf.Cell(0, 10, fmt.Sprintf("Timestamp: %s", t.Timestamp))
 		pdf.Ln(34) // Increased spacing between transactions
 	}
 
-	pdfPath := "Transactions.pdf"
+	pdfPath := "cmd/web/static/files/output.pdf"
 	// Save the PDF to a file or do something else with it
 	err = pdf.OutputFileAndClose(pdfPath)
 	if err != nil {
@@ -591,7 +594,7 @@ func createExcelSheet(data interface{}) (string, error) {
 	index := f.NewSheet("TransactionSheet")
 
 	// Set column headers
-	headers := []string{"ID", "Transaction", "Type", "SenderAccountNumber", "SenderBankNumber", "ReceiverAccountNumber", "ReceiverBankNumber", "TransactionAmount", "FeeAmount", "Timestamp"}
+	headers := []string{"ID", "Transaction", "Type", "SenderAccountNumber", "SenderBankNumber", "ReceiverAccountNumber", "ReceiverBankNumber", "TransactionAmount", "FeeAmount", "Timestamp", "Narration"}
 	for col, header := range headers {
 		cell := fmt.Sprintf("%c%d", 'A'+col, 1)
 		f.SetCellValue("TransactionSheet", cell, header)
@@ -609,7 +612,7 @@ func createExcelSheet(data interface{}) (string, error) {
 	// Set active sheet of the workbook.
 	f.SetActiveSheet(index)
 
-	excelPath := "Transactions.xlsx"
+	excelPath := "cmd/web/static/files/TransactionBook.xlsx"
 	// Save spreadsheet by the given path.
 	if err := f.SaveAs(excelPath); err != nil {
 		return "", fmt.Errorf("error saving excel:", err)

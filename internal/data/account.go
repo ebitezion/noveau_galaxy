@@ -80,7 +80,10 @@ type AccountBioData struct {
 		Country     string `json:"country"`
 	} `json:"identity"`
 }
-
+type ProofOfAddress struct {
+	AccountNumber string `json:"accountNumber"`
+	Image         string `json:"image"`
+}
 type User struct {
 	AccountNumber string `json:"accountNumber"`
 }
