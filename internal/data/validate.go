@@ -98,3 +98,12 @@ func ValidateNewAccountRequestData(v *validator.Validator, data *NewAccountReque
 	v.Check(data.Country != "", "country", "must be provided")
 
 }
+
+func ValidateProofOfAddress(v *validator.Validator, data *ProofOfAddress) {
+	// General validation
+
+}
+
+func Authorize() {
+
+}

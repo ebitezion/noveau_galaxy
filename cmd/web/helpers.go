@@ -17,12 +17,16 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/360EntSecGroup-Skylar/excelize"
+	"github.com/ebitezion/backend-framework/internal/accounts"
 	"github.com/ebitezion/backend-framework/internal/validator"
 	"github.com/julienschmidt/httprouter"
+	"github.com/jung-kurt/gofpdf"
 )
 
 // Retrieve the "id" URL parameter from the current request context, then convert
@@ -501,4 +505,125 @@ func hexToImage(hexData string, outputPath string) error {
 
 	fmt.Println("Image successfully saved:", outputPath)
 	return nil
+}
+
+func createPdf(data interface{}) (string, error) {
+
+	// Unmarshal JSON data
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+
+		return "", fmt.Errorf("error marshalling JSON:", err)
+
+	}
+
+	var transactions []accounts.Transaction
+	err = json.Unmarshal(jsonData, &transactions)
+	if err != nil {
+
+		return "", fmt.Errorf("error marshalling JSON:", err)
+	}
+	// Create PDF
+	pdf := gofpdf.New(gofpdf.OrientationPortrait, gofpdf.UnitPoint, gofpdf.PageSizeA4, "")
+	pdf.SetHeaderFunc(func() {
+		pdf.SetFont("Arial", "B", 16)
+		pdf.Cell(0, 10, "Nouveau Mobile Account Statement")
+		pdf.Ln(40)
+	})
+
+	pdf.AddPage()
+
+	// Set font
+	pdf.SetFont("Arial", "B", 12)
+
+	// Add content to PDF with spacing between key and value
+	// Add content to PDF with spacing between key and value
+	for _, t := range transactions {
+		pdf.Cell(0, 10, fmt.Sprintf("Transaction ID: %d", t.ID))
+		pdf.Ln(16)
+
+		pdf.Cell(0, 10, fmt.Sprintf("Transaction Type: %s", t.Transaction))
+		pdf.Ln(16)
+
+		pdf.Cell(0, 10, fmt.Sprintf("Transaction Amount: $%.2f", t.TransactionAmount))
+		pdf.Ln(16)
+
+		pdf.Cell(0, 10, fmt.Sprintf("Sender Account: %s, Bank: %s", t.SenderAccountNumber, t.SenderBankNumber))
+		pdf.Ln(16)
+
+		pdf.Cell(0, 10, fmt.Sprintf("Receiver Account: %s, Bank: %s", t.ReceiverAccountNumber, t.ReceiverBankNumber))
+		pdf.Ln(16)
+
+		pdf.Cell(0, 10, fmt.Sprintf("Fee Amount: $%.2f", t.FeeAmount))
+		pdf.Ln(16)
+
+		pdf.Cell(0, 10, fmt.Sprintf("Fee Amount: $%s", t.Narration))
+		pdf.Ln(16)
+
+		pdf.Cell(0, 10, fmt.Sprintf("Timestamp: %s", t.Timestamp))
+		pdf.Ln(34) // Increased spacing between transactions
+	}
+
+	pdfPath := "cmd/web/static/files/output.pdf"
+	// Save the PDF to a file or do something else with it
+	err = pdf.OutputFileAndClose(pdfPath)
+	if err != nil {
+
+		return "", fmt.Errorf("error saving PDF:", err)
+	}
+
+	fmt.Println("PDF created successfully!")
+	return pdfPath, nil
+}
+func createExcelSheet(data interface{}) (string, error) {
+
+	//Unmarshal JSON data
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return "", fmt.Errorf("error marshalling JSON:", err)
+	}
+
+	var transactions []accounts.Transaction
+	err = json.Unmarshal(jsonData, &transactions)
+	if err != nil {
+		return "", fmt.Errorf("error marshalling JSON:", err)
+	}
+	f := excelize.NewFile()
+
+	// Create a new sheet.
+	index := f.NewSheet("TransactionSheet")
+
+	// Set column headers
+	headers := []string{"ID", "Transaction", "Type", "SenderAccountNumber", "SenderBankNumber", "ReceiverAccountNumber", "ReceiverBankNumber", "TransactionAmount", "FeeAmount", "Timestamp", "Narration"}
+	for col, header := range headers {
+		cell := fmt.Sprintf("%c%d", 'A'+col, 1)
+		f.SetCellValue("TransactionSheet", cell, header)
+	}
+
+	// Populate data from the Transaction struct array to the spreadsheet
+	for row, transaction := range transactions {
+		// Use reflection to get the field values dynamically
+		for col := 0; col < len(headers); col++ {
+			cell := fmt.Sprintf("%c%d", 'A'+col, row+2)
+			f.SetCellValue("TransactionSheet", cell, getFieldValue(transaction, headers[col]))
+		}
+	}
+
+	// Set active sheet of the workbook.
+	f.SetActiveSheet(index)
+
+	excelPath := "cmd/web/static/files/TransactionBook.xlsx"
+	// Save spreadsheet by the given path.
+	if err := f.SaveAs(excelPath); err != nil {
+		return "", fmt.Errorf("error saving excel:", err)
+	}
+	fmt.Println("Excel Sheet created successfully")
+	return excelPath, nil
+}
+
+// Helper function to get field value using reflection
+func getFieldValue(transaction accounts.Transaction, field string) interface{} {
+	r := reflect.ValueOf(transaction)
+	f := reflect.Indirect(r).FieldByName(field)
+	return f.Interface()
 }

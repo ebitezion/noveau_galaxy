@@ -14,6 +14,9 @@ type BalanceEnquiryPageData struct {
 type AllAccountPageData struct {
 	Accounts []accounts.AccountDetails
 }
+type AllTransactionsPageData struct {
+	Transactions []accounts.Transaction
+}
 
 // RenderIndexPage renders a HTML page
 func (app *application) RenderIndexPage(w http.ResponseWriter, r *http.Request) {
@@ -57,6 +60,73 @@ func (app *application) RenderBalanceEnquiry(w http.ResponseWriter, r *http.Requ
 
 func (app *application) RenderAccountHistory(w http.ResponseWriter, r *http.Request) {
 	app.RenderTemplate(w, []string{"cmd/web/views/accountHistory.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, nil, "cmd/web/views/accountHistory.html", nil)
+}
+
+func (app *application) RenderBusinessesPage(w http.ResponseWriter, r *http.Request) {
+	app.RenderTemplate(w, []string{"cmd/web/views/businesses.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, nil, "cmd/web/views/businesses.html", nil)
+}
+func (app *application) RenderPartnersPage(w http.ResponseWriter, r *http.Request) {
+	app.RenderTemplate(w, []string{"cmd/web/views/partners.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, nil, "cmd/web/views/partners.html", nil)
+}
+func (app *application) RenderKycPage(w http.ResponseWriter, r *http.Request) {
+	app.RenderTemplate(w, []string{"cmd/web/views/kyc.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, nil, "cmd/web/views/kyc.html", nil)
+}
+func (app *application) RenderCurrencyConversionPage(w http.ResponseWriter, r *http.Request) {
+	app.RenderTemplate(w, []string{"cmd/web/views/currencyConverter.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, nil, "cmd/web/views/currencyConverter.html", nil)
+}
+func (app *application) RenderTeamsPage(w http.ResponseWriter, r *http.Request) {
+	app.RenderTemplate(w, []string{"cmd/web/views/teams.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, nil, "cmd/web/views/teams.html", nil)
+}
+func (app *application) RenderRolesPage(w http.ResponseWriter, r *http.Request) {
+	app.RenderTemplate(w, []string{"cmd/web/views/roles.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, nil, "cmd/web/views/roles.html", nil)
+}
+func (app *application) RenderSystemLogsPage(w http.ResponseWriter, r *http.Request) {
+	app.RenderTemplate(w, []string{"cmd/web/views/systemLogs.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, nil, "cmd/web/views/systemLogs.html", nil)
+}
+func (app *application) RenderBlockAccountPage(w http.ResponseWriter, r *http.Request) {
+	app.RenderTemplate(w, []string{"cmd/web/views/blockAccountPage.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, nil, "cmd/web/views/blockAccountPage.html", nil)
+}
+func (app *application) RenderUnblockAccountPage(w http.ResponseWriter, r *http.Request) {
+	app.RenderTemplate(w, []string{"cmd/web/views/unblockAccountPage.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, nil, "cmd/web/views/unblockAccountPage.html", nil)
+}
+func (app *application) RenderUkAccountPage(w http.ResponseWriter, r *http.Request) {
+	app.RenderTemplate(w, []string{"cmd/web/views/ukAccountPage.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, nil, "cmd/web/views/ukAccountPage.html", nil)
+}
+func (app *application) RenderUsAccountPage(w http.ResponseWriter, r *http.Request) {
+	app.RenderTemplate(w, []string{"cmd/web/views/usAccountPage.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, nil, "cmd/web/views/usAccountPage.html", nil)
+}
+func (app *application) RenderCashPickupPage(w http.ResponseWriter, r *http.Request) {
+	app.RenderTemplate(w, []string{"cmd/web/views/tables.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, nil, "cmd/web/views/tables.html", nil)
+}
+
+func (app *application) RenderTransactionsPage(w http.ResponseWriter, r *http.Request) {
+	//get all transactions
+	data, err := accounts.ProcessAccount([]string{"", "acmt", "1008"})
+	if err != nil {
+		fmt.Println(err)
+	}
+	Transactions, ok := data.([]accounts.Transaction)
+	if !ok {
+		fmt.Println("Failed to convert to []AccountDetails")
+		return
+	}
+	//update excel sheet
+	_, err = createExcelSheet(Transactions)
+	if err != nil {
+		fmt.Println(err, "error creating excel sheet")
+		return
+	}
+	//update pdf file
+	_, err = createPdf(Transactions)
+	if err != nil {
+		fmt.Println(err, "error creating pdf sheet")
+		return
+	}
+
+	pageData := AllTransactionsPageData{
+		Transactions: Transactions,
+	}
+	app.RenderTemplate(w, []string{"cmd/web/views/allTransactions.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, pageData, "cmd/web/views/allTransactions.html", nil)
 }
 
 // RenderBatchTransactionPage renders a HTML page

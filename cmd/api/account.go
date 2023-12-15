@@ -3,7 +3,10 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"image"
+	"image/jpeg"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/ebitezion/backend-framework/internal/accounts"
@@ -124,104 +127,6 @@ func (app *application) RetreiveAccounts(w http.ResponseWriter, r *http.Request)
 		app.serverErrorResponse(w, r, err)
 		return
 	}
-}
-
-// NewBeneficiary creates a new beneficiary tied to an account
-func (app *application) NewBeneficiary(w http.ResponseWriter, r *http.Request) {
-	Request := data.Beneficiary{}
-	// read the incoming request body
-	err := app.readJSON(w, r, &Request)
-	if err != nil {
-		app.badRequestResponse(w, r, err)
-		return
-	}
-	// Validate the request data
-	v := validator.New()
-	data.ValidateBeneficiaryData(v, &Request)
-	if !v.Valid() {
-		app.failedValidationResponse(w, r, v.Errors)
-		return
-	}
-	//get user_id
-	userId, err := app.models.AccountModel.GetUserId(Request.UserAccountNumber)
-	if err != nil {
-		if err == data.ErrRecordNotFound {
-			app.writeJSON(w, http.StatusOK, envelope{"message": "No records found"}, nil)
-		} else {
-			app.serverErrorResponse(w, r, err)
-		}
-		return
-	}
-
-	//create new beneficiary
-	err = app.StoreBeneficiary(&Request, userId)
-	if err != nil {
-		app.serverErrorResponse(w, r, err)
-		return
-	}
-
-	// Return a success response or an error message
-	err = app.writeJSON(w, http.StatusOK, envelope{"responseMessage": "Beneficiary Successful Created"}, nil)
-	if err != nil {
-		app.serverErrorResponse(w, r, err)
-		return
-	}
-}
-
-// GetBeneficiaries gets all the beneficiaries tied to an account
-func (app *application) GetBeneficiaries(w http.ResponseWriter, r *http.Request) {
-	Request := data.User{}
-	// read the incoming request body
-	err := app.readJSON(w, r, &Request)
-	if err != nil {
-		app.badRequestResponse(w, r, err)
-		return
-	}
-	// Validate the request data
-	v := validator.New()
-	data.ValidateUserInformation(v, &Request)
-	if !v.Valid() {
-		app.failedValidationResponse(w, r, v.Errors)
-		return
-	}
-
-	//get user_id
-	user_id := "6"
-
-	//fetch account details
-	beneficiaries, err := app.models.AccountModel.GetBenefciaries(user_id)
-	if err != nil {
-		if err == data.ErrRecordNotFound {
-			app.writeJSON(w, http.StatusOK, envelope{"message": "No records found"}, nil)
-		} else {
-			app.serverErrorResponse(w, r, err)
-		}
-		return
-	}
-
-	// Return a success response or an error message
-	err = app.writeJSON(w, http.StatusOK, envelope{"responseMessage": "Successful", "beneficiaries": beneficiaries}, nil)
-	if err != nil {
-		app.serverErrorResponse(w, r, err)
-		return
-	}
-}
-
-func (app *application) StoreBeneficiary(Data *data.Beneficiary, UserId string) error {
-	//Insert Identity data to DB
-	query := `
-     INSERT INTO beneficiaries ( user_id, full_name, bank_name, bank_account_number, bank_routing_number, swift_code)
-    VALUES (?, ?, ?, ?,?,?)
-`
-
-	args := []interface{}{UserId, Data.FullName, Data.BankName, Data.BankAccountNumber, Data.BankRoutingNumber, Data.SwiftCode}
-
-	// Insert Identity data to DB, use LAST_INSERT_ID() to get the last generated ID
-	_, err := app.models.AccountModel.Insert(query, args)
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 // Register simply saves the biodata info of the user and return an account no or an error
@@ -425,7 +330,7 @@ func (app *application) AccountUpdate(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		// there was error
 		data := envelope{
-			"responseCode": "06",
+			"responseCode": "07",
 			"status":       "Failed",
 			"message":      err.Error(),
 		}
@@ -506,7 +411,7 @@ func (app *application) AccountGet(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		// there was error
 		data := envelope{
-			"responseCode": "06",
+			"responseCode": "07",
 			"status":       "Failed",
 			"message":      err.Error(),
 		}
@@ -544,7 +449,92 @@ func (app *application) AccountGet(w http.ResponseWriter, r *http.Request) {
 	}
 	app.writeJSON(w, http.StatusOK, data, nil)
 }
+func (app *application) BlockAccount(w http.ResponseWriter, r *http.Request) {
+	_, err := app.getTokenFromHeader(w, r)
+	if err != nil {
+		// there was error
+		data := envelope{
+			"responseCode": "07",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
 
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+
+	var req data.User
+	// read the incoming request body
+	err = app.readJSON(w, r, &req)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+	// Validate the user ID
+	v := validator.New()
+	data.ValidateUser(v, &req)
+	if !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		//log to db
+
+		return
+	}
+	response, err := accounts.ProcessAccount([]string{"", "acmt", "1010", req.AccountNumber})
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	data := envelope{
+		"responseCode": "00",
+		"status":       "Success",
+		"message":      response,
+	}
+	app.writeJSON(w, http.StatusOK, data, nil)
+}
+func (app *application) UnblockAccount(w http.ResponseWriter, r *http.Request) {
+	_, err := app.getTokenFromHeader(w, r)
+	if err != nil {
+		// there was error
+		data := envelope{
+			"responseCode": "07",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+
+	var req data.User
+	// read the incoming request body
+	err = app.readJSON(w, r, &req)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+	// Validate the user ID
+	v := validator.New()
+	data.ValidateUser(v, &req)
+	if !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		//log to db
+
+		return
+	}
+	response, err := accounts.ProcessAccount([]string{"", "acmt", "1011", req.AccountNumber})
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	data := envelope{
+		"responseCode": "00",
+		"status":       "Success",
+		"message":      response,
+	}
+	app.writeJSON(w, http.StatusOK, data, nil)
+}
 func (app *application) AccountGetAll(w http.ResponseWriter, r *http.Request) {
 	var req AccountRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -576,7 +566,7 @@ func (app *application) BalanceEnquiry(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		// there was error
 		data := envelope{
-			"responseCode": "06",
+			"responseCode": "07",
 			"status":       "Failed",
 			"message":      err.Error(),
 		}
@@ -616,12 +606,122 @@ func (app *application) BalanceEnquiry(w http.ResponseWriter, r *http.Request) {
 	app.writeJSON(w, http.StatusOK, data, nil)
 }
 
+func (app *application) AllTransactions(w http.ResponseWriter, r *http.Request) {
+	token, err := app.getTokenFromHeader(w, r)
+	if err != nil {
+		// there was error
+		data := envelope{
+			"responseCode": "07",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+
+	response, err := accounts.ProcessAccount([]string{token, "acmt", "1008"})
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	data := envelope{
+		"responseCode": "00",
+		"status":       "Success",
+		"message":      response,
+	}
+	app.writeJSON(w, http.StatusOK, data, nil)
+}
+func (app *application) ExcelTransactions(w http.ResponseWriter, r *http.Request) {
+	token, err := app.getTokenFromHeader(w, r)
+	if err != nil {
+		// there was error
+		data := envelope{
+			"responseCode": "07",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+
+	response, err := accounts.ProcessAccount([]string{token, "acmt", "1008"})
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	path, err := createExcelSheet(response)
+	if err != nil {
+		// there was error
+		data := envelope{
+			"responseCode": "06",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+
+	fmt.Println(path)
+	data := envelope{
+		"responseCode": "00",
+		"status":       "Success",
+		"message":      response,
+	}
+	app.writeJSON(w, http.StatusOK, data, nil)
+}
+func (app *application) PdfTransactions(w http.ResponseWriter, r *http.Request) {
+	token, err := app.getTokenFromHeader(w, r)
+	if err != nil {
+		// there was error
+		data := envelope{
+			"responseCode": "07",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+
+	response, err := accounts.ProcessAccount([]string{token, "acmt", "1008"})
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+	path, err := createPdf(response)
+
+	if err != nil {
+		// there was error
+		data := envelope{
+			"responseCode": "06",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+
+	fmt.Println(path)
+
+	data := envelope{
+		"responseCode": "00",
+		"status":       "Success",
+		"message":      response,
+	}
+	app.writeJSON(w, http.StatusOK, data, nil)
+}
 func (app *application) AccountHistory(w http.ResponseWriter, r *http.Request) {
 	token, err := app.getTokenFromHeader(w, r)
 	if err != nil {
 		// there was error
 		data := envelope{
-			"responseCode": "06",
+			"responseCode": "07",
 			"status":       "Failed",
 			"message":      err.Error(),
 		}
@@ -701,4 +801,182 @@ func customDateValidator(fl Validate.FieldLevel) bool {
 	_, err := time.Parse(layout, dateStr)
 
 	return err == nil
+}
+
+// NewBeneficiary creates a new beneficiary tied to an account
+func (app *application) NewBeneficiary(w http.ResponseWriter, r *http.Request) {
+	_, err := app.getTokenFromHeader(w, r)
+	if err != nil {
+		// there was error
+		data := envelope{
+			"responseCode": "07",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+	Request := data.Beneficiary{}
+	// read the incoming request body
+	err = app.readJSON(w, r, &Request)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+	// Validate the request data
+	v := validator.New()
+	data.ValidateBeneficiaryData(v, &Request)
+	if !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		return
+	}
+	//create beneficiary
+	err = accounts.CreateBeneficiary(&Request)
+	if err != nil {
+		//there was error
+		data := envelope{
+			"responseCode": "06",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+
+	// Return a success response or an error message
+	data := envelope{
+		"responseCode": "00",
+		"status":       "Success",
+		"message":      "Beneficiary Successful Created",
+	}
+	err = app.writeJSON(w, http.StatusOK, data, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+}
+
+// GetBeneficiaries gets all the beneficiaries tied to an account
+func (app *application) GetBeneficiaries(w http.ResponseWriter, r *http.Request) {
+	_, err := app.getTokenFromHeader(w, r)
+	if err != nil {
+		// there was error
+		data := envelope{
+			"responseCode": "07",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+
+	Request := data.User{}
+	// read the incoming request body
+	err = app.readJSON(w, r, &Request)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+	// Validate the request data
+	v := validator.New()
+	data.ValidateUserInformation(v, &Request)
+	if !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		return
+	}
+
+	//fetch account details
+	beneficiaries, err := accounts.GetBenefciaries(Request.AccountNumber)
+	if err != nil {
+		// there was error
+		data := envelope{
+			"responseCode": "07",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+
+	// Return a success response or an error message
+	data := envelope{
+		"responseCode": "00",
+		"status":       "Success",
+		"message":      beneficiaries,
+	}
+	err = app.writeJSON(w, http.StatusOK, data, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+}
+
+func (app *application) ProofOfAddress(w http.ResponseWriter, r *http.Request) {
+	_, err := app.getTokenFromHeader(w, r)
+	if err != nil {
+		// there was error
+		data := envelope{
+			"responseCode": "07",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+	Request := data.ProofOfAddress{}
+	// read the incoming request body
+	err = app.readJSON(w, r, &Request)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+	// Validate the request data
+	v := validator.New()
+	data.ValidateProofOfAddress(v, &Request)
+	if !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		return
+	}
+
+	// // Decode hexa decimal string to bytes
+	// imageBytes, err := hex.DecodeString(Request.Image)
+	// if err != nil {
+	// 	app.errorResponse(w, r, http.StatusBadRequest, "Error decoding hexadecimal string")
+	// 	return
+	// }
+
+	// // Convert bytes to an image
+	// img, _, err := image.Decode(bytes.NewReader(imageBytes))
+	// if err != nil {
+	// 	app.errorResponse(w, r, http.StatusBadRequest, "Error decoding image")
+	// 	return
+	// }
+
+	// // Save the image as a JPEG file (optional)
+	// err = app.saveAsJPEG(img, "output.jpg")
+	// if err != nil {
+	// 	app.errorResponse(w, r, http.StatusInternalServerError, "Error saving image")
+	// 	return
+	// }
+
+}
+func (app *application) saveAsJPEG(img image.Image, filename string) error {
+	file, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	err = jpeg.Encode(file, img, nil)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

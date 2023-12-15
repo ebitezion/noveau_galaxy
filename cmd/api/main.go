@@ -6,9 +6,11 @@ import (
 	"flag"
 	"fmt"
 	"html/template"
+	"io"
 	"log"
 	"net/http"
 	"os"
+	"runtime/debug"
 	"strconv"
 	"sync"
 	"time"
@@ -20,6 +22,9 @@ import (
 	"github.com/ebitezion/backend-framework/internal/payments"
 	"github.com/gorilla/sessions"
 	"github.com/joho/godotenv"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/pkgerrors"
+	"gopkg.in/natefinch/lumberjack.v2"
 
 	//_ "github.com/lib/pq"
 	_ "github.com/go-sql-driver/mysql"
@@ -52,7 +57,12 @@ type application struct {
 
 var store = sessions.NewCookieStore([]byte(os.Getenv("SESSIONSTORE")))
 
+var once sync.Once
+
+var Log zerolog.Logger
+
 func main() {
+
 	// Define a file server to serve static files
 	fs := http.FileServer(http.Dir("cmd/web/static"))
 
@@ -194,4 +204,55 @@ func openDB(cfg config) (*sql.DB, error) {
 
 	// Return the sql.DB connection pool.
 	return db, nil
+}
+
+func Get() zerolog.Logger {
+	once.Do(func() {
+		zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
+		zerolog.TimeFieldFormat = time.RFC3339Nano
+
+		logLevel, err := strconv.Atoi(os.Getenv("LOG_LEVEL"))
+		if err != nil {
+			logLevel = int(zerolog.InfoLevel) // default to INFO
+		}
+
+		var output io.Writer = zerolog.ConsoleWriter{
+			Out:        os.Stdout,
+			TimeFormat: time.RFC3339,
+		}
+
+		if os.Getenv("ENV") != "development" {
+			fileLogger := &lumberjack.Logger{
+				Filename:   "wikipedia-demo.log",
+				MaxSize:    5, //
+				MaxBackups: 10,
+				MaxAge:     14,
+				Compress:   true,
+			}
+
+			output = zerolog.MultiLevelWriter(os.Stderr, fileLogger)
+		}
+
+		var gitRevision string
+
+		buildInfo, ok := debug.ReadBuildInfo()
+		if ok {
+			for _, v := range buildInfo.Settings {
+				if v.Key == "vcs.revision" {
+					gitRevision = v.Value
+					break
+				}
+			}
+		}
+
+		Log = zerolog.New(output).
+			Level(zerolog.Level(logLevel)).
+			With().
+			Timestamp().
+			Str("git_revision", gitRevision).
+			Str("go_version", buildInfo.GoVersion).
+			Logger()
+	})
+
+	return Log
 }

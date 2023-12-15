@@ -5,6 +5,7 @@
 		<h1 class="h3 mb-0 text-gray-800 mx-auto">Balance Enquiry</h1>
       
 	</div>
+      <div id="failureAlert" class="alert alert-danger mt-3" style="display: none;"></div>
     <div class="w-50 mx-auto">
           <form class="user" id="loginForm" method="post" action="/v1/balanceEnquiry">
     
@@ -34,12 +35,13 @@
 	<script>
    function submitForm() {
     var formdata = new FormData(document.getElementById("loginForm"));
-    let token = localStorage.getItem('token');
-    console.log(token)
+   
+    var storedValue = sessionStorage.getItem('token');
     var requestOptions = {
         method: 'POST',
+        redirect: 'follow',
         headers: {
-        'X-Auth-Token': '002c3e9f-bfda-4cf6-bbec-c62c0cdc92df',
+        'X-Auth-Token': storedValue,
    
         },
         body: formdata,
@@ -54,7 +56,19 @@
                 document.getElementById("accountHolderName").innerText = result.message.accountHolderName;
                 document.getElementById("accountNumber").innerText = result.message.accountNumber;
                 document.getElementById("ledgerBalance").innerText = result.message.ledgerBalance;
-            }
+
+            }else if(result.responseCode === "07"){
+                 window.location.href = "http://localhost:4000/v1/loginpage"
+
+            }else{
+                     document.getElementById("failureAlert").innerText = result.message;
+                    // Show the failure alert
+                    document.getElementById("failureAlert").style.display = "block";
+                    // Hide the alert after 7 seconds
+                    setTimeout(function () {
+                        document.getElementById("failureAlert").style.display = "none";
+                    }, 7000);
+                }
       
         })
         .catch(error => console.log('error', error));

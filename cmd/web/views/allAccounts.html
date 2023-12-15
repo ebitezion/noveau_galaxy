@@ -28,9 +28,7 @@
                                             <td>{{ .BankNumber }}</td>
                                             <td>{{ .AccountNumber }}</td>
                                             <td>
-                                                <!-- <span class="material-symbols-outlined ViewAccount" data-bs-toggle="modal" data-bs-target="ade"> visibility </span> -->
-                                               
-                                              
+            
                                                     <span class="material-symbols-outlined Vieworder" data-bs-toggle="modal"  data-bs-target="#{{ .AccountNumber }}" style="cursor: pointer;"> visibility </span>
                                                 
                                             </td>
@@ -161,10 +159,11 @@
 			
             event.preventDefault();
             var formdata = new FormData(document.getElementById("myform"));
+            var storedValue = sessionStorage.getItem('token');
             var requestOptions = {
                 method: 'POST',
                 headers: {
-                    'X-Auth-Token': '02c01f6a-c356-4a5b-b246-3e10f8677153',
+                    'X-Auth-Token': storedValue,
                 },
                 body: formdata,
             };

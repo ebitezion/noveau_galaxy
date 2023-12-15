@@ -12,11 +12,12 @@ import (
 
 func (app *application) FullAccessCreditInitiation(w http.ResponseWriter, r *http.Request) {
 	token, err := app.getTokenFromHeader(w, r)
+
 	if err != nil {
 
 		// there was error
 		data := envelope{
-			"responseCode": "06",
+			"responseCode": "07",
 			"status":       "Failed",
 			"message":      err.Error(),
 		}
@@ -66,7 +67,7 @@ func (app *application) FullAccessDepositInitiation(w http.ResponseWriter, r *ht
 
 		// there was error
 		data := envelope{
-			"responseCode": "06",
+			"responseCode": "07",
 			"status":       "Failed",
 			"message":      err.Error(),
 		}
@@ -117,7 +118,7 @@ func (app *application) PaymentCreditInitiation(w http.ResponseWriter, r *http.R
 
 		// there was error
 		data := envelope{
-			"responseCode": "06",
+			"responseCode": "07",
 			"status":       "Failed",
 			"message":      err.Error(),
 		}
@@ -169,7 +170,7 @@ func (app *application) PaymentDebitInitiation(w http.ResponseWriter, r *http.Re
 
 		// there was error
 		data := envelope{
-			"responseCode": "06",
+			"responseCode": "07",
 			"status":       "Failed",
 			"message":      err.Error(),
 		}
@@ -207,7 +208,7 @@ func (app *application) PaymentDepositInitiation(w http.ResponseWriter, r *http.
 
 		// there was error
 		data := envelope{
-			"responseCode": "06",
+			"responseCode": "07",
 			"status":       "Failed",
 			"message":      err.Error(),
 		}

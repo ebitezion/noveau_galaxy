@@ -5,10 +5,9 @@
 		<h1 class="h2 mb-0 text-gray-800 mx-auto">Account Creation</h1>
 	</div>
 	<div class="container w-75 mt-5">
-		<div id="successAlert" class="alert alert-success mt-3" style="display: none;">
 		
 		</div>
-	<div class="container w-100 mt-5">
+	<div class="container w-75 mt-5">
 		<form id="myForm" >
 			<div class="row">
 				<div class="col-6">
@@ -48,14 +47,17 @@
 				
 				<div class="col-6">
 					<div class="mb-3">
-						<label for="accountHolderIdentificationType" class="form-label">Identification Type</label>
-						<input
-							type="text"
-							class="form-control"
-							id="accountHolderIdentificationType"
-							name="accountHolderIdentificationType"
-							required
-						/>
+						<label for="accountHolderIdentificationType" class="form-label"></label>
+						
+						<select class="form-select" aria-label="Default select example" id="accountHolderIdentificationNumber"
+							name="accountHolderIdentificationNumber"
+							required>
+							<option disabled  selected>Identification Type</option>
+							<option value="NIN">NIN</option>
+							<option value="BVN">BVN</option>
+							<option value="DRIVERS LICENSE">DRIVERS LICENSE</option>
+							<option value="PASSPORT">PASSPORT</option>
+						</select>
 					</div>
 				</div>
 				<div class="col-6">
@@ -133,33 +135,31 @@
 			</div>
 			
 			
-			
+						 <button type="button" onclick="submitForm(event)" class="btn btn-custom btn-user btn-block">Submit</button>
 			   <div id="successAlert" class="alert alert-success mt-3" style="display: none;">
-				</div>
 				<div id="failureAlert" class="alert alert-danger mt-3" style="display: none;">	
-				</div>
-			 <button type="button" onclick="submitForm()" class="btn btn-custom btn-user btn-block">Submit</button>
+
 		</form>
 	</div>
 </div>
 <script>
-    function submitForm() {
+    function submitForm(event) {
          event.preventDefault();
         // Get the form data
         var formData = new FormData(document.getElementById("myForm"));
-
+		var storedValue = sessionStorage.getItem('token');
         // Send the form data using fetch
         fetch("/v1/accounts/create", {
             method: "POST",
             body: formData,
 			headers: {
-                    'X-Auth-Token': '02c01f6a-c356-4a5b-b246-3e10f8677153',
+                    'X-Auth-Token': storedValue,
                 },
         })
         .then(result => {
 			console.log(result)
            if (result.responseCode === "00") {
-			
+			console.log("success")
 				// Update the success message with the message from the API
 				document.getElementById("successAlert").innerText = result.message;
 				// Show the success alert
@@ -168,6 +168,18 @@
 				setTimeout(function () {
 					document.getElementById("successAlert").style.display = "none";
 				}, 7000);}
+				else if(result.responseCode === "07"){
+                 window.location.href = "http://localhost:4000/v1/loginpage"
+
+            }else {
+                          document.getElementById("failureAlert").innerText = result.message;
+                        // Show the failure alert
+                        document.getElementById("failureAlert").style.display = "block";
+                        // Hide the alert after 7 seconds
+                        setTimeout(function () {
+                            document.getElementById("failureAlert").style.display = "none";
+                        }, 7000);
+                    }
           
         })
         .catch(error => {

@@ -19,7 +19,7 @@ Payments mandates:
 
 @author adenugba adeoluwa 1st december
 13- FullAccessCreditInitiation
-14-painFullAccessDepositInitiation
+14- FullAccessDepositInitiation
 
 #### Custom payments
 1000 - CustomerDepositInitiation (@FIXME Will need to implement this properly, for now we use it to demonstrate functionality)
@@ -166,7 +166,7 @@ func painCreditTransferInitiation(painType int64, data []string) (result string,
 		return "", errors.New("payments.painCreditTransferInitiation: " + "Receivers Account Not valid")
 	}
 	////check if senders accounts is valid
-	exists, err = CheckIfAccountNumberExists(sender.AccountNumber)
+	exists, err = CheckIfAccountIsActive(sender.AccountNumber)
 
 	if err != nil {
 		return "", errors.New("payments.painCreditTransferInitiation: " + err.Error())
@@ -265,12 +265,13 @@ func painFullAccessCreditInitiation(painType int64, data []string) (result strin
 	if err != nil {
 		return "", errors.New("payments.painCreditTransferInitiation: " + err.Error())
 	}
+
 	// Check the result.
 	if !exists {
 		return "", errors.New("payments.painCreditTransferInitiation: " + "Receivers Account Not valid")
 	}
-	////check if senders accounts is valid
-	exists, err = CheckIfAccountNumberExists(sender.AccountNumber)
+	//check if senders accounts is valid
+	exists, err = CheckIfAccountIsActive(sender.AccountNumber)
 
 	if err != nil {
 		return "", errors.New("payments.painCreditTransferInitiation: " + err.Error())
@@ -477,7 +478,7 @@ func processSingleTransaction(transaction Transaction) error {
 
 // CheckIfValueExists checks if a given value is in the specified table and returns a boolean
 func CheckIfAccountNumberExists(accountNumber string) (bool, error) {
-	query := "SELECT COUNT(*) FROM accounts WHERE accountNumber = ?"
+	query := "SELECT COUNT(*) FROM accounts WHERE accountNumber = ?;"
 	// Declare a variable to store the count.
 	var count int
 
@@ -493,7 +494,27 @@ func CheckIfAccountNumberExists(accountNumber string) (bool, error) {
 		return false, err
 	}
 
-	fmt.Println("Count:", count)
+	// If the count is greater than 0, the value exists in the database.
+	return count > 0, nil
+}
+
+// CheckIfAccountIsActive checks if a given value is in the specified table and returns a boolean
+func CheckIfAccountIsActive(accountNumber string) (bool, error) {
+	query := "SELECT COUNT(*) FROM accounts WHERE accountNumber = ? AND status = 'Active';"
+	// Declare a variable to store the count.
+	var count int
+
+	// Use the context.WithTimeout() function to create a context.Context with a timeout.
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	// Use QueryRowContext() to execute the query and get the count.
+	err := Config.Db.QueryRowContext(ctx, query, accountNumber).Scan(&count)
+	if err != nil {
+		// Print the error message for debugging purposes.
+		fmt.Println("Error executing query:", err)
+		return false, err
+	}
 
 	// If the count is greater than 0, the value exists in the database.
 	return count > 0, nil

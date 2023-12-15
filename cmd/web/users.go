@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/ebitezion/backend-framework/internal/accounts"
@@ -35,7 +36,7 @@ func (app *application) AuthIndex(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		//there was error
 		data := envelope{
-			"responseCode": "06",
+			"responseCode": "07",
 			"status":       "Failed",
 			"message":      err,
 		}
@@ -91,8 +92,21 @@ func (app *application) AuthLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response, err := appauth.ProcessAppAuth([]string{"0", "appauth", "2", accountNumber, password})
+	//get token
+	token, err := appauth.ProcessAppAuth([]string{"0", "appauth", "2", accountNumber, password})
+	if err != nil {
+		//there was error
+		data := envelope{
+			"responseCode": "06",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
 
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+	//set jwt token
+	err = app.SetJwtSession(w, r, accountNumber)
 	if err != nil {
 		//there was error
 		data := envelope{
@@ -105,10 +119,11 @@ func (app *application) AuthLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//send success response
 	data := envelope{
 		"responseCode": "00",
 		"status":       "Success",
-		"message":      response,
+		"message":      token,
 	}
 	app.writeJSON(w, http.StatusOK, data, nil)
 
@@ -149,7 +164,7 @@ func (app *application) AuthRemove(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		//there was error
 		data := envelope{
-			"responseCode": "06",
+			"responseCode": "07",
 			"status":       "Failed",
 			"message":      err,
 		}
@@ -182,4 +197,32 @@ func (app *application) AuthRemove(w http.ResponseWriter, r *http.Request) {
 	}
 	app.writeJSON(w, http.StatusOK, data, nil)
 
+}
+
+// this signs a user from there session
+func (app *application) StaffSignOutProcess(w http.ResponseWriter, r *http.Request) {
+	app.DeleteSession(w, r, "JwtToken")
+	http.Redirect(w, r, "/v1/loginpage", http.StatusFound)
+	log.Println("logout successfully")
+
+}
+
+// this deletes a users session token
+func (app *application) DeleteSession(w http.ResponseWriter, r *http.Request, sessionname string) {
+	// Get the session cookie
+	session, err := store.Get(r, sessionname)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Set the MaxAge to a negative value to delete the session cookie
+	session.Options.MaxAge = -1
+
+	// Save the session to apply the changes
+	err = session.Save(r, w)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }

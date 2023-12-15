@@ -50,6 +50,7 @@ type application struct {
 	mu        sync.Mutex
 }
 
+// @TODO change it to being stored on redis
 var store = sessions.NewCookieStore([]byte(os.Getenv("SESSIONSTORE")))
 
 func main() {
