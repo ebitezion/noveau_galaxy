@@ -540,7 +540,7 @@ func (app *application) AccountGetAll(w http.ResponseWriter, r *http.Request) {
 func (app *application) BalanceEnquiry(w http.ResponseWriter, r *http.Request) {
 
 	token, err := app.getTokenFromHeader(w, r)
-
+	fmt.Println(token)
 	if err != nil {
 
 		//there was error
@@ -768,6 +768,81 @@ func (app *application) PdfTransactions(w http.ResponseWriter, r *http.Request) 
 	}
 
 	fmt.Println(path)
+
+	data := envelope{
+		"responseCode": "00",
+		"status":       "Success",
+		"message":      response,
+	}
+	app.writeJSON(w, http.StatusOK, data, nil)
+}
+func (app *application) BlockAccount(w http.ResponseWriter, r *http.Request) {
+
+	_, err := app.getTokenFromHeader(w, r)
+
+	if err != nil {
+
+		//there was error
+		data := envelope{
+			"responseCode": "07",
+			"status":       "Failed",
+			"message":      err,
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+
+	}
+
+	accountNumber := r.FormValue("accountNumber")
+	response, err := accounts.ProcessAccount([]string{"", "acmt", "1010", accountNumber})
+	if err != nil {
+		//there was error
+		data := envelope{
+			"responseCode": "07",
+			"status":       "Failed",
+			"message":      err,
+		}
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+
+	data := envelope{
+		"responseCode": "00",
+		"status":       "Success",
+		"message":      response,
+	}
+	app.writeJSON(w, http.StatusOK, data, nil)
+}
+func (app *application) UnblockAccount(w http.ResponseWriter, r *http.Request) {
+	_, err := app.getTokenFromHeader(w, r)
+
+	if err != nil {
+
+		//there was error
+		data := envelope{
+			"responseCode": "07",
+			"status":       "Failed",
+			"message":      err,
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+
+	}
+
+	accountNumber := r.FormValue("accountNumber")
+	response, err := accounts.ProcessAccount([]string{"", "acmt", "1011", accountNumber})
+	if err != nil {
+		//there was error
+		data := envelope{
+			"responseCode": "07",
+			"status":       "Failed",
+			"message":      err,
+		}
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
 
 	data := envelope{
 		"responseCode": "00",

@@ -60,8 +60,8 @@ Accounts (acmt) transactions are as follows:
 1007 - UpdateAccountInformation
 1008 - AllTransactions
 1009 - CreateSpecialAccount
-1010 - NewBeneficiary
-1011 - GetBeneficiary
+1010 - BlockAccount
+1011 - UnblockAccount
 
 */
 
@@ -107,6 +107,7 @@ type SpecialAccountDetails struct {
 	AccountNumber     string
 	BankNumber        string
 	AccountHolderName string
+	Status            string
 	AccountBalance    decimal.Decimal
 	Overdraft         decimal.Decimal
 	AvailableBalance  decimal.Decimal
@@ -124,6 +125,7 @@ type AccountDetails struct {
 	AccountNumber        string
 	BankNumber           string
 	AccountHolderName    string
+	Status               string
 	AccountBalance       decimal.Decimal
 	Overdraft            decimal.Decimal
 	AvailableBalance     decimal.Decimal
@@ -134,6 +136,7 @@ type BalanceEnquiry struct {
 	AccountHolderName string `json:"accountHolderName"`
 	AccountNumber     string `json:"accountNumber"`
 	LedgerBalance     string `json:"ledgerBalance"`
+	Status            string `json:"status"`
 }
 
 type Transaction struct {
@@ -145,6 +148,7 @@ type Transaction struct {
 	ReceiverAccountNumber string  `json:"receiverAccountNumber"`
 	ReceiverBankNumber    string  `json:"receiverBankNumber"`
 	TransactionAmount     float64 `json:"transactionAmount"`
+	Narration             string  `json:"narration"`
 	FeeAmount             float64 `json:"feeAmount"`
 	Timestamp             string  `json:"timestamp"`
 }
@@ -205,7 +209,7 @@ func ProcessAccount(data []string) (result interface{}, err error) {
 			err = errors.New("accounts.ProcessAccount: Not all fields present")
 			return
 		}
-		result, err = fetchAccountBalance(data)
+		result, err = fetchAccountDetails(data)
 
 		if err != nil {
 			return "", errors.New("accounts.ProcessAccount: " + err.Error())
@@ -242,11 +246,31 @@ func ProcessAccount(data []string) (result interface{}, err error) {
 		}
 		break
 	case 1009:
-		if len(data) < 3 {
+		if len(data) < 2 {
 			err = errors.New("accounts.ProcessAccount: Not all fields present")
 			return
 		}
 		result, err = openSpecialAccount(data)
+		if err != nil {
+			return "", errors.New("accounts.ProcessAccount: " + err.Error())
+		}
+		break
+	case 1010:
+		if len(data) < 2 {
+			err = errors.New("accounts.ProcessAccount: Not all fields present")
+			return
+		}
+		result, err = blockAccount(data)
+		if err != nil {
+			return "", errors.New("accounts.ProcessAccount: " + err.Error())
+		}
+		break
+	case 1011:
+		if len(data) < 3 {
+			err = errors.New("accounts.ProcessAccount: Not all fields present")
+			return
+		}
+		result, err = unblockAccount(data)
 		if err != nil {
 			return "", errors.New("accounts.ProcessAccount: " + err.Error())
 		}
@@ -260,7 +284,48 @@ func ProcessAccount(data []string) (result interface{}, err error) {
 
 	return
 }
+func unblockAccount(data []string) (result string, err error) {
+	// Validate string against required info/length
+	if len(data) < 2 {
+		err := errors.New("accounts.closeAccount: Not all fields present")
+		return "", err
+	}
 
+	// Check if account already exists, check on ID number
+	accountHolder, _ := getAccountMeta(data[3])
+	if accountHolder.AccountNumber == "" {
+		return "", errors.New("accounts.closeAccount: Account does not exist. " + accountHolder.AccountNumber)
+	}
+
+	err = doUnblockAccount(accountHolder.AccountNumber)
+	if err != nil {
+		return "", errors.New("accounts.closeAccount: " + err.Error())
+	}
+
+	return "Account Unblocked Successfully", nil
+}
+func blockAccount(data []string) (result string, err error) {
+	// Validate string against required info/length
+	if len(data) < 2 {
+		err := errors.New("accounts.closeAccount: Not all fields present")
+		return "", err
+	}
+	fmt.Println(data[3])
+	// Check if account already exists, check on ID number
+	accountHolder, _ := getAccountMeta(data[3])
+	if accountHolder.AccountNumber == "" {
+		return "", errors.New("accounts.closeAccount: Account does not exist. " + accountHolder.AccountNumber)
+	}
+
+	err = doBlockAccount(accountHolder.AccountNumber)
+	if err != nil {
+		return "", errors.New("accounts.closeAccount: " + err.Error())
+	}
+
+	return "Account Blocked Successfully", nil
+}
+
+// GetBenefciaries gets all bebeficiaries related to a particular user
 func GetBenefciaries(accountNumber string) (beneficiaries []data.Beneficiary, err error) {
 
 	//get user_id
@@ -336,6 +401,7 @@ func FetchAccountMeta(accountNumber string) (AccountHolderDetails *AccountHolder
 func allTransactions(data []string) (result []Transaction, err error) {
 	// Fetch all accounts. This fetches non-sensitive information (no balances)
 	transactions, err := getAllTransactions()
+
 	if err != nil {
 		return nil, errors.New("accounts.allTransactions: " + err.Error())
 	}
@@ -392,7 +458,7 @@ func openAccount(data []string) (result string, err error) {
 	// Test: acmt~1~Kyle~Redelinghuys~19000101~190001011234098~1112223456~~email@domain.com~Physical Address 1~~~1000
 	// Check if account already exists, check on ID number
 	accountHolder, _ := getAccountMeta(data[6])
-	fmt.Println(accountHolder.AccountNumber, accountHolder)
+
 	if accountHolder.AccountNumber != "" {
 		return "", errors.New("accounts.openAccount: Account already open. " + accountHolder.AccountNumber)
 	}
@@ -636,7 +702,7 @@ func fetchSingleAccountByID(data []string) (result string, err error) {
 	result = userAccountNumber
 	return
 }
-func fetchAccountBalance(data []string) (result *BalanceEnquiry, err error) {
+func fetchAccountDetails(data []string) (result *BalanceEnquiry, err error) {
 	accountNumber := data[3]
 	if accountNumber == "" {
 		return nil, errors.New("accounts.fetchSingleAccountByID: Account number not present")

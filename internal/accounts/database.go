@@ -16,6 +16,11 @@ import (
 	"github.com/ebitezion/backend-framework/internal/data"
 )
 
+const (
+	BlockedStatus string = "Deactivated"
+	ActiveStatus  string = "Active"
+)
+
 var Config configuration.Configuration
 
 func SetConfig(config *configuration.Configuration) {
@@ -34,7 +39,7 @@ func loadDatabase() (db *sql.DB, err error) {
 
 func createAccount(accountDetails *AccountDetails, accountHolderDetails *AccountHolderDetails) (err error) {
 	// Convert variables
-	fmt.Println(accountDetails, accountHolderDetails, "details.............................")
+
 	err = doCreateAccount(accountDetails)
 	if err != nil {
 		return errors.New("accounts.createAccount: " + err.Error())
@@ -149,7 +154,42 @@ func doCreateSpecialAccountProfile(accountDetails *SpecialAccountDetails) (err e
 	}
 	return
 }
+func doBlockAccount(AccountNumber string) (err error) {
+	status := BlockedStatus
+	// Create account
+	updateStatement := "UPDATE accounts SET `status`=? WHERE `accountNumber`=?"
+	stmtUpdate, err := Config.Db.Prepare(updateStatement)
+	if err != nil {
+		return errors.New("accounts.doUpdateAccount: " + err.Error())
+	}
 
+	// Prepare statement for updating data
+	defer stmtUpdate.Close() // Close the statement when we leave main() / the program terminates
+
+	_, err = stmtUpdate.Exec(status, AccountNumber)
+	if err != nil {
+		return errors.New("accounts.doUpdateAccount: " + err.Error())
+	}
+	return
+}
+func doUnblockAccount(AccountNumber string) (err error) {
+	status := ActiveStatus
+	// Create account
+	updateStatement := "UPDATE accounts SET `status`=? WHERE `accountNumber`=?"
+	stmtUpdate, err := Config.Db.Prepare(updateStatement)
+	if err != nil {
+		return errors.New("accounts.doUpdateAccount: " + err.Error())
+	}
+
+	// Prepare statement for updating data
+	defer stmtUpdate.Close() // Close the statement when we leave main() / the program terminates
+
+	_, err = stmtUpdate.Exec(status, AccountNumber)
+	if err != nil {
+		return errors.New("accounts.doUpdateAccount: " + err.Error())
+	}
+	return
+}
 func doUpdateAccount(accountDetails *AccountHolderDetails) (err error) {
 	AccountName := accountDetails.FamilyName + "," + accountDetails.GivenName
 	// Create account
@@ -309,7 +349,7 @@ func getAccountMeta(id string) (accountDetails AccountHolderDetails, err error) 
 	return
 }
 func getAllTransactions() ([]Transaction, error) {
-	query := "SELECT transaction, type, senderAccountNumber, senderBankNumber, receiverAccountNumber, receiverBankNumber, transactionAmount, feeAmount, timestamp FROM transactions "
+	query := "SELECT transaction, type, senderAccountNumber, senderBankNumber, receiverAccountNumber, receiverBankNumber, transactionAmount, feeAmount, timestamp,narration FROM transactions "
 
 	var transactions []Transaction // Slice to hold multiple transaction records.
 
@@ -326,7 +366,7 @@ func getAllTransactions() ([]Transaction, error) {
 	// Iterate through the result set and scan each row into a Transaction struct.
 	for rows.Next() {
 		var t Transaction
-		err := rows.Scan(&t.Transaction, &t.Type, &t.SenderAccountNumber, &t.SenderBankNumber, &t.ReceiverAccountNumber, &t.ReceiverBankNumber, &t.TransactionAmount, &t.FeeAmount, &t.Timestamp)
+		err := rows.Scan(&t.Transaction, &t.Type, &t.SenderAccountNumber, &t.SenderBankNumber, &t.ReceiverAccountNumber, &t.ReceiverBankNumber, &t.TransactionAmount, &t.FeeAmount, &t.Timestamp, &t.Narration)
 		if err != nil {
 			return nil, err
 		}
@@ -385,6 +425,7 @@ func getAllAccountDetails() (allAccounts []AccountDetails, err error) {
 			&accountDetailsSingle.AccountBalance,
 			&accountDetailsSingle.Overdraft,
 			&accountDetailsSingle.AvailableBalance,
+
 			&accountDetailsSingle.AccountHolderDetails.ContactNumber1,
 			&accountDetailsSingle.AccountHolderDetails.ContactNumber2,
 			&accountDetailsSingle.AccountHolderDetails.GivenName,
@@ -473,7 +514,7 @@ func getSingleAccountNumberByUsername(username string) (accountNumber string, er
 
 func GetBalanceDetails(accountNumber string) (BalanceEnquiry, error) {
 
-	query := "SELECT `accountHolderName`, `accountNumber`, `accountBalance` FROM `accounts` WHERE `accountNumber` = ?"
+	query := "SELECT `accountHolderName`, `accountNumber`, `accountBalance`,`status` FROM `accounts` WHERE `accountNumber` = ?"
 
 	// Declare a Users struct to hold the data returned by the query.
 	var BalanceEnquiry BalanceEnquiry
@@ -483,7 +524,7 @@ func GetBalanceDetails(accountNumber string) (BalanceEnquiry, error) {
 
 	// Use the QueryRowContext() method to execute the query, passing in the context
 	// with the deadline as the first argument.
-	err := Config.Db.QueryRowContext(ctx, query, accountNumber).Scan(&BalanceEnquiry.AccountHolderName, &BalanceEnquiry.AccountNumber, &BalanceEnquiry.LedgerBalance)
+	err := Config.Db.QueryRowContext(ctx, query, accountNumber).Scan(&BalanceEnquiry.AccountHolderName, &BalanceEnquiry.AccountNumber, &BalanceEnquiry.LedgerBalance, &BalanceEnquiry.Status)
 
 	// Handle any errors. If there was no matching referralcode found, Scan() will return
 	// a sql.ErrNoRows error. We check for this and return our custom ErrRecordNotFound
@@ -504,7 +545,7 @@ func GetBalanceDetails(accountNumber string) (BalanceEnquiry, error) {
 
 // Get method for fetching all records from the transactions table for a specific account number.
 func GetAccountHistory(accountNumber string) ([]Transaction, error) {
-	query := "SELECT transaction, type, senderAccountNumber, senderBankNumber, receiverAccountNumber, receiverBankNumber, transactionAmount, feeAmount, timestamp FROM transactions WHERE senderAccountNumber = ?"
+	query := "SELECT transaction, type, senderAccountNumber, senderBankNumber, receiverAccountNumber, receiverBankNumber, transactionAmount, feeAmount, timestamp,narration FROM transactions WHERE senderAccountNumber = ?"
 
 	var transactions []Transaction // Slice to hold multiple transaction records.
 
@@ -521,7 +562,7 @@ func GetAccountHistory(accountNumber string) ([]Transaction, error) {
 	// Iterate through the result set and scan each row into a Transaction struct.
 	for rows.Next() {
 		var t Transaction
-		err := rows.Scan(&t.Transaction, &t.Type, &t.SenderAccountNumber, &t.SenderBankNumber, &t.ReceiverAccountNumber, &t.ReceiverBankNumber, &t.TransactionAmount, &t.FeeAmount, &t.Timestamp)
+		err := rows.Scan(&t.Transaction, &t.Type, &t.SenderAccountNumber, &t.SenderBankNumber, &t.ReceiverAccountNumber, &t.ReceiverBankNumber, &t.TransactionAmount, &t.FeeAmount, &t.Timestamp, &t.Narration)
 		if err != nil {
 			return nil, err
 		}

@@ -30,7 +30,7 @@
      <link href="/static/css/main.css" rel="stylesheet">
      <!-- google icons -->
      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
-
+    <link href="/static/vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">
 </head>
 
 <body id="page-top">
@@ -53,7 +53,7 @@
 
             <!-- Nav Item - Dashboard -->
             <li class="nav-item active">
-                <a class="nav-link" href="">
+                <a class="nav-link" href="/v1/index">
                     <i class="fas fa-fw fa-tachometer-alt"></i>
                     <span>Dashboard</span></a>
                     
@@ -79,10 +79,14 @@ person
                 </a>
                 <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
-                        <a class="collapse-item" href="/v1/createAccountPage">Account creation</a>
+                        <a class="collapse-item" href="/v1/createAccountPage">Account Creation</a>
+                        <a class="collapse-item" href="/v1/ukAccountPage">Create UK Account</a>
+                        <a class="collapse-item" href="/v1/usAccountPage">Create US Account</a>
                         <a class="collapse-item" href="/v1/accountHistoryPage">Account History</a>
                         <a class="collapse-item" href="/v1/balanceEnquiryPage">Balance Enquiry</a>
                         <a class="collapse-item" href="/v1/allAccountsPage">View All Accounts</a>
+                        <a class="collapse-item" href="/v1/blockAccountPage">Block Account</a>
+                        <a class="collapse-item" href="/v1/unblockAccountPage">Unblock Account</a>
      
                        
                     </div>
@@ -104,13 +108,33 @@ payments
                         <a class="collapse-item" href="/v1/depositPage">Deposit Initiation</a>
                         <a class="collapse-item" href="/v1/creditPage">Credit Initiation</a>
                         <a class="collapse-item" href="/v1/allTransactionsPage">View All Transactions</a>
+                        <a class="collapse-item" href="/v1/allTransactionsPage">Inflow History</a>
+                        <a class="collapse-item" href="/v1/allTransactionsPage">Outflow History</a>
+                         <a class="collapse-item" href="/v1/cashPickupPage">Cash Pickup</a>
                        
                         
                     
                     </div>
                 </div>
             </li>
-           
+           <li class="nav-item side-link ">
+                <a class="nav-link collapsed" href="/v1/businessPage"
+                    aria-expanded="true" >
+                    <span class="material-symbols-outlined">
+library_books
+</span>
+                    <span>Ledger</span>
+                </a>
+            </li>
+             <li class="nav-item side-link ">
+                <a class="nav-link collapsed" href="/v1/businessPage"
+                    aria-expanded="true" >
+                    <span class="material-symbols-outlined">
+edit_square
+</span>
+                    <span>Audit</span>
+                </a>
+            </li>
             <li class="nav-item side-link ">
                 <a class="nav-link collapsed" href="/v1/businessPage"
                     aria-expanded="true" >

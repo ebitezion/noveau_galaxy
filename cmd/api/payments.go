@@ -200,10 +200,10 @@ func (app *application) PaymentCreditInitiation(w http.ResponseWriter, r *http.R
 	}
 
 	//send notification
-	err = Notification(token, sendersAccountNumber, receiversAccountNumber, amount)
-	if err != nil {
-		fmt.Println(err)
-	}
+	// err = Notification(token, sendersAccountNumber, receiversAccountNumber, amount)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
 
 	data := envelope{
 		"responseCode": "00",
@@ -318,15 +318,15 @@ func (app *application) PaymentDepositInitiation(w http.ResponseWriter, r *http.
 		return
 	}
 	//send notification
-	err = Notification(token, sendersAccountNumber, receiversAccountNumber, amount)
-	if err != nil {
-		fmt.Println(err)
-	}
+	// err = Notification(token, sendersAccountNumber, receiversAccountNumber, amount)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
 
 	data := envelope{
 		"responseCode": "00",
 		"status":       "Success",
-		"message":      response,
+		"message":      response + "Deposit Made Sucessfully",
 	}
 	app.writeJSON(w, http.StatusOK, data, nil)
 }

@@ -26,6 +26,8 @@ func (app *application) routes() *httprouter.Router {
 	router.HandlerFunc(http.MethodGet, "/v1/signuppage", app.RenderSignUpPage)
 	router.HandlerFunc(http.MethodGet, "/v1/index", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderIndexPage)))
 	router.HandlerFunc(http.MethodGet, "/v1/createAccountPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderCreateAccountPage)))
+	router.HandlerFunc(http.MethodGet, "/v1/blockAccountPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderBlockAccountPage)))
+	router.HandlerFunc(http.MethodGet, "/v1/unblockAccountPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderUnblockAccountPage)))
 	router.HandlerFunc(http.MethodGet, "/v1/balanceEnquiryPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderBalanceEnquiry)))
 	router.HandlerFunc(http.MethodGet, "/v1/accountHistoryPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderAccountHistory)))
 	router.HandlerFunc(http.MethodGet, "/v1/depositPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderDepositInitiationPage)))
@@ -40,6 +42,9 @@ func (app *application) routes() *httprouter.Router {
 	router.HandlerFunc(http.MethodGet, "/v1/teamsPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderTeamsPage)))
 	router.HandlerFunc(http.MethodGet, "/v1/rolesPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderRolesPage)))
 	router.HandlerFunc(http.MethodGet, "/v1/systemLogsPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderSystemLogsPage)))
+	router.HandlerFunc(http.MethodGet, "/v1/usAccountPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderUkAccountPage)))
+	router.HandlerFunc(http.MethodGet, "/v1/ukAccountPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderUsAccountPage)))
+	router.HandlerFunc(http.MethodGet, "/v1/cashPickupPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderCashPickupPage)))
 	// Likewise, convert the methodNotAllowedResponse() helper to a http.Handler and set
 	// it as the custom error handler for 405 Method Not Allowed responses.
 	router.MethodNotAllowed = http.HandlerFunc(app.methodNotAllowedResponse)
@@ -75,6 +80,8 @@ func (app *application) routes() *httprouter.Router {
 	router.HandlerFunc(http.MethodPost, "/v1/accounts/create", app.AccountCreate)
 	router.HandlerFunc(http.MethodPost, "/v1/accounts/special", app.AccountCreateSpecial)
 	router.HandlerFunc(http.MethodPost, "/v1/accounts/update", app.AccountUpdate)
+	router.HandlerFunc(http.MethodPost, "/v1/accounts/block", app.BlockAccount)
+	router.HandlerFunc(http.MethodPost, "/v1/accounts/unblock", app.UnblockAccount)
 	//Currency Exchange
 	router.HandlerFunc(http.MethodGet, "/v1/availableCurrencies", app.AvailableCurrenciesHandler)
 

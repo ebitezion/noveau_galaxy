@@ -3,7 +3,10 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"image"
+	"image/jpeg"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/ebitezion/backend-framework/internal/accounts"
@@ -464,7 +467,92 @@ func (app *application) AccountGet(w http.ResponseWriter, r *http.Request) {
 	}
 	app.writeJSON(w, http.StatusOK, data, nil)
 }
+func (app *application) BlockAccount(w http.ResponseWriter, r *http.Request) {
+	_, err := app.getTokenFromHeader(w, r)
+	if err != nil {
+		// there was error
+		data := envelope{
+			"responseCode": "07",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
 
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+
+	var req data.User
+	// read the incoming request body
+	err = app.readJSON(w, r, &req)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+	// Validate the user ID
+	v := validator.New()
+	data.ValidateUser(v, &req)
+	if !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		//log to db
+
+		return
+	}
+	response, err := accounts.ProcessAccount([]string{"", "acmt", "1010", req.AccountNumber})
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	data := envelope{
+		"responseCode": "00",
+		"status":       "Success",
+		"message":      response,
+	}
+	app.writeJSON(w, http.StatusOK, data, nil)
+}
+func (app *application) UnblockAccount(w http.ResponseWriter, r *http.Request) {
+	_, err := app.getTokenFromHeader(w, r)
+	if err != nil {
+		// there was error
+		data := envelope{
+			"responseCode": "07",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+
+	var req data.User
+	// read the incoming request body
+	err = app.readJSON(w, r, &req)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+	// Validate the user ID
+	v := validator.New()
+	data.ValidateUser(v, &req)
+	if !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		//log to db
+
+		return
+	}
+	response, err := accounts.ProcessAccount([]string{"", "acmt", "1011", req.AccountNumber})
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	data := envelope{
+		"responseCode": "00",
+		"status":       "Success",
+		"message":      response,
+	}
+	app.writeJSON(w, http.StatusOK, data, nil)
+}
 func (app *application) AccountGetAll(w http.ResponseWriter, r *http.Request) {
 	var req AccountRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -821,6 +909,17 @@ func (app *application) GetBeneficiaries(w http.ResponseWriter, r *http.Request)
 
 	//fetch account details
 	beneficiaries, err := accounts.GetBenefciaries(Request.AccountNumber)
+	if err != nil {
+		// there was error
+		data := envelope{
+			"responseCode": "07",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
 
 	// Return a success response or an error message
 	data := envelope{
@@ -833,4 +932,69 @@ func (app *application) GetBeneficiaries(w http.ResponseWriter, r *http.Request)
 		app.serverErrorResponse(w, r, err)
 		return
 	}
+}
+
+func (app *application) ProofOfAddress(w http.ResponseWriter, r *http.Request) {
+	_, err := app.getTokenFromHeader(w, r)
+	if err != nil {
+		// there was error
+		data := envelope{
+			"responseCode": "07",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+	Request := data.ProofOfAddress{}
+	// read the incoming request body
+	err = app.readJSON(w, r, &Request)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+	// Validate the request data
+	v := validator.New()
+	data.ValidateProofOfAddress(v, &Request)
+	if !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		return
+	}
+
+	// // Decode hexa decimal string to bytes
+	// imageBytes, err := hex.DecodeString(Request.Image)
+	// if err != nil {
+	// 	app.errorResponse(w, r, http.StatusBadRequest, "Error decoding hexadecimal string")
+	// 	return
+	// }
+
+	// // Convert bytes to an image
+	// img, _, err := image.Decode(bytes.NewReader(imageBytes))
+	// if err != nil {
+	// 	app.errorResponse(w, r, http.StatusBadRequest, "Error decoding image")
+	// 	return
+	// }
+
+	// // Save the image as a JPEG file (optional)
+	// err = app.saveAsJPEG(img, "output.jpg")
+	// if err != nil {
+	// 	app.errorResponse(w, r, http.StatusInternalServerError, "Error saving image")
+	// 	return
+	// }
+
+}
+func (app *application) saveAsJPEG(img image.Image, filename string) error {
+	file, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	err = jpeg.Encode(file, img, nil)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

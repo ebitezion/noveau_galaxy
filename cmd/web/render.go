@@ -83,6 +83,21 @@ func (app *application) RenderRolesPage(w http.ResponseWriter, r *http.Request) 
 func (app *application) RenderSystemLogsPage(w http.ResponseWriter, r *http.Request) {
 	app.RenderTemplate(w, []string{"cmd/web/views/systemLogs.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, nil, "cmd/web/views/systemLogs.html", nil)
 }
+func (app *application) RenderBlockAccountPage(w http.ResponseWriter, r *http.Request) {
+	app.RenderTemplate(w, []string{"cmd/web/views/blockAccountPage.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, nil, "cmd/web/views/blockAccountPage.html", nil)
+}
+func (app *application) RenderUnblockAccountPage(w http.ResponseWriter, r *http.Request) {
+	app.RenderTemplate(w, []string{"cmd/web/views/unblockAccountPage.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, nil, "cmd/web/views/unblockAccountPage.html", nil)
+}
+func (app *application) RenderUkAccountPage(w http.ResponseWriter, r *http.Request) {
+	app.RenderTemplate(w, []string{"cmd/web/views/ukAccountPage.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, nil, "cmd/web/views/ukAccountPage.html", nil)
+}
+func (app *application) RenderUsAccountPage(w http.ResponseWriter, r *http.Request) {
+	app.RenderTemplate(w, []string{"cmd/web/views/usAccountPage.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, nil, "cmd/web/views/usAccountPage.html", nil)
+}
+func (app *application) RenderCashPickupPage(w http.ResponseWriter, r *http.Request) {
+	app.RenderTemplate(w, []string{"cmd/web/views/tables.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, nil, "cmd/web/views/tables.html", nil)
+}
 
 func (app *application) RenderTransactionsPage(w http.ResponseWriter, r *http.Request) {
 	//get all transactions
@@ -93,6 +108,18 @@ func (app *application) RenderTransactionsPage(w http.ResponseWriter, r *http.Re
 	Transactions, ok := data.([]accounts.Transaction)
 	if !ok {
 		fmt.Println("Failed to convert to []AccountDetails")
+		return
+	}
+	//update excel sheet
+	_, err = createExcelSheet(Transactions)
+	if err != nil {
+		fmt.Println(err, "error creating excel sheet")
+		return
+	}
+	//update pdf file
+	_, err = createPdf(Transactions)
+	if err != nil {
+		fmt.Println(err, "error creating pdf sheet")
 		return
 	}
 
