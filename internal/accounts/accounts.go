@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/ebitezion/backend-framework/internal/appauth"
@@ -160,6 +161,8 @@ const (
 	OPENING_OVERDRAFT = 0.
 )
 
+var accountMutex sync.Mutex
+
 func ProcessAccount(data []string) (result interface{}, err error) {
 
 	if len(data) < 3 {
@@ -185,7 +188,7 @@ func ProcessAccount(data []string) (result interface{}, err error) {
 		}
 		break
 	case 1000:
-		//TODO: check permissions for this 
+		//TODO: check permissions for this
 		result, err = fetchAccounts(data)
 		if err != nil {
 			return "", errors.New("accounts.ProcessAccount: " + err.Error())

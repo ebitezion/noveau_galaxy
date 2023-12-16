@@ -32,6 +32,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/ebitezion/backend-framework/internal/appauth"
@@ -62,7 +63,13 @@ type Transaction struct {
 	// Define transaction fields
 }
 
+var transactionMutex sync.Mutex
+
 func ProcessPAIN(data []string) (result string, err error) {
+	// Lock the mutex before accessing/modifying shared resources
+	transactionMutex.Lock()
+	defer transactionMutex.Unlock() // Ensure the mutex is always unlocked
+
 	//There must be at least 3 elements
 	if len(data) < 3 {
 		return "", errors.New("payments.ProcessPAIN: Not all data is present. Run pain~help to check for needed PAIN data")
@@ -80,7 +87,7 @@ func ProcessPAIN(data []string) (result string, err error) {
 		if len(data) < 6 {
 			return "", errors.New("payments.ProcessPAIN: Not all data is present. Run pain~help to check for needed PAIN data")
 		}
-
+        
 		result, err = painCreditTransferInitiation(painType, data)
 		if err != nil {
 			return "", errors.New("payments.ProcessPAIN: " + err.Error())
@@ -114,6 +121,7 @@ func ProcessPAIN(data []string) (result string, err error) {
 		if len(data) < 5 {
 			return "", errors.New("payments.ProcessPAIN: Not all data is present. Run pain~help to check for needed PAIN data")
 		}
+		
 		result, err = painFullAccessDepositInitiation(painType, data)
 		if err != nil {
 			return "", errors.New("payments.ProcessPAIN: " + err.Error())
