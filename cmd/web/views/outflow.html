@@ -2,7 +2,7 @@
 <div class="container-fluid">
 	<!-- Page Heading -->
 	<div class="d-sm-flex align-items-center justify-content-between mb-4">
-		<h1 class="h3 mb-0 text-gray-800 mx-auto">Account History</h1>
+		<h1 class="h3 mb-0 text-gray-800 mx-auto">  Outflow History</h1>
         <div class="row">
             <div class="col-6">
               <a href="/static/files/output.pdf" download="output copy.pdf" class="btn btn-custom btn-user btn-block">PDF</a>
@@ -29,13 +29,12 @@
                           <th>Receiver Bank Number</th>
                           <th>Transaction Amount</th>
                           <th>Fee Amount</th>
-                            <th>Initator</th>
+                            <th>Initiator </th>
                           <th>Timestamp</th>
                         </tr>
                     </thead>
                     <tbody>
                         {{ range .Transactions }}
-                        
                           <tr>
                               
                               <td>{{ .Narration }}</td>
@@ -46,7 +45,7 @@
                               <td>{{ .ReceiverBankNumber }}</td>
                               <td>₦{{ .TransactionAmount }}</td>
                               <td>₦{{ .FeeAmount }}</td>
-                               <td>{{ .Initiator }}</td>
+                                <td>{{ .Initiator }}</td>
                               <td>{{ .Timestamp }}</td>
                           </tr>
                           {{ end }}

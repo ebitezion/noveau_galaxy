@@ -28,11 +28,13 @@
                                             <td>{{ .BankNumber }}</td>
                                             <td>{{ .AccountNumber }}</td>
                                             <td>
-            
-                                                    <span class="material-symbols-outlined Vieworder" data-bs-toggle="modal"  data-bs-target="#{{ .AccountNumber }}" style="cursor: pointer;"> visibility </span>
+                                                <button type="button" class="btn btn-custom" data-bs-toggle="modal" data-bs-target="#tag{{ .AccountNumber }}">
+  View more
+</button>
+                                                   
                                                 
                                             </td>
-                                            <div class="modal fade" id="{{ .AccountNumber }}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                            <div class="modal fade" id="tag{{ .AccountNumber }}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
                                             <div class="modal-dialog modal-dialog-centered modal-xl">
                                                 <div class="modal-content">
                                                     <div class="modal-header">
@@ -54,7 +56,7 @@
                                                             <div class="col-md-6">
                                                                 <h3>Contact Information</h3>
                                                                 
-                                                                <form id="myform">
+                                                                <form id="{{ .AccountNumber }}myform">
                                                                         <div class="input-group mb-3">
                                                                             <input type="text" name="Id" value="{{ .AccountHolderDetails.GivenName }}" class="d-none">
                                                                             <span class="input-group-text">GivenName</span>
@@ -127,16 +129,16 @@
                                                                 
                                                                         
                                                                       
-                                                                        <div id="successAlert" class="alert alert-success mt-3" style="display: none;">
+                                                                        <div id="{{ .AccountNumber }}" class="alert alert-success mt-3" style="display: none;">
                                                                         </div>
-                                                                        <div id="failureAlert" class="alert alert-danger mt-3" style="display: none;">	
+                                                                        <div id="{{ .AccountNumber }}" class="alert alert-danger mt-3" style="display: none;">	
                                                                         </div>
                                                                     </div>
                                                                 </div>
                                                             </div>
                                                             <div class="modal-footer">
                                                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                                                <button type="button" class="btn btn-primary" onclick="submitForm()"  >Save changes</button>
+                                                                <button type="button" class="btn btn-primary" onclick='submitForm("{{ .AccountNumber }}myform")' >Save changes</button>
                                                             </div>
                                                                 </form>
                                                                 
@@ -155,10 +157,10 @@
 
                 </div>
 	<script>
-        function submitForm() {
-			
+        function submitForm(data) {
+	
             event.preventDefault();
-            var formdata = new FormData(document.getElementById("myform"));
+            var formdata = new FormData(document.getElementById(data));
             var storedValue = sessionStorage.getItem('token');
             var requestOptions = {
                 method: 'POST',
@@ -182,7 +184,9 @@
                         setTimeout(function () {
                             document.getElementById("successAlert").style.display = "none";
                         }, 7000);
-				}else {
+				}else if(result.responseCode === "07"){
+                 window.location.href = "http://localhost:4000/v1/loginpage"}
+                else {
                           document.getElementById("failureAlert").innerText = result.message;
                         // Show the failure alert
                         document.getElementById("failureAlert").style.display = "block";
@@ -194,7 +198,7 @@
 
 					
 				})
-            //     .catch(error => console.log('error', error));
+                .catch(error => console.log('error', error));
         }
     </script>
 {{ template "footer" . }}

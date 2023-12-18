@@ -13,7 +13,7 @@ import (
 
 type RolePrivileges map[rbac_2.Role][]rbac_2.Privilege
 
-func (app *application) FullAccessCreditInitiation(w http.ResponseWriter, r *http.Request) {
+func (app *application) FullAccessTransferInitiation(w http.ResponseWriter, r *http.Request) {
 	token, err := app.getTokenFromHeader(w, r)
 
 	if err != nil {
@@ -34,8 +34,9 @@ func (app *application) FullAccessCreditInitiation(w http.ResponseWriter, r *htt
 	sendersDetails := sendersAccountNumber + "@"
 	receiversDetails := receiversAccountNumber + "@"
 	amount := r.FormValue("Amount")
+	initiator := r.FormValue("initiator")
 
-	response, err := payments.ProcessPAIN([]string{token, "pain", "13", sendersDetails, receiversDetails, amount, "CR"})
+	response, err := payments.ProcessPAIN([]string{token, "pain", "13", sendersDetails, receiversDetails, amount, "CR", initiator})
 
 	if err != nil {
 		// there was error
@@ -86,15 +87,9 @@ func (app *application) FullAccessDepositInitiation(w http.ResponseWriter, r *ht
 	sendersDetails := sendersAccountNumber + "@"
 	receiversDetails := receiversAccountNumber + "@"
 	amount := r.FormValue("Amount")
+	initiator := r.FormValue("initiator")
 
-	// Initialize RBAC system and define roles with associated privileges
-	rbac := rbac_2.NewRBACWithDB()
-	rbac.AddRole("Admin", []rbac_2.Privilege{"privilege_for_painType_14"})
-	//rbac.AddRole("Subadmin", []rbac_2.Privilege{"privilege_1", "privilege_2"})
-	// Assuming your payments.ProcessPAIN_2 function signature matches
-	response, err := payments.ProcessPAIN_2([]string{token, "pain", "14", sendersDetails, receiversDetails, amount, "DR"}, rbac, "username")
-	
-	//response, err := payments.ProcessPAIN([]string{token, "pain", "14", sendersDetails, receiversDetails, amount, "DR"})
+	response, err := payments.ProcessPAIN([]string{token, "pain", "14", sendersDetails, receiversDetails, amount, "CR", initiator})
 
 	if err != nil {
 		// there was error
@@ -121,6 +116,60 @@ func (app *application) FullAccessDepositInitiation(w http.ResponseWriter, r *ht
 	}
 	app.writeJSON(w, http.StatusOK, data, nil)
 }
+func (app *application) FullAccessWithdrawalInitiation(w http.ResponseWriter, r *http.Request) {
+
+	token, err := app.getTokenFromHeader(w, r)
+
+	if err != nil {
+
+		// there was error
+		data := envelope{
+			"responseCode": "07",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+	//for credit only  receivers account number and sender account number is required
+	//which is the number before the @ sign
+
+	sendersAccountNumber := r.FormValue("sendersAccountNumber")
+	receiversAccountNumber := os.Getenv("WITHDRAWAL_ACCOUNT_NUMBER")
+	sendersDetails := sendersAccountNumber + "@"
+	receiversDetails := receiversAccountNumber + "@"
+	amount := r.FormValue("Amount")
+	initiator := r.FormValue("initiator")
+
+	response, err := payments.ProcessPAIN([]string{token, "pain", "14", sendersDetails, receiversDetails, amount, "DR", initiator})
+
+	if err != nil {
+		// there was error
+		data := envelope{
+			"responseCode": "06",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+
+	// //send notification
+	// err = Notification(token, sendersAccountNumber, receiversAccountNumber, amount)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
+
+	data := envelope{
+		"responseCode": "00",
+		"status":       "Success",
+		"message":      response + "Withdrawal Made Successfully",
+	}
+	app.writeJSON(w, http.StatusOK, data, nil)
+}
+
 func (app *application) PaymentCreditInitiation(w http.ResponseWriter, r *http.Request) {
 
 	token, err := app.getTokenFromHeader(w, r)

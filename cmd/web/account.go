@@ -281,7 +281,8 @@ func (app *application) AccountCreate(w http.ResponseWriter, r *http.Request) {
 	accountHolderAddressLine3 := r.FormValue("accountHolderAddressLine3")
 	accountHolderPostalCode := r.FormValue("accountHolderPostalCode")
 	accountHolderCountry := r.FormValue("country")
-	profileImage, err := ImagetoHexacimal(r)
+
+	profileImage, err := accounts.ImageToBase64FromRequest(r)
 	if err != nil {
 		log.Println(err)
 		return
@@ -309,7 +310,7 @@ func (app *application) AccountCreate(w http.ResponseWriter, r *http.Request) {
 		accountHolderCountry,
 	}
 
-	response, err := accounts.ProcessAccount(req)
+	_, err = accounts.ProcessAccount(req)
 	if err != nil {
 		//there was error
 		data := envelope{
@@ -326,11 +327,12 @@ func (app *application) AccountCreate(w http.ResponseWriter, r *http.Request) {
 	data := envelope{
 		"responseCode": "00",
 		"status":       "Success",
-		"message":      response,
+		"message":      "Account Created Successfully",
 	}
 	app.writeJSON(w, http.StatusOK, data, nil)
 }
 func (app *application) AccountCreateSpecial(w http.ResponseWriter, r *http.Request) {
+
 	_, err := app.getTokenFromHeader(w, r)
 	if err != nil {
 		// there was error
@@ -786,7 +788,7 @@ func (app *application) BlockAccount(w http.ResponseWriter, r *http.Request) {
 		data := envelope{
 			"responseCode": "07",
 			"status":       "Failed",
-			"message":      err,
+			"message":      err.Error(),
 		}
 
 		app.writeJSON(w, http.StatusBadRequest, data, nil)
@@ -799,9 +801,9 @@ func (app *application) BlockAccount(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		//there was error
 		data := envelope{
-			"responseCode": "07",
+			"responseCode": "06",
 			"status":       "Failed",
-			"message":      err,
+			"message":      err.Error(),
 		}
 		app.writeJSON(w, http.StatusBadRequest, data, nil)
 		return
@@ -823,7 +825,7 @@ func (app *application) UnblockAccount(w http.ResponseWriter, r *http.Request) {
 		data := envelope{
 			"responseCode": "07",
 			"status":       "Failed",
-			"message":      err,
+			"message":      err.Error(),
 		}
 
 		app.writeJSON(w, http.StatusBadRequest, data, nil)
@@ -836,9 +838,9 @@ func (app *application) UnblockAccount(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		//there was error
 		data := envelope{
-			"responseCode": "07",
+			"responseCode": "06",
 			"status":       "Failed",
-			"message":      err,
+			"message":      err.Error(),
 		}
 		app.writeJSON(w, http.StatusBadRequest, data, nil)
 		return

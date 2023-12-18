@@ -1,6 +1,7 @@
 package data
 
 import (
+	"github.com/ebitezion/backend-framework/internal/payments"
 	"github.com/ebitezion/backend-framework/internal/validator"
 )
 
@@ -98,7 +99,10 @@ func ValidateNewAccountRequestData(v *validator.Validator, data *NewAccountReque
 	v.Check(data.Country != "", "country", "must be provided")
 
 }
+func ValidateCashPickupData(v *validator.Validator, data *payments.CashPickup) {
+	// General validation
 
+}
 func ValidateProofOfAddress(v *validator.Validator, data *ProofOfAddress) {
 	// General validation
 

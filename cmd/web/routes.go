@@ -23,7 +23,7 @@ func (app *application) routes() *httprouter.Router {
 
 	//RENDERED PAGES
 	router.HandlerFunc(http.MethodGet, "/v1/loginpage", app.RenderLoginPage)
-	router.HandlerFunc(http.MethodGet, "/v1/signuppage", app.RenderSignUpPage)
+	router.HandlerFunc(http.MethodGet, "/v1/signuppage", app.AuthenticationMiddleware(app.RenderSignUpPage))
 	router.HandlerFunc(http.MethodGet, "/v1/index", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderIndexPage)))
 	router.HandlerFunc(http.MethodGet, "/v1/createAccountPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderCreateAccountPage)))
 	router.HandlerFunc(http.MethodGet, "/v1/blockAccountPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderBlockAccountPage)))
@@ -35,6 +35,8 @@ func (app *application) routes() *httprouter.Router {
 	router.HandlerFunc(http.MethodGet, "/v1/batchTransactionPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderBatchTransactionPage)))
 	router.HandlerFunc(http.MethodGet, "/v1/allAccountsPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderAllAccountsPage)))
 	router.HandlerFunc(http.MethodGet, "/v1/allTransactionsPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderTransactionsPage)))
+	router.HandlerFunc(http.MethodGet, "/v1/inflowPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderInflowPage)))
+	router.HandlerFunc(http.MethodGet, "/v1/outflowPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderOutflowPage)))
 	router.HandlerFunc(http.MethodGet, "/v1/businessPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderBusinessesPage)))
 	router.HandlerFunc(http.MethodGet, "/v1/partnersPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderPartnersPage)))
 	router.HandlerFunc(http.MethodGet, "/v1/kycPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderKycPage)))
@@ -45,6 +47,7 @@ func (app *application) routes() *httprouter.Router {
 	router.HandlerFunc(http.MethodGet, "/v1/usAccountPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderUkAccountPage)))
 	router.HandlerFunc(http.MethodGet, "/v1/ukAccountPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderUsAccountPage)))
 	router.HandlerFunc(http.MethodGet, "/v1/cashPickupPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderCashPickupPage)))
+	router.HandlerFunc(http.MethodGet, "/v1/withdrawalPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderWithdrawalPage)))
 	// Likewise, convert the methodNotAllowedResponse() helper to a http.Handler and set
 	// it as the custom error handler for 405 Method Not Allowed responses.
 	router.MethodNotAllowed = http.HandlerFunc(app.methodNotAllowedResponse)
@@ -64,7 +67,8 @@ func (app *application) routes() *httprouter.Router {
 	router.HandlerFunc(http.MethodGet, "/v1/signout", app.StaffSignOutProcess)
 	router.HandlerFunc(http.MethodPost, "/v1/deposit", app.PaymentDepositInitiation)
 	router.HandlerFunc(http.MethodPost, "/v1/credit", app.PaymentCreditInitiation)
-	router.HandlerFunc(http.MethodPost, "/v1/fullAccessCredit", app.FullAccessCreditInitiation)
+	router.HandlerFunc(http.MethodPost, "/v1/fullAccessTransfer", app.FullAccessTransferInitiation)
+	router.HandlerFunc(http.MethodPost, "/v1/fullAccessWithdrawal", app.FullAccessWithdrawalInitiation)
 	router.HandlerFunc(http.MethodPost, "/v1/fullAccessDeposit", app.FullAccessDepositInitiation)
 	router.HandlerFunc(http.MethodPost, "/v1/debit", app.PaymentDebitInitiation)
 	router.HandlerFunc(http.MethodPost, "/v1/balanceEnquiry", app.BalanceEnquiry)

@@ -902,6 +902,10 @@ func (app *application) GetBeneficiaries(w http.ResponseWriter, r *http.Request)
 		app.writeJSON(w, http.StatusBadRequest, data, nil)
 		return
 	}
+	// Check if beneficiaries is nil and assign an empty array if true
+	if beneficiaries == nil {
+		beneficiaries = make([]data.Beneficiary, 0)
+	}
 
 	// Return a success response or an error message
 	data := envelope{

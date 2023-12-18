@@ -136,8 +136,8 @@
 			
 			
 						 <button type="button" onclick="submitForm(event)" class="btn btn-custom btn-user btn-block">Submit</button>
-			   <div id="successAlert" class="alert alert-success mt-3" style="display: none;">
-				<div id="failureAlert" class="alert alert-danger mt-3" style="display: none;">	
+			   <div id="successAlert" class="alert alert-success mt-3" style="display: none;"></div>
+			  <div id="failureAlert" class="alert alert-danger mt-3" style="display: none;"></div>
 
 		</form>
 	</div>
@@ -156,10 +156,12 @@
                     'X-Auth-Token': storedValue,
                 },
         })
-        .then(result => {
+ .then(response => response.json()) // Parse the response as JSON
+        .then(result => { 
 			console.log(result)
            if (result.responseCode === "00") {
 			console.log("success")
+				document.getElementById("myForm").reset();
 				// Update the success message with the message from the API
 				document.getElementById("successAlert").innerText = result.message;
 				// Show the success alert
@@ -168,11 +170,13 @@
 				setTimeout(function () {
 					document.getElementById("successAlert").style.display = "none";
 				}, 7000);}
-				else if(result.responseCode === "07"){
+			
+			else if(result.responseCode === "07"){
                  window.location.href = "http://localhost:4000/v1/loginpage"
 
             }else {
-                          document.getElementById("failureAlert").innerText = result.message;
+				
+                        document.getElementById("failureAlert").innerText = result.message;
                         // Show the failure alert
                         document.getElementById("failureAlert").style.display = "block";
                         // Hide the alert after 7 seconds

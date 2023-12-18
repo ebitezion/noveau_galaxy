@@ -23,7 +23,7 @@
     <thead> 
       <tr>
          <th>SN</th>
-        <th>ID</th>
+        
         <th>Transaction Type</th>
         <th>Sender Account Number</th>
         <th>Sender Bank Number</th>
@@ -56,6 +56,7 @@
             .then(result => {
                 console.log(result);
                 if (result.responseCode === "00") {
+                    document.getElementById("myform").reset();
                     // Update the HTML table with the received data
                     var tableBody = document.getElementById("transactionTableBody");
                     tableBody.innerHTML = ""; // Clear existing data
@@ -64,16 +65,16 @@
                         var row = tableBody.insertRow(-1);
 
                         row.insertCell(0).textContent = index++; // SN Column
-                        row.insertCell(1).textContent = transaction.id;
-                        row.insertCell(2).textContent = transaction.transaction;
-                        row.insertCell(3).textContent = transaction.senderAccountNumber;
-                        row.insertCell(4).textContent = transaction.senderBankNumber;
-                        row.insertCell(5).textContent = transaction.receiverAccountNumber;
-                        row.insertCell(6).textContent = transaction.receiverBankNumber;
-                        row.insertCell(7).textContent = "₦"+ transaction.transactionAmount;
-                        row.insertCell(8).textContent ="₦"+ transaction.feeAmount;
-                        row.insertCell(9).textContent = transaction.narration;
-                        row.insertCell(10).textContent = transaction.timestamp;
+                      
+                        row.insertCell(1).textContent = transaction.transaction;
+                        row.insertCell(2).textContent = transaction.senderAccountNumber;
+                        row.insertCell(3).textContent = transaction.senderBankNumber;
+                        row.insertCell(4).textContent = transaction.receiverAccountNumber;
+                        row.insertCell(5).textContent = transaction.receiverBankNumber;
+                        row.insertCell(6).textContent = "₦"+ transaction.transactionAmount;
+                        row.insertCell(7).textContent ="₦"+ transaction.feeAmount;
+                        row.insertCell(8).textContent = transaction.narration;
+                        row.insertCell(9).textContent = transaction.timestamp;
                     });
                 } else if (result.responseCode === "06") {
                      document.getElementById("failureAlert").innerText = result.message;

@@ -21,7 +21,9 @@
 			<div class="mb-3">
 				<label for="Amount" class="form-label">Amount</label>
 				<input type="text" class="form-control" id="Amount" name="Amount" required />
-			</div>
+			</div> 
+            <input type="text" class="form-control" id="initiator" name="initiator" value="{{ .AdminName }}" required style="display: none;" />
+            
 
 	 <button onclick="submitForm()" class="btn btn-custom btn-user btn-block">Submit</button>           
 
@@ -46,6 +48,7 @@
                 .then(result => {
 					console.log(result)
 					if (result.responseCode === "00") {
+                        	document.getElementById("myform").reset();
 					 // Update the success message with the message from the API
                         document.getElementById("successAlert").innerText = result.message;
                         // Show the success alert

@@ -44,7 +44,7 @@ func (app *application) routes() *httprouter.Router {
 	router.HandlerFunc(http.MethodPost, "/v1/api/deposit", app.PaymentDepositInitiation)
 	router.HandlerFunc(http.MethodPost, "/v1/api/credit", app.PaymentCreditInitiation)
 	router.HandlerFunc(http.MethodPost, "/v1/api/debit", app.PaymentDebitInitiation)
-	router.HandlerFunc(http.MethodPost, "/v1/api/fullAccessCredit", app.FullAccessCreditInitiation)
+	router.HandlerFunc(http.MethodPost, "/v1/api/fullAccessTransfer", app.FullAccessTransferInitiation)
 	router.HandlerFunc(http.MethodPost, "/v1/api/fullAccessDeposit", app.FullAccessDepositInitiation)
 	router.HandlerFunc(http.MethodPost, "/v1/api/balanceEnquiry", app.BalanceEnquiry)
 	router.HandlerFunc(http.MethodPost, "/v1/api/accountHistory", app.AccountHistory)
@@ -52,6 +52,7 @@ func (app *application) routes() *httprouter.Router {
 	router.HandlerFunc(http.MethodGet, "/v1/api/pdfTransactions", app.PdfTransactions)
 	router.HandlerFunc(http.MethodGet, "/v1/api/excelTransactions", app.ExcelTransactions)
 	router.HandlerFunc(http.MethodPost, "/v1/api/proofOfAddress", app.ProofOfAddress)
+	router.HandlerFunc(http.MethodPost, "/v1/api/cashPickup", app.CashPickup)
 
 	//ACCOUNT V2
 	router.HandlerFunc(http.MethodPost, "/v1/api/accounts/create", app.AccountCreate)

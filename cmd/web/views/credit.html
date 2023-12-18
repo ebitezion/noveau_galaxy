@@ -19,6 +19,7 @@
 				<label for="receiversAccountNumber" class="form-label">Receiver's Account Number</label>
 				<input type="text" class="form-control" id="receiversAccountNumber" name="receiversAccountNumber" required />
 			</div>
+             <input type="text" class="form-control" id="initiator" name="initiator" value="{{ .AdminName }}" required style="display: none;" />
 
 			<div class="mb-3">
 				<label for="Amount" class="form-label">Amount</label>
@@ -44,11 +45,12 @@
                 body: formdata,
             };
 
-            fetch("http://localhost:4000/v1/fullAccessCredit", requestOptions)
+            fetch("http://localhost:4000/v1/fullAccessTransfer", requestOptions)
                 .then(response => response.json()) // Parse the response as JSON
                 .then(result => {
 					
 					if (result.responseCode === "00") {
+                        	document.getElementById("myform").reset();
 					 // Update the success message with the message from the API
                         document.getElementById("successAlert").innerText = result.message;
                         // Show the success alert

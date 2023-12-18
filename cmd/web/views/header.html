@@ -106,10 +106,10 @@ payments
                     data-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
                         <a class="collapse-item" href="/v1/depositPage">Deposit Initiation</a>
+                        <a class="collapse-item" href="/v1/withdrawalPage">Withdrawal Initiation</a>
                         <a class="collapse-item" href="/v1/creditPage">Credit Initiation</a>
                         <a class="collapse-item" href="/v1/allTransactionsPage">View All Transactions</a>
-                        <a class="collapse-item" href="/v1/allTransactionsPage">Inflow History</a>
-                        <a class="collapse-item" href="/v1/allTransactionsPage">Outflow History</a>
+                       
                          <a class="collapse-item" href="/v1/cashPickupPage">Cash Pickup</a>
                        
                         
@@ -117,6 +117,40 @@ payments
                     </div>
                 </div>
             </li>
+             <li class="nav-item">
+                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#records"
+                    aria-expanded="true" aria-controls="collapseUtilities">
+                   <span class="material-symbols-outlined">
+                   air
+                    </span>
+                    <span>Records</span>
+                </a>
+                <div id="records" class="collapse" aria-labelledby="headingUtilities"
+                    data-parent="#accordionSidebar">    
+                    <div class="bg-white py-2 collapse-inner rounded">
+                         <a class="collapse-item" href="/v1/inflowPage">Inflow History</a>
+                        <a class="collapse-item" href="/v1/outflowPage">Outflow History</a>
+                    
+                    </div>
+                </div>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#echannels"
+                    aria-expanded="true" aria-controls="collapseUtilities">
+                   <span class="material-symbols-outlined">
+                    phone_iphone
+                    </span>
+                    <span>E-channels</span>
+                </a>
+                <div id="echannels" class="collapse" aria-labelledby="headingUtilities"
+                    data-parent="#accordionSidebar">    
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <a class="collapse-item" href="/v1/depositPage">Beneficiaries</a>
+                    
+                    </div>
+                </div>
+            </li>
+
            <li class="nav-item side-link ">
                 <a class="nav-link collapsed" href="/v1/businessPage"
                     aria-expanded="true" >
@@ -224,14 +258,15 @@ code
                     <!-- Topbar Search -->
                     <form
                         class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
-                        <div class="input-group">
-                            <input type="text" class="form-control bg-light border-0 small" placeholder="Search for..."
-                                aria-label="Search" aria-describedby="basic-addon2">
-                            <div class="input-group-append">
-                                <button class="btn btn-custom" type="button">
-                                    <i class="fas fa-search fa-sm"></i>
-                                </button>
-                            </div>
+                        <div >
+                        
+                      <div class="d-flex align-items-center">
+    <span class="material-symbols-outlined">
+        account_circle
+    </span>
+    <h5 class="pt-3 ms-2">{{ .AdminName }}</h5>
+</div>
+
                         </div>
                     </form>
                      <a class="btn btn-custom" type="button" href="/v1/signout"> 

@@ -53,6 +53,7 @@
             console.log(result)
             // Update the HTML elements with the received data
              if (result.responseCode === "00") {
+               document.getElementById("loginForm").reset();
                 document.getElementById("accountHolderName").innerText = result.message.accountHolderName;
                 document.getElementById("accountNumber").innerText = result.message.accountNumber;
                 document.getElementById("ledgerBalance").innerText = result.message.ledgerBalance;

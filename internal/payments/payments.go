@@ -18,8 +18,9 @@ Payments mandates:
 
 
 @author adenugba adeoluwa 1st december
-13- FullAccessCreditInitiation
+13- FullAccessTransferInitiation
 14- FullAccessDepositInitiation
+
 
 #### Custom payments
 1000 - CustomerDepositInitiation (@FIXME Will need to implement this properly, for now we use it to demonstrate functionality)
@@ -55,9 +56,24 @@ type PAINTrans struct {
 	Amount    decimal.Decimal
 	Fee       decimal.Decimal
 	Narration string
+	Initiator string
 }
 type TransactionBatch struct {
 	Transactions []Transaction
+}
+type CashPickup struct {
+	SendersAccountNumber string    `json:"sendersAccountNumber"`
+	FirstName            string    `json:"firstName"`
+	LastName             string    `json:"lastName"`
+	Status               string    `json:"status"`
+	Currency             string    `json:"currency"`
+	Reason               string    `json:"reason"`
+	Amount               float64   `json:"amount"`
+	Charge               float64   `json:"charge"`
+	Timestamp            string    `json:"timestamp"`
+	BVN                  string    `json:"bvn"`
+	NIN                  string    `json:"nin"`
+	UpdatedAt            time.Time `json:"updated_at"`
 }
 
 type Transaction struct {
@@ -186,7 +202,7 @@ func ProcessPAIN(data []string) (result string, err error) {
 		if len(data) < 5 {
 			return "", errors.New("payments.ProcessPAIN: Not all data is present. Run pain~help to check for needed PAIN data")
 		}
-		result, err = painFullAccessCreditInitiation(painType, data)
+		result, err = painFullAccessTransferInitiation(painType, data)
 		if err != nil {
 			return "", errors.New("payments.ProcessPAIN: " + err.Error())
 		}
@@ -261,7 +277,8 @@ func painCreditTransferInitiation(painType int64, data []string) (result string,
 	}
 
 	Narration := data[6]
-	transaction := PAINTrans{painType, sender, receiver, transactionAmountDecimal, decimal.NewFromFloat(TRANSACTION_FEE), Narration}
+	Initiator := data[7]
+	transaction := PAINTrans{painType, sender, receiver, transactionAmountDecimal, decimal.NewFromFloat(TRANSACTION_FEE), Narration, Initiator}
 
 	// Checks for transaction (avail balance, accounts open, etc)
 	balanceAvailable, err := checkBalance(transaction.Sender)
@@ -288,20 +305,28 @@ func painFullAccessDepositInitiation(painType int64, data []string) (result stri
 	if err != nil {
 		return "", errors.New("payments.CustomerDepositInitiation: " + err.Error())
 	}
+	//validate sender
+	exists, err := CheckIfAccountNumberExists(sender.AccountNumber)
+	// Check the result.
+	if !exists {
+		return "", errors.New("payments.CustomerDepositInitiation: " + "Account Not valid")
+	}
+	if err != nil {
+		return "", errors.New("payments.CustomerDepositInitiation: " + err.Error())
+	}
+
+	//validate receiver
 	receiver, err := parseAccountHolder(data[4])
 	if err != nil {
 		return "", errors.New("payments.CustomerDepositInitiation: " + err.Error())
 	}
-
-	//check if accounts are valid . its at this point because the parse account function will have stripped the @
-	exists, err := CheckIfAccountNumberExists(receiver.AccountNumber)
-
-	if err != nil {
-		return "", errors.New("payments.CustomerDepositInitiation: " + err.Error())
-	}
+	exists, err = CheckIfAccountNumberExists(receiver.AccountNumber)
 	// Check the result.
 	if !exists {
 		return "", errors.New("payments.CustomerDepositInitiation: " + "Account Not valid")
+	}
+	if err != nil {
+		return "", errors.New("payments.CustomerDepositInitiation: " + err.Error())
 	}
 
 	trAmt := strings.TrimRight(data[5], "\x00")
@@ -311,7 +336,8 @@ func painFullAccessDepositInitiation(painType int64, data []string) (result stri
 	}
 
 	Narration := data[6]
-	transaction := PAINTrans{painType, sender, receiver, transactionAmountDecimal, decimal.NewFromFloat(TRANSACTION_FEE), Narration}
+	Initiator := data[7]
+	transaction := PAINTrans{painType, sender, receiver, transactionAmountDecimal, decimal.NewFromFloat(TRANSACTION_FEE), Narration, Initiator}
 
 	// Checks for transaction (avail balance, accounts open, etc)
 	balanceAvailable, err := checkBalance(transaction.Sender)
@@ -331,48 +357,50 @@ func painFullAccessDepositInitiation(painType int64, data []string) (result stri
 
 	return
 }
-func painFullAccessCreditInitiation(painType int64, data []string) (result string, err error) {
+func painFullAccessTransferInitiation(painType int64, data []string) (result string, err error) {
 
 	// Validate input
 	sender, err := parseAccountHolder(data[3])
 	if err != nil {
-		return "", errors.New("payments.painCreditTransferInitiation: " + err.Error())
+		return "", errors.New("payments.painFullAccessTransferInitiation: " + err.Error())
 	}
 	receiver, err := parseAccountHolder(data[4])
 	if err != nil {
-		return "", errors.New("payments.painCreditTransferInitiation: " + err.Error())
+		return "", errors.New("payments.painFullAccessTransferInitiation: " + err.Error())
 	}
 
 	//check if receivers accounts is valid
 
 	exists, err := CheckIfAccountNumberExists(receiver.AccountNumber)
+	fmt.Println(exists)
 	if err != nil {
-		return "", errors.New("payments.painCreditTransferInitiation: " + err.Error())
+		return "", errors.New("payments.painFullAccessTransferInitiation: " + err.Error())
 	}
 
 	// Check the result.
 	if !exists {
-		return "", errors.New("payments.painCreditTransferInitiation: " + "Receivers Account Not valid")
+		return "", errors.New("payments.painFullAccessTransferInitiation: " + "Receivers Account Not valid")
 	}
 	//check if senders accounts is valid
 	exists, err = CheckIfAccountIsActive(sender.AccountNumber)
-
+	fmt.Println(exists)
 	if err != nil {
-		return "", errors.New("payments.painCreditTransferInitiation: " + err.Error())
+		return "", errors.New("payments.painFullAccessTransferInitiation: " + err.Error())
 	}
 	// Check the result.
 	if !exists {
-		return "", errors.New("payments.painCreditTransferInitiation: " + "Senders Account Not valid")
+		return "", errors.New("payments.painFullAccessTransferInitiation: " + "Senders Account Not valid")
 	}
 
 	trAmt := strings.TrimRight(data[5], "\x00")
 	transactionAmountDecimal, err := decimal.NewFromString(trAmt)
 	if err != nil {
-		return "", errors.New("payments.painCreditTransferInitiation: Could not convert transaction amount to decimal. " + err.Error())
+		return "", errors.New("payments.painFullAccessTransferInitiation: Could not convert transaction amount to decimal. " + err.Error())
 	}
 
 	Narration := data[6]
-	transaction := PAINTrans{painType, sender, receiver, transactionAmountDecimal, decimal.NewFromFloat(TRANSACTION_FEE), Narration}
+	Initiator := data[7]
+	transaction := PAINTrans{painType, sender, receiver, transactionAmountDecimal, decimal.NewFromFloat(TRANSACTION_FEE), Narration, Initiator}
 
 	// Checks for transaction (avail balance, accounts open, etc)
 	balanceAvailable, err := checkBalance(transaction.Sender)
@@ -419,8 +447,9 @@ func painDebitTransferInitiation(painType int64, data []string) (result string, 
 		return "", errors.New("payments.painCreditTransferInitiation: Sender not valid")
 	}
 	Narration := data[6]
+	Initiator := data[7]
 
-	transaction := PAINTrans{painType, sender, receiver, transactionAmountDecimal, decimal.NewFromFloat(TRANSACTION_FEE), Narration}
+	transaction := PAINTrans{painType, sender, receiver, transactionAmountDecimal, decimal.NewFromFloat(TRANSACTION_FEE), Narration, Initiator}
 
 	// Checks for transaction (avail balance, accounts open, etc)
 	balanceAvailable, err := checkBalance(transaction.Sender)
@@ -531,10 +560,11 @@ func customerDepositInitiation(painType int64, data []string) (result string, er
 		return "", errors.New("payments.customerDepositInitiation: Sender not valid")
 	}
 	Narration := data[6]
+	Initiator := data[7]
 	// Issue deposit
 	// @TODO This flow show be fixed. Maybe have banks approve deposits before initiation, or
 	// immediate approval below a certain amount subject to rate limiting
-	transaction := PAINTrans{painType, sender, receiver, transactionAmountDecimal, decimal.NewFromFloat(TRANSACTION_FEE), Narration}
+	transaction := PAINTrans{painType, sender, receiver, transactionAmountDecimal, decimal.NewFromFloat(TRANSACTION_FEE), Narration, Initiator}
 	// Save transaction
 	result, err = processPAINTransaction(transaction)
 	if err != nil {
@@ -584,6 +614,7 @@ func CheckIfAccountNumberExists(accountNumber string) (bool, error) {
 
 // CheckIfAccountIsActive checks if a given value is in the specified table and returns a boolean
 func CheckIfAccountIsActive(accountNumber string) (bool, error) {
+
 	query := "SELECT COUNT(*) FROM accounts WHERE accountNumber = ? AND status = 'Active';"
 	// Declare a variable to store the count.
 	var count int
