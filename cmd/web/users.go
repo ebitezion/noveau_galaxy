@@ -8,6 +8,7 @@ import (
 
 	"github.com/ebitezion/backend-framework/internal/accounts"
 	"github.com/ebitezion/backend-framework/internal/appauth"
+	"github.com/ebitezion/backend-framework/internal/notifications"
 )
 
 func (app *application) getTokenFromHeader(w http.ResponseWriter, r *http.Request) (token string, err error) {
@@ -78,7 +79,7 @@ func (app *application) AuthLogin(w http.ResponseWriter, r *http.Request) {
 	password := r.FormValue("password")
 	username := r.FormValue("username")
 	//get accountnumber
-	accountNumber, err := accounts.FetchAccountNumber(username)
+	accountNumber, fullname, err := accounts.FetchAccountNumber(username)
 
 	if err != nil {
 		//there was error
@@ -105,8 +106,9 @@ func (app *application) AuthLogin(w http.ResponseWriter, r *http.Request) {
 		app.writeJSON(w, http.StatusBadRequest, data, nil)
 		return
 	}
+
 	//set jwt token
-	err = app.SetJwtSession(w, r, accountNumber)
+	err = app.SetJwtSession(w, r, accountNumber, fullname)
 	if err != nil {
 		//there was error
 		data := envelope{
@@ -118,7 +120,10 @@ func (app *application) AuthLogin(w http.ResponseWriter, r *http.Request) {
 		app.writeJSON(w, http.StatusBadRequest, data, nil)
 		return
 	}
-
+	// err = app.LoginNotification(token, accountNumber)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
 	//send success response
 	data := envelope{
 		"responseCode": "00",
@@ -225,4 +230,28 @@ func (app *application) DeleteSession(w http.ResponseWriter, r *http.Request, se
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+}
+
+// this function is how to use the notification package
+func (app *application) LoginNotification(token string, sendersAccountNumber string) error {
+	sender, err := accounts.FetchAccountMeta(sendersAccountNumber)
+	if err != nil {
+		return err
+	}
+
+	ns := notifications.NotificationService{}
+	User := notifications.User{
+		ID:       1,
+		Username: "adeoluwa",
+		Email:    "akanbiadenugba699@gmail.com",
+		Phone:    sender.ContactNumber1,
+	}
+
+	notification := notifications.Notification{
+		User:    User,
+		Message: fmt.Sprintf("Login Notification."),
+	}
+	notifications.SendNotification(ns, notification)
+
+	return nil
 }

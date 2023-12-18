@@ -12,7 +12,7 @@ import (
 	"github.com/ebitezion/backend-framework/internal/validator"
 )
 
-func (app *application) FullAccessCreditInitiation(w http.ResponseWriter, r *http.Request) {
+func (app *application) FullAccessTransferInitiation(w http.ResponseWriter, r *http.Request) {
 	token, err := app.getTokenFromHeader(w, r)
 	if err != nil {
 
@@ -51,8 +51,9 @@ func (app *application) FullAccessCreditInitiation(w http.ResponseWriter, r *htt
 	sendersDetails := sendersAccountNumber + "@"
 	receiversDetails := receiversAccountNumber + "@"
 	amount := PaymentInitiationData.Amount
+	initiator := sendersAccountNumber
 
-	response, err := payments.ProcessPAIN([]string{token, "pain", "13", sendersDetails, receiversDetails, amount, "CR"})
+	response, err := payments.ProcessPAIN([]string{token, "pain", "13", sendersDetails, receiversDetails, amount, "CR", initiator})
 
 	if err != nil {
 		// there was error
@@ -67,17 +68,18 @@ func (app *application) FullAccessCreditInitiation(w http.ResponseWriter, r *htt
 	}
 
 	//send notification
-	err = Notification(token, sendersAccountNumber, receiversAccountNumber, amount)
+	err = app.Notification(token, sendersAccountNumber, receiversAccountNumber, amount)
 	if err != nil {
 		fmt.Println(err)
 	}
 	data := envelope{
 		"responseCode": "00",
 		"status":       "Success",
-		"message":      response + "Credit Made Successfully",
+		"message":      response + "Transfer Made Successfully",
 	}
 	app.writeJSON(w, http.StatusOK, data, nil)
 }
+
 func (app *application) FullAccessDepositInitiation(w http.ResponseWriter, r *http.Request) {
 
 	token, err := app.getTokenFromHeader(w, r)
@@ -116,8 +118,9 @@ func (app *application) FullAccessDepositInitiation(w http.ResponseWriter, r *ht
 	sendersDetails := sendersAccountNumber + "@"
 	receiversDetails := receiversAccountNumber + "@"
 	amount := DepositInitiationData.Amount
+	initiator := sendersAccountNumber
 
-	response, err := payments.ProcessPAIN([]string{token, "pain", "14", sendersDetails, receiversDetails, amount, "DR"})
+	response, err := payments.ProcessPAIN([]string{token, "pain", "14", sendersDetails, receiversDetails, amount, "DR", initiator})
 
 	if err != nil {
 		// there was error
@@ -131,11 +134,11 @@ func (app *application) FullAccessDepositInitiation(w http.ResponseWriter, r *ht
 		return
 	}
 
-	//send notification
-	err = Notification(token, sendersAccountNumber, receiversAccountNumber, amount)
-	if err != nil {
-		fmt.Println(err)
-	}
+	// //send notification
+	// err = app.Notification(token, sendersAccountNumber, receiversAccountNumber, amount)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
 
 	data := envelope{
 		"responseCode": "00",
@@ -337,7 +340,7 @@ func (app *application) BatchTransaction() {
 }
 
 // this function is how to use the notification package
-func Notification(token string, sendersAccountNumber string, receiversAccountNumber string, amount string) error {
+func (app *application) Notification(token string, sendersAccountNumber string, receiversAccountNumber string, amount string) error {
 	sender, err := accounts.FetchAccountMeta(sendersAccountNumber)
 	if err != nil {
 		return err
@@ -368,4 +371,64 @@ func Notification(token string, sendersAccountNumber string, receiversAccountNum
 	}
 
 	return nil
+}
+func (app *application) CashPickup(w http.ResponseWriter, r *http.Request) {
+	token, err := app.getTokenFromHeader(w, r)
+	if err != nil {
+
+		// there was error
+		data := envelope{
+			"responseCode": "07",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+	//for credit only  receivers account number and sender account number is required
+	//which is the number before the @ sign
+	CashPickupData := payments.CashPickup{}
+	// read the incoming request body
+	err = app.readJSON(w, r, &CashPickupData)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+	// Validate the user ID
+	v := validator.New()
+	data.ValidateCashPickupData(v, &CashPickupData)
+	if !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		//log to db
+
+		return
+	}
+
+	response, err := payments.ProcessPAIN([]string{token, "pain", "14"})
+
+	if err != nil {
+		// there was error
+		data := envelope{
+			"responseCode": "06",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+
+	// //send notification
+	// err = app.Notification(token, sendersAccountNumber, receiversAccountNumber, amount)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
+
+	data := envelope{
+		"responseCode": "00",
+		"status":       "Success",
+		"message":      response + "Deposit Made Sucessfully",
+	}
+	app.writeJSON(w, http.StatusOK, data, nil)
 }

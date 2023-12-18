@@ -1,10 +1,16 @@
 package accounts
 
 import (
+	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"image"
+	"image/jpeg"
+	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -62,6 +68,7 @@ Accounts (acmt) transactions are as follows:
 1009 - CreateSpecialAccount
 1010 - BlockAccount
 1011 - UnblockAccount
+1012 - OutflowHistory
 
 */
 
@@ -151,6 +158,7 @@ type Transaction struct {
 	Narration             string  `json:"narration"`
 	FeeAmount             float64 `json:"feeAmount"`
 	Timestamp             string  `json:"timestamp"`
+	Initiator             string  `json:"initiator"`
 }
 
 // Set up some defaults
@@ -275,6 +283,16 @@ func ProcessAccount(data []string) (result interface{}, err error) {
 			return "", errors.New("accounts.ProcessAccount: " + err.Error())
 		}
 		break
+	case 1012:
+		if len(data) < 3 {
+			err = errors.New("accounts.ProcessAccount: Not all fields present")
+			return
+		}
+		result, err = fetchOutflowHistory(data)
+		if err != nil {
+			return "", errors.New("accounts.ProcessAccount: " + err.Error())
+		}
+		break
 
 	default:
 		err = errors.New("accounts.ProcessAccount: ACMT transaction code invalid")
@@ -372,18 +390,18 @@ func CreateBeneficiary(beneficiary *data.Beneficiary) error {
 	return nil
 
 }
-func FetchAccountNumber(username string) (AccountNumber string, err error) {
+func FetchAccountNumber(username string) (AccountNumber string, Fullname string, err error) {
 
 	if username == "" {
-		return "", errors.New("accounts.fetchAccountMeta: Username not present")
+		return "", "", errors.New("accounts.fetchAccountMeta: Username not present")
 	}
 
-	accountNumber, err := getSingleAccountNumberByUsername(username)
+	accountNumber, fullname, err := getSingleAccountNumberByUsername(username)
 	if err != nil {
-		return "", errors.New("accounts.fetchAccountMeta: " + err.Error())
+		return "", "", errors.New("accounts.fetchAccountMeta: " + err.Error())
 	}
 
-	return accountNumber, nil
+	return accountNumber, fullname, nil
 }
 func FetchAccountMeta(accountNumber string) (AccountHolderDetails *AccountHolderDetails, err error) {
 
@@ -723,7 +741,7 @@ func fetchAccountHistory(data []string) (result []Transaction, err error) {
 	if accountNumber == "" {
 		return nil, errors.New("accounts.fetchSingleAccountByID: Account number not present")
 	}
-	//check if receivers accounts is valid
+	//check if  accounts is valid
 
 	exists, err := CheckIfAccountNumberExists(accountNumber)
 	if err != nil {
@@ -734,6 +752,30 @@ func fetchAccountHistory(data []string) (result []Transaction, err error) {
 		return nil, errors.New("payments.fetchSingleAccountByID: " + " Account Not valid")
 	}
 	history, err := GetAccountHistory(accountNumber)
+	if err != nil {
+		return nil, errors.New("accounts.fetchSingleAccountByID: " + err.Error())
+	}
+
+	return history, nil
+}
+func fetchOutflowHistory(data []string) (result []Transaction, err error) {
+
+	// Format: token~acmt~1002~USERID
+	accountNumber := data[3]
+	if accountNumber == "" {
+		return nil, errors.New("accounts.fetchSingleAccountByID: Account number not present")
+	}
+	//check if  accounts is valid
+
+	exists, err := CheckIfAccountNumberExists(accountNumber)
+	if err != nil {
+		return nil, errors.New("payments.fetchSingleAccountByID: " + err.Error())
+	}
+	// Check the result.
+	if !exists {
+		return nil, errors.New("payments.fetchSingleAccountByID: " + " Account Not valid")
+	}
+	history, err := GetOutflowHistory(accountNumber)
 	if err != nil {
 		return nil, errors.New("accounts.fetchSingleAccountByID: " + err.Error())
 	}
@@ -759,8 +801,90 @@ func CheckIfAccountNumberExists(accountNumber string) (bool, error) {
 		return false, err
 	}
 
-	fmt.Println("Count:", count)
-
 	// If the count is greater than 0, the value exists in the database.
 	return count > 0, nil
+}
+func Base64ToImage(encodedString string, outputPath string) error {
+	// Decode Base64 string to binary data
+	decoded, err := base64.StdEncoding.DecodeString(encodedString)
+	if err != nil {
+		return err
+	}
+
+	// Create an image from the binary data
+	img, _, err := image.Decode(strings.NewReader(string(decoded)))
+	if err != nil {
+		return err
+	}
+
+	// Create a new file to save the image
+	outputFile, err := os.Create(outputPath)
+	if err != nil {
+		return err
+	}
+	defer outputFile.Close()
+
+	// Save the image as JPEG
+	err = jpeg.Encode(outputFile, img, nil)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func ImageToBase64(imagePath string) (string, error) {
+	// Open the image file
+	imageFile, err := os.Open(imagePath)
+	if err != nil {
+		return "", err
+	}
+	defer imageFile.Close()
+
+	// Decode the image file
+	img, _, err := image.Decode(imageFile)
+	if err != nil {
+		return "", err
+	}
+
+	// Encode the image as Base64
+	var encodedString string
+	buffer := new(strings.Builder)
+	err = jpeg.Encode(buffer, img, nil)
+	if err != nil {
+		return "", err
+	}
+	encodedString = base64.StdEncoding.EncodeToString([]byte(buffer.String()))
+
+	return encodedString, nil
+}
+func ImageToBase64FromRequest(r *http.Request) (string, error) {
+	// Parse the form data to get the image file
+	err := r.ParseMultipartForm(10 << 20) // 10 MB limit
+	if err != nil {
+		return "", fmt.Errorf("error parsing form: %v", err)
+	}
+
+	file, _, err := r.FormFile("profilePicture")
+	if err != nil {
+		return "", fmt.Errorf("error retrieving file from form: %v", err)
+	}
+	defer file.Close()
+
+	// Decode the image file
+	img, _, err := image.Decode(file)
+	if err != nil {
+		return "", fmt.Errorf("error decoding image: %v", err)
+	}
+
+	// Encode the image as Base64
+	var encodedString string
+	buffer := new(bytes.Buffer)
+	err = jpeg.Encode(buffer, img, nil)
+	if err != nil {
+		return "", fmt.Errorf("error encoding image to Base64: %v", err)
+	}
+	encodedString = base64.StdEncoding.EncodeToString(buffer.Bytes())
+
+	return encodedString, nil
 }

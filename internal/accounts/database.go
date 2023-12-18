@@ -250,9 +250,10 @@ func doCreateAccountMeta(accountHolderDetails *AccountHolderDetails, accountDeta
 	return
 }
 func doUpdateAccountMeta(accountHolderDetails *AccountHolderDetails) (err error) {
-
-	// Create account meta
-	updateStatement := "UPDATE accounts_meta SET `accountHolderGivenName`=?, `accountHolderFamilyName`=?, `accountHolderDateOfBirth`=?, `accountHolderIdentificationNumber`=?, `accountHolderContactNumber1`=?, `accountHolderContactNumber2`=?, `accountHolderEmailAddress`=?, `accountHolderAddressLine1`=?, `accountHolderAddressLine2`=?, `accountHolderAddressLine3`=?, `accountHolderPostalCode`=?,  `country`=?, `identificationType`=? WHERE `accountNumber`=?"
+	fmt.Println(accountHolderDetails.AccountNumber)
+	fmt.Println(accountHolderDetails)
+	// Create account meta   identificationType
+	updateStatement := "UPDATE accounts_meta SET `accountHolderGivenName`=?, `accountHolderFamilyName`=?, `accountHolderDateOfBirth`=?, `accountHolderIdentificationNumber`=?, `accountHolderContactNumber1`=?, `accountHolderContactNumber2`=?, `accountHolderEmailAddress`=?, `accountHolderAddressLine1`=?, `accountHolderAddressLine2`=?, `accountHolderAddressLine3`=?, `accountHolderPostalCode`=?,  `country`=?, `accountHolderIdentificationType`=? WHERE `accountNumber`=?"
 	stmtUpdate, err := Config.Db.Prepare(updateStatement)
 	if err != nil {
 		return errors.New("accounts.doUpdateAccountMeta: " + err.Error())
@@ -349,7 +350,7 @@ func getAccountMeta(id string) (accountDetails AccountHolderDetails, err error) 
 	return
 }
 func getAllTransactions() ([]Transaction, error) {
-	query := "SELECT transaction, type, senderAccountNumber, senderBankNumber, receiverAccountNumber, receiverBankNumber, transactionAmount, feeAmount, timestamp,narration FROM transactions "
+	query := "SELECT transaction, type, senderAccountNumber, senderBankNumber, receiverAccountNumber, receiverBankNumber, transactionAmount, feeAmount, timestamp,narration,initiator FROM transactions "
 
 	var transactions []Transaction // Slice to hold multiple transaction records.
 
@@ -366,7 +367,7 @@ func getAllTransactions() ([]Transaction, error) {
 	// Iterate through the result set and scan each row into a Transaction struct.
 	for rows.Next() {
 		var t Transaction
-		err := rows.Scan(&t.Transaction, &t.Type, &t.SenderAccountNumber, &t.SenderBankNumber, &t.ReceiverAccountNumber, &t.ReceiverBankNumber, &t.TransactionAmount, &t.FeeAmount, &t.Timestamp, &t.Narration)
+		err := rows.Scan(&t.Transaction, &t.Type, &t.SenderAccountNumber, &t.SenderBankNumber, &t.ReceiverAccountNumber, &t.ReceiverBankNumber, &t.TransactionAmount, &t.FeeAmount, &t.Timestamp, &t.Narration, &t.Initiator)
 		if err != nil {
 			return nil, err
 		}
@@ -399,7 +400,8 @@ func getAllAccountDetails() (allAccounts []AccountDetails, err error) {
 			b.accountHolderAddressLine1,
 			b.accountHolderAddressLine2,
 			b.accountHolderAddressLine3,
-			b.accountHolderPostalCode
+			b.accountHolderPostalCode,
+			b.image
 		FROM 
 			accounts a
 		JOIN 
@@ -425,7 +427,6 @@ func getAllAccountDetails() (allAccounts []AccountDetails, err error) {
 			&accountDetailsSingle.AccountBalance,
 			&accountDetailsSingle.Overdraft,
 			&accountDetailsSingle.AvailableBalance,
-
 			&accountDetailsSingle.AccountHolderDetails.ContactNumber1,
 			&accountDetailsSingle.AccountHolderDetails.ContactNumber2,
 			&accountDetailsSingle.AccountHolderDetails.GivenName,
@@ -438,6 +439,7 @@ func getAllAccountDetails() (allAccounts []AccountDetails, err error) {
 			&accountDetailsSingle.AccountHolderDetails.AddressLine2,
 			&accountDetailsSingle.AccountHolderDetails.AddressLine3,
 			&accountDetailsSingle.AccountHolderDetails.PostalCode,
+			&accountDetailsSingle.AccountHolderDetails.Image,
 		); err != nil {
 			log.Println("Error scanning row:", err)
 			continue
@@ -494,7 +496,7 @@ func getSingleAccountNumberByID(userID string) (accountID string, err error) {
 
 	return
 }
-func getSingleAccountNumberByUsername(username string) (accountNumber string, err error) {
+func getSingleAccountNumberByUsername(username string) (accountNumber string, fullname string, err error) {
 	query := "SELECT `accountNumber` FROM `accounts_auth` WHERE `username` = ?"
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
@@ -504,12 +506,26 @@ func getSingleAccountNumberByUsername(username string) (accountNumber string, er
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return "", errors.New("accounts.getSingleAccountNumberByUsername: Account not found")
+			return "", "", errors.New("accounts.getSingleAccountNumberByUsername: Account not found")
 		}
-		return "", err
+		return "", "", err
 	}
 
-	return accountNumber, nil
+	query = "SELECT `accountHolderName` FROM `accounts` WHERE `accountNumber` = ?"
+
+	ctx, cancel = context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err = Config.Db.QueryRowContext(ctx, query, accountNumber).Scan(&fullname)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", "", errors.New("accounts.getSingleAccountNumberByUsername: Account not found")
+		}
+		return "", "", err
+	}
+
+	return accountNumber, fullname, nil
 }
 
 func GetBalanceDetails(accountNumber string) (BalanceEnquiry, error) {
@@ -545,7 +561,7 @@ func GetBalanceDetails(accountNumber string) (BalanceEnquiry, error) {
 
 // Get method for fetching all records from the transactions table for a specific account number.
 func GetAccountHistory(accountNumber string) ([]Transaction, error) {
-	query := "SELECT transaction, type, senderAccountNumber, senderBankNumber, receiverAccountNumber, receiverBankNumber, transactionAmount, feeAmount, timestamp,narration FROM transactions WHERE senderAccountNumber = ?"
+	query := "SELECT transaction, type, senderAccountNumber, senderBankNumber, receiverAccountNumber, receiverBankNumber, transactionAmount, feeAmount, timestamp,narration,initiator FROM transactions WHERE senderAccountNumber = ?"
 
 	var transactions []Transaction // Slice to hold multiple transaction records.
 
@@ -562,7 +578,7 @@ func GetAccountHistory(accountNumber string) ([]Transaction, error) {
 	// Iterate through the result set and scan each row into a Transaction struct.
 	for rows.Next() {
 		var t Transaction
-		err := rows.Scan(&t.Transaction, &t.Type, &t.SenderAccountNumber, &t.SenderBankNumber, &t.ReceiverAccountNumber, &t.ReceiverBankNumber, &t.TransactionAmount, &t.FeeAmount, &t.Timestamp, &t.Narration)
+		err := rows.Scan(&t.Transaction, &t.Type, &t.SenderAccountNumber, &t.SenderBankNumber, &t.ReceiverAccountNumber, &t.ReceiverBankNumber, &t.TransactionAmount, &t.FeeAmount, &t.Timestamp, &t.Narration, &t.Initiator)
 		if err != nil {
 			return nil, err
 		}
@@ -576,6 +592,38 @@ func GetAccountHistory(accountNumber string) ([]Transaction, error) {
 	return transactions, nil
 }
 
+// Get method for fetching all records from the transactions table for a specific account number.
+func GetOutflowHistory(accountNumber string) ([]Transaction, error) {
+	query := "SELECT transaction, type, senderAccountNumber, senderBankNumber, receiverAccountNumber, receiverBankNumber, transactionAmount, feeAmount, timestamp,narration,initiator FROM transactions WHERE receiverAccountNumber = ?"
+
+	var transactions []Transaction // Slice to hold multiple transaction records.
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	// Use the QueryContext method to execute the query, passing in the context.
+	rows, err := Config.Db.QueryContext(ctx, query, accountNumber)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	// Iterate through the result set and scan each row into a Transaction struct.
+	for rows.Next() {
+		var t Transaction
+		err := rows.Scan(&t.Transaction, &t.Type, &t.SenderAccountNumber, &t.SenderBankNumber, &t.ReceiverAccountNumber, &t.ReceiverBankNumber, &t.TransactionAmount, &t.FeeAmount, &t.Timestamp, &t.Narration, &t.Initiator)
+		if err != nil {
+			return nil, err
+		}
+		transactions = append(transactions, t)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return transactions, nil
+}
 func StoreBeneficiary(Data *data.Beneficiary, UserId string) error {
 	insertStatement := "INSERT INTO beneficiaries (userId, fullName, bankName, bankAccountNumber, bankRoutingNumber, swiftCode) VALUES (?, ?, ?, ?, ?, ?)"
 

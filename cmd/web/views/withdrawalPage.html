@@ -1,26 +1,33 @@
 {{ template "header" . }}
+
+
 <div class="container-fluid">
 	<!-- Page Heading -->
 	<div class="d-sm-flex align-items-center justify-content-between mb-4">
-		<h1 class="h3 mb-0 text-gray-800 mx-auto">Unblock Account</h1>
+		<h1 class="h3 mb-0 text-gray-800 mx-auto">Withdrawal Initiation</h1>
 	</div>
-		<div class="w-50 mx-auto">
-			<form class="user" id="myform" >
-			<div id="successAlert" class="alert alert-success mt-3" style="display: none;">
+	
+	<div class="container w-50 mt-5">
+		<div id="successAlert" class="alert alert-success mt-3" style="display: none;">
  		 </div>
 		<div id="failureAlert" class="alert alert-danger mt-3" style="display: none;">	
 		</div>
+		<form id="myform" >
 			<div class="mb-3">
-				<label for="accountNumber" class="form-label">Account Number</label>
-				<input type="text" class="form-control" id="accountNumber" name="accountNumber" required />
+				<label for="sendersAccountNumber" class="form-label">Account Number</label>
+				<input type="text" class="form-control" id="sendersAccountNumber" name="sendersAccountNumber" required />
 			</div>
 
-			
-		   <button onclick="submitForm()" class="btn btn-custom btn-user btn-block">Submit</button>           
-		</form>
-		</div>
-		
+			<div class="mb-3">
+				<label for="Amount" class="form-label">Amount</label>
+				<input type="text" class="form-control" id="Amount" name="Amount" required />
+			</div>
+             <input type="text" class="form-control" id="initiator" name="initiator" value="{{ .AdminName }}" required style="display: none;" />
 
+	 <button onclick="submitForm()" class="btn btn-custom btn-user btn-block">Submit</button>           
+
+		</form>
+	</div>
 </div>
 <script>
         function submitForm() {
@@ -35,12 +42,12 @@
                 body: formdata,
             };
 
-            fetch("http://localhost:4000/v1/accounts/unblock", requestOptions)
+            fetch("http://localhost:4000/v1/fullAccessWithdrawal", requestOptions)
                 .then(response => response.json()) // Parse the response as JSON
-                .then(result => { 
-                    console.log(result)
+                .then(result => {
+					console.log(result)
 					if (result.responseCode === "00") {
-                          document.getElementById("myform").reset();
+                        	document.getElementById("myform").reset();
 					 // Update the success message with the message from the API
                         document.getElementById("successAlert").innerText = result.message;
                         // Show the success alert
@@ -67,4 +74,6 @@
             //     .catch(error => console.log('error', error));
         }
     </script>
+
+
 {{ template "footer" . }}

@@ -39,6 +39,7 @@
                 .then(result => {
 					
 					if (result.responseCode === "00") {
+                          document.getElementById("myform").reset();
 					 // Update the success message with the message from the API
                         document.getElementById("successAlert").innerText = result.message;
                         // Show the success alert
