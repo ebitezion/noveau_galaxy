@@ -1,0 +1,1 @@
+{"RolePrivileges":{"Admin":["Create","Read","Update","Delete"],"SubAdmin":["Read","Update"],"User":["Read"]},"Users":{"admin":{"Username":"admin","Password":"adminpass","Roles":["Admin"]},"user":{"Username":"user","Password":"userpass","Roles":["User"]}}}

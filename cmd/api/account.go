@@ -233,24 +233,6 @@ type AccountRequest struct {
 	AccountNumber               string `json:"accountNumber validate:"required,len=10"`
 }
 
-// type AccountRequest struct {
-// 	Token                          string `json:"token"`
-// 	AccountHolderGivenName         string `json:"accountHolderGivenName"`
-// 	AccountHolderFamilyName        string `json:"accountHolderFamilyName"`
-// 	AccountHolderDateOfBirth       string `json:"accountHolderDateOfBirth"`
-
-// 	AccountHolderIdentificationNum string `json:"accountHolderIdentificationNumber"`
-// 	AccountHolderContactNumber1    string `json:"accountHolderContactNumber1"`
-// 	AccountHolderContactNumber2    string `json:"accountHolderContactNumber2"`
-
-// 	AccountHolderEmailAddress      string `json:"accountHolderEmailAddress"`
-// 	AccountHolderAddressLine1      string `json:"accountHolderAddressLine1"`
-// 	AccountHolderAddressLine2      string `json:"accountHolderAddressLine2"`
-// 	AccountHolderAddressLine3      string `json:"accountHolderAddressLine3"`
-// 	AccountHolderPostalCode        string `json:"accountHolderPostalCode"`
-// 	AccountNumber                  string `json:"accountNumber"`
-// }
-
 func (app *application) AccountIndex(w http.ResponseWriter, r *http.Request) {
 	var req AccountRequest
 
@@ -280,22 +262,22 @@ func (app *application) AccountIndex(w http.ResponseWriter, r *http.Request) {
 
 func (app *application) AccountCreate(w http.ResponseWriter, r *http.Request) {
 
-	_, err := app.getTokenFromHeader(w, r)
-	if err != nil {
-		// there was error
-		data := envelope{
-			"responseCode": "07",
-			"status":       "Failed",
-			"message":      err.Error(),
-		}
+	//_, err := app.getTokenFromHeader(w, r)
+	// if err != nil {
+	// 	// there was error
+	// 	data := envelope{
+	// 		"responseCode": "06",
+	// 		"status":       "Failed",
+	// 		"message":      err.Error(),
+	// 	}
 
-		app.writeJSON(w, http.StatusBadRequest, data, nil)
-		return
-	}
+	// 	app.writeJSON(w, http.StatusBadRequest, data, nil)
+	// 	return
+	// }
 
 	var req data.NewAccountRequest
 	// read the incoming request body
-	err = app.readJSON(w, r, &req)
+	err := app.readJSON(w, r, &req)
 	if err != nil {
 		app.badRequestResponse(w, r, err)
 		return

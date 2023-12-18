@@ -8,7 +8,10 @@ import (
 	"github.com/ebitezion/backend-framework/internal/accounts"
 	"github.com/ebitezion/backend-framework/internal/notifications"
 	"github.com/ebitezion/backend-framework/internal/payments"
+	"github.com/ebitezion/backend-framework/internal/rbac_2"
 )
+
+type RolePrivileges map[rbac_2.Role][]rbac_2.Privilege
 
 func (app *application) FullAccessTransferInitiation(w http.ResponseWriter, r *http.Request) {
 	token, err := app.getTokenFromHeader(w, r)

@@ -2,7 +2,7 @@
     "MySQLUser"         :   "root",
     "MySQLPass"         :   "",
     "MySQLHost"         :   "localhost",
-    "MySQLPort"         :   "3306",
+    "MySQLPort"         :   "3319",
     "MySQLDB"           :   "galaxy",
     "TimeZone"          :   "America/New_York",
     "RedisHost"         :   "localhost",
