@@ -3,7 +3,7 @@ package rbac_2_test
 import (
 	"testing"
 
-	"github.com/ebitezion/backend-framework/internal/rbac_2"
+	"github.com/ebitezion/backend-framework/internal/rbac"
 )
 
 func TestRBAC(t *testing.T) {

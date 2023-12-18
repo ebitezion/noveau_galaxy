@@ -8,7 +8,10 @@ import (
 	"github.com/ebitezion/backend-framework/internal/accounts"
 	"github.com/ebitezion/backend-framework/internal/notifications"
 	"github.com/ebitezion/backend-framework/internal/payments"
+	"github.com/ebitezion/backend-framework/internal/rbac_2"
 )
+
+type RolePrivileges map[rbac_2.Role][]rbac_2.Privilege
 
 func (app *application) FullAccessCreditInitiation(w http.ResponseWriter, r *http.Request) {
 	token, err := app.getTokenFromHeader(w, r)
@@ -84,7 +87,14 @@ func (app *application) FullAccessDepositInitiation(w http.ResponseWriter, r *ht
 	receiversDetails := receiversAccountNumber + "@"
 	amount := r.FormValue("Amount")
 
-	response, err := payments.ProcessPAIN([]string{token, "pain", "14", sendersDetails, receiversDetails, amount, "DR"})
+	// Initialize RBAC system and define roles with associated privileges
+	rbac := rbac_2.NewRBACWithDB()
+	rbac.AddRole("Admin", []rbac_2.Privilege{"privilege_for_painType_14"})
+	//rbac.AddRole("Subadmin", []rbac_2.Privilege{"privilege_1", "privilege_2"})
+	// Assuming your payments.ProcessPAIN_2 function signature matches
+	response, err := payments.ProcessPAIN_2([]string{token, "pain", "14", sendersDetails, receiversDetails, amount, "DR"}, rbac, "username")
+	
+	//response, err := payments.ProcessPAIN([]string{token, "pain", "14", sendersDetails, receiversDetails, amount, "DR"})
 
 	if err != nil {
 		// there was error

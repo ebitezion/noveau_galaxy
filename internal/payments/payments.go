@@ -36,6 +36,7 @@ import (
 	"time"
 
 	"github.com/ebitezion/backend-framework/internal/appauth"
+	"github.com/ebitezion/backend-framework/internal/rbac_2"
 	"github.com/shopspring/decimal"
 )
 
@@ -65,6 +66,81 @@ type Transaction struct {
 
 var transactionMutex sync.Mutex
 
+func ProcessPAIN_2(data []string, rbac *rbac_2.RBAC, username string) (result string, err error) {
+	// Lock the mutex before accessing/modifying shared resources
+	transactionMutex.Lock()
+	defer transactionMutex.Unlock() // Ensure the mutex is always unlocked
+
+	// There must be at least 3 elements
+	if len(data) < 3 {
+		return "", errors.New("payments.ProcessPAIN: Not all data is present. Run pain~help to check for needed PAIN data")
+	}
+
+	// Get type
+	painType, err := strconv.ParseInt(data[2], 10, 64)
+	if err != nil {
+		return "", errors.New("payments.ProcessPAIN: Could not get type of PAIN transaction. " + err.Error())
+	}
+
+	// Check RBAC permissions before processing each painType
+	var requiredPrivilege rbac_2.Privilege
+	//requiredPrivilege := ""
+
+	switch painType {
+	case 1:
+		requiredPrivilege = "privilege_for_painType_1"
+	case 9:
+		requiredPrivilege = "privilege_for_painType_9"
+	case 13:
+		requiredPrivilege = "privilege_for_painType_13"
+	case 14:
+		requiredPrivilege = "privilege_for_painType_14"
+	case 1000:
+		requiredPrivilege = "privilege_for_painType_1000"
+	}
+
+	if requiredPrivilege != "" && !rbac.CheckPermission(username, requiredPrivilege) {
+		// User doesn't have required privilege for this painType
+		return "", errors.New("payments.ProcessPAIN: User does not have the required privilege")
+	}
+
+	switch painType {
+	case 1:
+		if !rbac.CheckPermission(username, "privilege_for_painType_1") {
+			return "", errors.New("payments.ProcessPAIN: User does not have the required privilege for painType 1")
+		}
+		// Process for painType 1...
+	case 9:
+		if !rbac.CheckPermission(username, "privilege_for_painType_9") {
+			return "", errors.New("payments.ProcessPAIN: User does not have the required privilege for painType 9")
+		}
+		// Process for painType 9...
+	case 14:
+		if !rbac.CheckPermission(username, "access_case_14") {
+			return "", errors.New("payments.ProcessPAIN: User does not have the required privilege for case 14")
+		}
+		// Process for painType 14...
+		//There must be at least 4 elements
+		//token~pain~type~amount
+		if len(data) < 5 {
+			return "", errors.New("payments.ProcessPAIN: Not all data is present. Run pain~help to check for needed PAIN data")
+		}
+
+		result, err = painFullAccessDepositInitiation(painType, data)
+		if err != nil {
+			return "", errors.New("payments.ProcessPAIN: " + err.Error())
+		}
+		break
+	// Other painTypes and their associated permissions...
+	default:
+		return "", errors.New("payments.ProcessPAIN: Invalid painType")
+	}
+
+	// Continue processing based on painType...
+
+	return result, nil
+}
+
 func ProcessPAIN(data []string) (result string, err error) {
 	// Lock the mutex before accessing/modifying shared resources
 	transactionMutex.Lock()
@@ -87,7 +163,7 @@ func ProcessPAIN(data []string) (result string, err error) {
 		if len(data) < 6 {
 			return "", errors.New("payments.ProcessPAIN: Not all data is present. Run pain~help to check for needed PAIN data")
 		}
-        
+
 		result, err = painCreditTransferInitiation(painType, data)
 		if err != nil {
 			return "", errors.New("payments.ProcessPAIN: " + err.Error())
@@ -121,7 +197,7 @@ func ProcessPAIN(data []string) (result string, err error) {
 		if len(data) < 5 {
 			return "", errors.New("payments.ProcessPAIN: Not all data is present. Run pain~help to check for needed PAIN data")
 		}
-		
+
 		result, err = painFullAccessDepositInitiation(painType, data)
 		if err != nil {
 			return "", errors.New("payments.ProcessPAIN: " + err.Error())
