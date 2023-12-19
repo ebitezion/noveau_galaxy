@@ -111,6 +111,8 @@ func ProcessPAIN_2(data []string, rbac *rbac_2.RBAC, username string) (result st
 		requiredPrivilege = "privilege_for_painType_13"
 	case 14:
 		requiredPrivilege = "privilege_for_painType_14"
+	case 15:
+		requiredPrivilege = "privilege_for_painType_15"
 	case 1000:
 		requiredPrivilege = "privilege_for_painType_1000"
 	}
@@ -146,8 +148,12 @@ func ProcessPAIN_2(data []string, rbac *rbac_2.RBAC, username string) (result st
 		if err != nil {
 			return "", errors.New("payments.ProcessPAIN: " + err.Error())
 		}
-		break
-	// Other painTypes and their associated permissions...
+	case 15:
+		if !rbac.CheckPermission(username, "privilege_for_painType_15") {
+			return "", errors.New("payments.ProcessPAIN: User does not have the required privilege for case 15")
+		}
+		fmt.Println("Hello ....")
+
 	default:
 		return "", errors.New("payments.ProcessPAIN: Invalid painType")
 	}

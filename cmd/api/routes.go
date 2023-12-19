@@ -63,6 +63,8 @@ func (app *application) routes() *httprouter.Router {
 	router.HandlerFunc(http.MethodPost, "/v1/api/beneficiary/new", app.NewBeneficiary)
 	router.HandlerFunc(http.MethodPost, "/v1/api/beneficiary", app.GetBeneficiaries)
 
+	router.HandlerFunc(http.MethodPost,"v1/api/role_based",app.PaymentCreditInitiation2)
+
 	//Currency Exchange
 	router.HandlerFunc(http.MethodGet, "/v1/availableCurrencies", app.AvailableCurrenciesHandler)
 

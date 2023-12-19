@@ -9,6 +9,7 @@ import (
 	"github.com/ebitezion/backend-framework/internal/data"
 	"github.com/ebitezion/backend-framework/internal/notifications"
 	"github.com/ebitezion/backend-framework/internal/payments"
+	"github.com/ebitezion/backend-framework/internal/rbac_2"
 	"github.com/ebitezion/backend-framework/internal/validator"
 )
 
@@ -215,6 +216,82 @@ func (app *application) PaymentCreditInitiation(w http.ResponseWriter, r *http.R
 	}
 	app.writeJSON(w, http.StatusOK, data, nil)
 }
+
+func (app *application) PaymentCreditInitiation2(w http.ResponseWriter, r *http.Request) {
+
+	token, err := app.getTokenFromHeader(w, r)
+	if err != nil {
+
+		// there was error
+		data := envelope{
+			"responseCode": "07",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+
+	//for credit only  receivers account number and sender account number is required
+	//which is the number before the @ sign
+	PaymentInitiationData := data.PaymentInitiationData{}
+	// read the incoming request body
+	err = app.readJSON(w, r, &PaymentInitiationData)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+	// Validate the user ID
+	v := validator.New()
+	data.ValidateCreditInitiationData(v, &PaymentInitiationData)
+	if !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		//log to db
+
+		return
+	}
+
+	sendersAccountNumber := PaymentInitiationData.SendersAccountNumber
+	receiversAccountNumber := PaymentInitiationData.ReceiversAccountNumber
+	sendersDetails := sendersAccountNumber + "@"
+	receiversDetails := receiversAccountNumber + "@"
+	amount := PaymentInitiationData.Amount
+
+	// Initialize RBAC system and define roles with associated privileges
+	rbac := rbac_2.NewRBACWithDB()
+	rbac.AddRole("Admin", []rbac_2.Privilege{"access_case_14", "other_privilege"})
+
+	// Check permission before initiating the PAIN transaction
+	username := "username"
+	response, err := payments.ProcessPAIN_2([]string{token, "pain", "1", sendersDetails, receiversDetails, amount, "CR"}, rbac, username)
+
+	if err != nil {
+		// there was error
+		data := envelope{
+			"responseCode": "06",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+
+	//send notification
+	// err = Notification(token, sendersAccountNumber, receiversAccountNumber, amount)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
+
+	data := envelope{
+		"responseCode": "00",
+		"status":       "Success",
+		"message":      response + "Credit Made Successfully",
+	}
+	app.writeJSON(w, http.StatusOK, data, nil)
+}
+
 func (app *application) PaymentDebitInitiation(w http.ResponseWriter, r *http.Request) {
 
 	token, err := app.getTokenFromHeader(w, r)
