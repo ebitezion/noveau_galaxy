@@ -1,8 +1,8 @@
 {
-    "MySQLUser"         :   "root",
-    "MySQLPass"         :   "",
+    "MySQLUser"         :   "noveau",
+    "MySQLPass"         :   "noveau2023",
     "MySQLHost"         :   "localhost",
-    "MySQLPort"         :   "3319",
+    "MySQLPort"         :   "3306",
     "MySQLDB"           :   "galaxy",
     "TimeZone"          :   "America/New_York",
     "RedisHost"         :   "localhost",
