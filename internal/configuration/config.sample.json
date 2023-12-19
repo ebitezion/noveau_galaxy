@@ -1,6 +1,6 @@
 {
-    "MySQLUser"         :   "root",
-    "MySQLPass"         :   "",
+    "MySQLUser"         :   "noveau",
+    "MySQLPass"         :   "noveau2023",
     "MySQLHost"         :   "localhost",
     "MySQLPort"         :   "3306",
     "MySQLDB"           :   "galaxy",

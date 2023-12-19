@@ -26,7 +26,7 @@ func (app *application) routes() *httprouter.Router {
 	router.MethodNotAllowed = http.HandlerFunc(app.methodNotAllowedResponse)
 
 	//ACCOUNTS v1
-	// router.HandlerFunc(http.MethodGet, "/v1/healthcheck", app.healthcheckHandler)
+	 router.HandlerFunc(http.MethodGet, "/v1/healthcheck", app.healthcheckHandler)
 	// router.HandlerFunc(http.MethodPost, "/v1/createAccount", app.CreateAccount)
 	// router.HandlerFunc(http.MethodPost, "/v1/accountDetails", app.AccountDetails)
 	// router.HandlerFunc(http.MethodPost, "/v1/accounts", app.RetreiveAccounts)
