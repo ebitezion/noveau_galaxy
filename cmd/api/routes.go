@@ -37,6 +37,8 @@ func (app *application) routes() *httprouter.Router {
 
 	//authentication
 	router.HandlerFunc(http.MethodPost, "/v1/api/login", app.AuthLogin)
+	router.HandlerFunc(http.MethodPost, "/v1/api/login/external", app.AuthLogin)
+	router.HandlerFunc(http.MethodPost, "/v1/api/create/external", app.AuthLogin)
 	router.HandlerFunc(http.MethodPost, "/v1/api/create", app.AuthCreate)
 	router.HandlerFunc(http.MethodPost, "/v1/authindex", app.AuthIndex)
 

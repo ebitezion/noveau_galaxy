@@ -396,18 +396,19 @@ func CreateBeneficiary(beneficiary *data.Beneficiary) error {
 	return nil
 
 }
-func FetchAccountNumber(username string) (AccountNumber string, Fullname string, err error) {
+func FetchAccountNumber(username string) (AccountNumber string, Fullname string, role string, err error) {
 
 	if username == "" {
-		return "", "", errors.New("accounts.fetchAccountMeta: Username not present")
+		return "", "", "", errors.New("accounts.fetchAccountMeta: Username not present")
 	}
 
-	accountNumber, fullname, err := getSingleAccountNumberByUsername(username)
+	accountNumber, fullname, role, err := getAuthCredentials(username)
 	if err != nil {
-		return "", "", errors.New("accounts.fetchAccountMeta: " + err.Error())
+		return "", "", "",
+			errors.New("accounts.fetchAccountMeta: " + err.Error())
 	}
 
-	return accountNumber, fullname, nil
+	return accountNumber, fullname, role, nil
 }
 func FetchAccountMeta(accountNumber string) (AccountHolderDetails *AccountHolderDetails, err error) {
 

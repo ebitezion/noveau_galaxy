@@ -517,19 +517,19 @@ func getSingleAccountNumberByID(userID string) (accountID string, err error) {
 
 	return
 }
-func getSingleAccountNumberByUsername(username string) (accountNumber string, fullname string, err error) {
-	query := "SELECT `accountNumber` FROM `accounts_auth` WHERE `username` = ?"
+func getAuthCredentials(username string) (accountNumber string, fullname string, role string, err error) {
+	query := "SELECT `accountNumber`,`role` FROM `accounts_auth` WHERE `username` = ?"
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	err = Config.Db.QueryRowContext(ctx, query, username).Scan(&accountNumber)
+	err = Config.Db.QueryRowContext(ctx, query, username).Scan(&accountNumber, &role)
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return "", "", errors.New("accounts.getSingleAccountNumberByUsername: Account not found")
+			return "", "", "", errors.New("accounts.getSingleAccountNumberByUsername: Account not found")
 		}
-		return "", "", err
+		return "", "", "", err
 	}
 
 	query = "SELECT `accountHolderName` FROM `accounts` WHERE `accountNumber` = ?"
@@ -541,12 +541,12 @@ func getSingleAccountNumberByUsername(username string) (accountNumber string, fu
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return "", "", errors.New("accounts.getSingleAccountNumberByUsername: Account not found")
+			return "", "", "", errors.New("accounts.getSingleAccountNumberByUsername: Account not found")
 		}
-		return "", "", err
+		return "", "", "", err
 	}
 
-	return accountNumber, fullname, nil
+	return accountNumber, fullname, role, nil
 }
 
 func GetBalanceDetails(accountNumber string) (BalanceEnquiry, error) {

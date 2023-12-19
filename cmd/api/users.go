@@ -127,6 +127,101 @@ func (app *application) AuthLogin(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// Get token
+func (app *application) AuthLoginExternal(w http.ResponseWriter, r *http.Request) {
+	AuthLoginData := data.AuthLoginData{}
+	// read the incoming request body
+	err := app.readJSON(w, r, &AuthLoginData)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+	// Validate the user ID
+	v := validator.New()
+	data.ValidateAuthLoginData(v, &AuthLoginData)
+	if !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		//log to db
+
+		return
+	}
+	accountNumber, _, err := accounts.FetchAccountNumber(AuthLoginData.Username)
+
+	if err != nil {
+		//there was error
+		data := envelope{
+			"responseCode": "06",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+
+	response, err := appauth.ProcessAppAuth([]string{"0", "appauth", "2", accountNumber, AuthLoginData.Password})
+	if err != nil {
+		//there was error
+		data := envelope{
+			"responseCode": "06",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+
+	data := envelope{
+		"responseCode": "00",
+		"status":       "Success",
+		"message":      response,
+	}
+	app.writeJSON(w, http.StatusOK, data, nil)
+
+}
+
+// Create auth account
+func (app *application) AuthCreateExternal(w http.ResponseWriter, r *http.Request) {
+	AuthCreateData := data.AuthLoginData{}
+	// read the incoming request body
+	err := app.readJSON(w, r, &AuthCreateData)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+	// Validate the user ID
+	v := validator.New()
+	data.ValidateAuthLoginData(v, &AuthCreateData)
+	if !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		//log to db
+
+		return
+	}
+
+	response, err := appauth.ProcessAppAuth([]string{"0", "appauth", "5", AuthCreateData.Password, AuthCreateData.Username})
+
+	if err != nil {
+		//there was error
+		data := envelope{
+			"responseCode": "06",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+
+	data := envelope{
+		"responseCode": "00",
+		"status":       "Success",
+		"message":      response,
+	}
+	app.writeJSON(w, http.StatusOK, data, nil)
+}
+
 // Create auth account
 func (app *application) AuthCreate(w http.ResponseWriter, r *http.Request) {
 	AuthCreateData := data.AuthCreateData{}

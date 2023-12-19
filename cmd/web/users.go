@@ -79,8 +79,8 @@ func (app *application) AuthLogin(w http.ResponseWriter, r *http.Request) {
 	password := r.FormValue("password")
 	username := r.FormValue("username")
 	//get accountnumber
-	accountNumber, fullname, err := accounts.FetchAccountNumber(username)
-
+	accountNumber, fullname, role, err := accounts.FetchAccountNumber(username)
+	fmt.Println(role)
 	if err != nil {
 		//there was error
 		data := envelope{
