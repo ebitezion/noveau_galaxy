@@ -91,7 +91,7 @@ func (app *application) AuthLogin(w http.ResponseWriter, r *http.Request) {
 
 		return
 	}
-	accountNumber, _, err := accounts.FetchAccountNumber(AuthLoginData.Username)
+	accountNumber, _, _, err := accounts.FetchAuthDetails(AuthLoginData.Username)
 
 	if err != nil {
 		//there was error
@@ -145,7 +145,7 @@ func (app *application) AuthLoginExternal(w http.ResponseWriter, r *http.Request
 
 		return
 	}
-	accountNumber, _, err := accounts.FetchAccountNumber(AuthLoginData.Username)
+	accountNumber, _, _, err := accounts.FetchAuthDetails(AuthLoginData.Username)
 
 	if err != nil {
 		//there was error
