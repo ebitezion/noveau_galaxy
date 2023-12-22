@@ -20,7 +20,7 @@ Payments mandates:
 @author adenugba adeoluwa 1st december
 13- FullAccessTransferInitiation
 14- FullAccessDepositInitiation
-
+15- CashPickup
 
 #### Custom payments
 1000 - CustomerDepositInitiation (@FIXME Will need to implement this properly, for now we use it to demonstrate functionality)
@@ -60,20 +60,6 @@ type PAINTrans struct {
 }
 type TransactionBatch struct {
 	Transactions []Transaction
-}
-type CashPickup struct {
-	SendersAccountNumber string    `json:"sendersAccountNumber"`
-	FirstName            string    `json:"firstName"`
-	LastName             string    `json:"lastName"`
-	Status               string    `json:"status"`
-	Currency             string    `json:"currency"`
-	Reason               string    `json:"reason"`
-	Amount               float64   `json:"amount"`
-	Charge               float64   `json:"charge"`
-	Timestamp            string    `json:"timestamp"`
-	BVN                  string    `json:"bvn"`
-	NIN                  string    `json:"nin"`
-	UpdatedAt            time.Time `json:"updated_at"`
 }
 
 type Transaction struct {

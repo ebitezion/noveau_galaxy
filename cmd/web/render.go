@@ -160,6 +160,13 @@ func (app *application) RenderUsAccountPage(w http.ResponseWriter, r *http.Reque
 func (app *application) RenderCashPickupPage(w http.ResponseWriter, r *http.Request) {
 	app.RenderTemplate(w, []string{"cmd/web/views/cashPickup.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, nil, "cmd/web/views/cashPickup.html", nil)
 }
+
+func (app *application) RenderAllCashPickupPage(w http.ResponseWriter, r *http.Request) {
+	app.RenderTemplate(w, []string{"cmd/web/views/cashPickup.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, nil, "cmd/web/views/cashPickup.html", nil)
+}
+func (app *application) RenderUserCashPickupPage(w http.ResponseWriter, r *http.Request) {
+	app.RenderTemplate(w, []string{"cmd/web/views/cashPickup.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, nil, "cmd/web/views/cashPickup.html", nil)
+}
 func (app *application) RenderWithdrawalPage(w http.ResponseWriter, r *http.Request) {
 
 	FullName, err := GetAdminName(r)
@@ -218,6 +225,18 @@ func (app *application) RenderInflowPage(w http.ResponseWriter, r *http.Request)
 		fmt.Println("Failed to convert to []AccountDetails")
 		return
 	}
+	//update excel sheet
+	_, err = createExcelSheet(Transactions)
+	if err != nil {
+		fmt.Println(err, "error creating excel sheet")
+		return
+	}
+	//update pdf file
+	_, err = createPdf(Transactions)
+	if err != nil {
+		fmt.Println(err, "error creating pdf sheet")
+		return
+	}
 	FullName, err := GetAdminName(r)
 	if err != nil {
 		log.Println(err)
@@ -247,6 +266,18 @@ func (app *application) RenderOutflowPage(w http.ResponseWriter, r *http.Request
 	FullName, err := GetAdminName(r)
 	if err != nil {
 		log.Println(err)
+	}
+	//update excel sheet
+	_, err = createExcelSheet(Transactions)
+	if err != nil {
+		fmt.Println(err, "error creating excel sheet")
+		return
+	}
+	//update pdf file
+	_, err = createPdf(Transactions)
+	if err != nil {
+		fmt.Println(err, "error creating pdf sheet")
+		return
 	}
 
 	pageData := AllTransactionsPageData{

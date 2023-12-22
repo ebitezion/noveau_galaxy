@@ -111,7 +111,7 @@
                 body: formdata,
             };
 
-            fetch("http://localhost:4000/v1/create", requestOptions)
+            fetch("/v1/create", requestOptions)
                 .then(response => response.json()) // Parse the response as JSON
                 .then(result => {
                    

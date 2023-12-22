@@ -44,9 +44,11 @@ func (app *application) routes() *httprouter.Router {
 	router.HandlerFunc(http.MethodGet, "/v1/teamsPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderTeamsPage)))
 	router.HandlerFunc(http.MethodGet, "/v1/rolesPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderRolesPage)))
 	router.HandlerFunc(http.MethodGet, "/v1/systemLogsPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderSystemLogsPage)))
-	router.HandlerFunc(http.MethodGet, "/v1/usAccountPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderUkAccountPage)))
-	router.HandlerFunc(http.MethodGet, "/v1/ukAccountPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderUsAccountPage)))
+	router.HandlerFunc(http.MethodGet, "/v1/usAccountPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderUsAccountPage)))
+	router.HandlerFunc(http.MethodGet, "/v1/ukAccountPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderUkAccountPage)))
 	router.HandlerFunc(http.MethodGet, "/v1/cashPickupPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderCashPickupPage)))
+	router.HandlerFunc(http.MethodGet, "/v1/allCashPickupPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderAllCashPickupPage)))
+	router.HandlerFunc(http.MethodGet, "/v1/userCashPickupPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderUserCashPickupPage)))
 	router.HandlerFunc(http.MethodGet, "/v1/withdrawalPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderWithdrawalPage)))
 	// Likewise, convert the methodNotAllowedResponse() helper to a http.Handler and set
 	// it as the custom error handler for 405 Method Not Allowed responses.
@@ -74,6 +76,9 @@ func (app *application) routes() *httprouter.Router {
 	router.HandlerFunc(http.MethodPost, "/v1/balanceEnquiry", app.BalanceEnquiry)
 	router.HandlerFunc(http.MethodPost, "/v1/accountHistory", app.AccountHistory)
 	router.HandlerFunc(http.MethodGet, "/v1/allTransactions", app.AllTransactions)
+	router.HandlerFunc(http.MethodPost, "/v1/cashPickup", app.CashPickup)
+	// router.HandlerFunc(http.MethodGet, "/v1/cashPickup/all", app.AllCashPickup)
+	// router.HandlerFunc(http.MethodPost, "/v1/cashPickup/user", app.UserCashPickup)
 
 	//@TODO i have to update the frontend to call the backend then it should be able to download
 	//the updated pdf /  excel sheet
@@ -82,6 +87,8 @@ func (app *application) routes() *httprouter.Router {
 
 	//ACCOUNT V2
 	router.HandlerFunc(http.MethodPost, "/v1/accounts/create", app.AccountCreate)
+	router.HandlerFunc(http.MethodPost, "/v1/accounts/create/uk", app.AccountCreateUs)
+	router.HandlerFunc(http.MethodPost, "/v1/accounts/create/us", app.AccountCreateUk)
 	router.HandlerFunc(http.MethodPost, "/v1/accounts/special", app.AccountCreateSpecial)
 	router.HandlerFunc(http.MethodPost, "/v1/accounts/update", app.AccountUpdate)
 	router.HandlerFunc(http.MethodPost, "/v1/accounts/block", app.BlockAccount)

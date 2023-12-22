@@ -282,9 +282,16 @@ func (app *application) AccountCreate(w http.ResponseWriter, r *http.Request) {
 	accountHolderPostalCode := r.FormValue("accountHolderPostalCode")
 	accountHolderCountry := r.FormValue("country")
 
-	profileImage, err := accounts.ImageToBase64FromRequest(r)
+	profileImage, err := accounts.ImageToBase64FromRequest(r, "profilePicture")
 	if err != nil {
-		log.Println(err)
+		//there was error
+		data := envelope{
+			"responseCode": "06",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
 		return
 	}
 
@@ -308,6 +315,100 @@ func (app *application) AccountCreate(w http.ResponseWriter, r *http.Request) {
 		profileImage,
 		accountHolderIdentificationType,
 		accountHolderCountry,
+	}
+
+	_, err = accounts.ProcessAccount(req)
+	if err != nil {
+		//there was error
+		data := envelope{
+			"responseCode": "06",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+	//Response(response, err, w, r)
+
+	data := envelope{
+		"responseCode": "00",
+		"status":       "Success",
+		"message":      "Account Created Successfully",
+	}
+	app.writeJSON(w, http.StatusOK, data, nil)
+}
+func (app *application) AccountCreateUk(w http.ResponseWriter, r *http.Request) {
+
+	_, err := app.getTokenFromHeader(w, r)
+	if err != nil {
+		// there was error
+		data := envelope{
+			"responseCode": "07",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+
+	accountNumber := r.FormValue("accountNumber")
+
+	// Initialize variables with actual data
+
+	req := []string{
+		"0",
+		"acmt",
+		"1013",
+		accountNumber,
+	}
+
+	_, err = accounts.ProcessAccount(req)
+	if err != nil {
+		//there was error
+		data := envelope{
+			"responseCode": "06",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+	//Response(response, err, w, r)
+
+	data := envelope{
+		"responseCode": "00",
+		"status":       "Success",
+		"message":      "Account Created Successfully",
+	}
+	app.writeJSON(w, http.StatusOK, data, nil)
+}
+func (app *application) AccountCreateUs(w http.ResponseWriter, r *http.Request) {
+
+	_, err := app.getTokenFromHeader(w, r)
+	if err != nil {
+		// there was error
+		data := envelope{
+			"responseCode": "07",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+
+	accountNumber := r.FormValue("accountNumber")
+
+	// Initialize variables with actual data
+
+	req := []string{
+		"0",
+		"acmt",
+		"1014",
+		accountNumber,
 	}
 
 	_, err = accounts.ProcessAccount(req)

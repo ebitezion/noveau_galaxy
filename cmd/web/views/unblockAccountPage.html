@@ -35,7 +35,7 @@
                 body: formdata,
             };
 
-            fetch("http://localhost:4000/v1/accounts/unblock", requestOptions)
+            fetch("/v1/accounts/unblock", requestOptions)
                 .then(response => response.json()) // Parse the response as JSON
                 .then(result => { 
                     console.log(result)
@@ -50,7 +50,7 @@
                             document.getElementById("successAlert").style.display = "none";
                         }, 7000);
 				}else if(result.responseCode === "07"){
-                 window.location.href = "http://localhost:4000/v1/loginpage"
+                 window.location.href = "/v1/loginpage"
 
             }else {
                           document.getElementById("failureAlert").innerText = result.message;

@@ -54,6 +54,34 @@ func createAccount(accountDetails *AccountDetails, accountHolderDetails *Account
 
 	return
 }
+func createUkAccount(accountDetails *AccountDetails) (err error) {
+	// Convert variables
+
+	err = doCreateUkAccount(accountDetails)
+	if err != nil {
+		return errors.New("accounts.createAccount: " + err.Error())
+	}
+
+	if err != nil {
+		return errors.New("accounts.createAccount: " + err.Error())
+	}
+
+	return
+}
+func createUsaAccount(accountDetails *AccountDetails) (err error) {
+	// Convert variables
+
+	err = doCreateUsAccount(accountDetails)
+	if err != nil {
+		return errors.New("accounts.createAccount: " + err.Error())
+	}
+
+	if err != nil {
+		return errors.New("accounts.createAccount: " + err.Error())
+	}
+
+	return
+}
 func createSpecialAccount(accountDetails *SpecialAccountDetails) (err error) {
 	// Convert variables
 	fmt.Println(accountDetails)
@@ -100,7 +128,42 @@ func deleteAccount(accountDetails *AccountDetails, accountHolderDetails *Account
 
 	return
 }
+func doCreateUkAccount(accountDetails *AccountDetails) (err error) {
+	// Create account
+	insertStatement := "INSERT INTO accounts_uk (`accountNumber`, `bankNumber`, `accountHolderName`, `accountBalance`, `overdraft`, `availableBalance`) "
+	insertStatement += "VALUES(?, ?, ?, ?, ?, ?)"
+	stmtIns, err := Config.Db.Prepare(insertStatement)
+	if err != nil {
+		return errors.New("accounts.doCreateAccount: " + err.Error())
+	}
 
+	// Prepare statement for inserting data
+	defer stmtIns.Close() // Close the statement when we leave main() / the program terminates
+
+	_, err = stmtIns.Exec(accountDetails.AccountNumber, accountDetails.BankNumber, accountDetails.AccountHolderName, accountDetails.AccountBalance, accountDetails.Overdraft, accountDetails.AvailableBalance)
+	if err != nil {
+		return errors.New("accounts.doCreateAccount: " + err.Error())
+	}
+	return
+}
+func doCreateUsAccount(accountDetails *AccountDetails) (err error) {
+	// Create account
+	insertStatement := "INSERT INTO accounts_us (`accountNumber`, `bankNumber`, `accountHolderName`, `accountBalance`, `overdraft`, `availableBalance`) "
+	insertStatement += "VALUES(?, ?, ?, ?, ?, ?)"
+	stmtIns, err := Config.Db.Prepare(insertStatement)
+	if err != nil {
+		return errors.New("accounts.doCreateAccount: " + err.Error())
+	}
+
+	// Prepare statement for inserting data
+	defer stmtIns.Close() // Close the statement when we leave main() / the program terminates
+
+	_, err = stmtIns.Exec(accountDetails.AccountNumber, accountDetails.BankNumber, accountDetails.AccountHolderName, accountDetails.AccountBalance, accountDetails.Overdraft, accountDetails.AvailableBalance)
+	if err != nil {
+		return errors.New("accounts.doCreateAccount: " + err.Error())
+	}
+	return
+}
 func doCreateAccount(accountDetails *AccountDetails) (err error) {
 	// Create account
 	insertStatement := "INSERT INTO accounts (`accountNumber`, `bankNumber`, `accountHolderName`, `accountBalance`, `overdraft`, `availableBalance`) "
@@ -250,7 +313,7 @@ func doDeleteAccount(accountDetails *AccountDetails) (err error) {
 // image
 func doCreateAccountMeta(accountHolderDetails *AccountHolderDetails, accountDetails *AccountDetails) (err error) {
 	// Create account meta
-	insertStatement := "INSERT INTO accounts_meta (`accountNumber`,`bankNumber`,`accountHolderGivenName`,`accountHolderFamilyName`,`accountHolderDateOfBirth`,`accountHolderIdentificationNumber`,`accountIdentificationType`,`country`,`accountHolderContactNumber1`, `accountHolderContactNumber2`,`accountHolderEmailAddress`,`accountHolderAddressLine1`,`accountHolderAddressLine2`,`accountHolderAddressLine3`,`accountHolderPostalCode`,`image`) "
+	insertStatement := "INSERT INTO accounts_meta (`accountNumber`,`bankNumber`,`accountHolderGivenName`,`accountHolderFamilyName`,`accountHolderDateOfBirth`,`accountHolderIdentificationNumber`,`accountHolderIdentificationType`,`country`,`accountHolderContactNumber1`, `accountHolderContactNumber2`,`accountHolderEmailAddress`,`accountHolderAddressLine1`,`accountHolderAddressLine2`,`accountHolderAddressLine3`,`accountHolderPostalCode`,`image`) "
 	insertStatement += "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
 	stmtIns, err := Config.Db.Prepare(insertStatement)
 	if err != nil {
@@ -404,32 +467,33 @@ func getAllTransactions() ([]Transaction, error) {
 func getAllAccountDetails() (allAccounts []AccountDetails, err error) {
 	query := `
 		SELECT 
-			a.accountNumber, 
-			a.bankNumber,
-			a.accountHolderName, 
-			a.accountBalance, 
-			a.overdraft, 
-			a.availableBalance, 
-			b.accountHolderContactNumber1, 
-			b.accountHolderContactNumber2,
-			b.accountHolderGivenName,
-			b.accountHolderFamilyName,
-			b.accountHolderDateOfBirth,
-			b.accountHolderIdentificationNumber,
-			b.country,
-			b.accountHolderEmailAddress,
-			b.accountHolderAddressLine1,
-			b.accountHolderAddressLine2,
-			b.accountHolderAddressLine3,
-			b.accountHolderPostalCode,
-			b.image
-		FROM 
-			accounts a
-		JOIN 
-			accounts_meta b 
-		ON 
-			a.accountNumber = b.accountNumber
-	`
+    a.accountNumber, 
+    a.bankNumber,
+    a.accountHolderName, 
+    a.accountBalance, 
+    a.overdraft, 
+    a.availableBalance, 
+    b.accountHolderContactNumber1, 
+    b.accountHolderContactNumber2,
+    b.accountHolderGivenName,
+    b.accountHolderFamilyName,
+    b.accountHolderDateOfBirth,
+    b.accountHolderIdentificationNumber,
+    b.country,
+    b.accountHolderEmailAddress,
+    b.accountHolderAddressLine1,
+    b.accountHolderAddressLine2,
+    b.accountHolderAddressLine3,
+    b.accountHolderPostalCode,
+    b.image
+FROM 
+    accounts a
+JOIN 
+    accounts_meta b 
+ON 
+    a.accountNumber = b.accountNumber
+COLLATE utf8mb4_general_ci; -- Add this line specifying the collation
+`
 
 	rows, err := Config.Db.Query(query)
 	if err != nil {
@@ -582,7 +646,7 @@ func GetBalanceDetails(accountNumber string) (BalanceEnquiry, error) {
 
 // Get method for fetching all records from the transactions table for a specific account number.
 func GetAccountHistory(accountNumber string) ([]Transaction, error) {
-	query := "SELECT transaction, type, senderAccountNumber, senderBankNumber, receiverAccountNumber, receiverBankNumber, transactionAmount, feeAmount, timestamp,narration,initiator FROM transactions WHERE senderAccountNumber = ?"
+	query := "SELECT transaction, type, senderAccountNumber, senderBankNumber, receiverAccountNumber, receiverBankNumber, transactionAmount, feeAmount, timestamp,narration,initiator FROM transactions WHERE senderAccountNumber = ? OR receiverAccountNumber = ?"
 
 	var transactions []Transaction // Slice to hold multiple transaction records.
 
@@ -590,7 +654,7 @@ func GetAccountHistory(accountNumber string) ([]Transaction, error) {
 	defer cancel()
 
 	// Use the QueryContext method to execute the query, passing in the context.
-	rows, err := Config.Db.QueryContext(ctx, query, accountNumber)
+	rows, err := Config.Db.QueryContext(ctx, query, accountNumber, accountNumber)
 	if err != nil {
 		return nil, err
 	}

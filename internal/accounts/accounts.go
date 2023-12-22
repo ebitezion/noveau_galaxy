@@ -56,6 +56,7 @@ Accounts (acmt) transactions are as follows:
 23 - IdentificationVerificationRequestV02
 24 - IdentificationVerificationReportV02
 
+
 ### Custom functionality
 1000 - ListAllAccounts (@FIXME Used for now by anyone, close down later)
 1001 - ListSingleAccount
@@ -70,6 +71,8 @@ Accounts (acmt) transactions are as follows:
 1010 - BlockAccount
 1011 - UnblockAccount
 1012 - OutflowHistory
+1013 - OpenUkAccount
+1014 - OpenUsAccount
 
 */
 
@@ -299,6 +302,26 @@ func ProcessAccount(data []string) (result interface{}, err error) {
 			return "", errors.New("accounts.ProcessAccount: " + err.Error())
 		}
 		break
+	case 1013:
+		if len(data) < 3 {
+			err = errors.New("accounts.ProcessAccount: Not all fields present")
+			return
+		}
+		result, err = openUSAccount(data)
+		if err != nil {
+			return "", errors.New("accounts.ProcessAccount: " + err.Error())
+		}
+		break
+	case 1014:
+		if len(data) < 3 {
+			err = errors.New("accounts.ProcessAccount: Not all fields present")
+			return
+		}
+		result, err = openUKccount(data)
+		if err != nil {
+			return "", errors.New("accounts.ProcessAccount: " + err.Error())
+		}
+		break
 
 	default:
 		err = errors.New("accounts.ProcessAccount: ACMT transaction code invalid")
@@ -307,6 +330,64 @@ func ProcessAccount(data []string) (result interface{}, err error) {
 	}
 
 	return
+}
+func openUSAccount(data []string) (result string, err error) {
+	// Validate string against required info/length
+	if len(data) < 2 {
+		err := errors.New("accounts.closeAccount: Not all fields present")
+		return "", err
+	}
+
+	// @FIXME: Remove new line from data
+	data[len(data)-1] = strings.Replace(data[len(data)-1], "\n", "", -1)
+
+	// Check if account already exists, check on ID number
+	accountHolder, _ := getAccountMeta(data[3])
+	if accountHolder.AccountNumber == "" {
+		return "", errors.New("accounts.closeAccount: Account does not exist. " + accountHolder.AccountNumber)
+	}
+
+	// Create account
+	accountHolderObject, err := setForeignAccountDetails(accountHolder)
+	if err != nil {
+		return "", errors.New("accounts.openAccount: " + err.Error())
+	}
+	err = createUsaAccount(&accountHolderObject)
+	if err != nil {
+		return "", errors.New("accounts.openAccount: " + err.Error())
+	}
+
+	result = accountHolderObject.AccountNumber
+
+	return "USA Account Created Successfully", nil
+}
+func openUKccount(data []string) (result string, err error) {
+	// Validate string against required info/length
+	if len(data) < 2 {
+		err := errors.New("accounts.closeAccount: Not all fields present")
+		return "", err
+	}
+
+	// @FIXME: Remove new line from data
+	data[len(data)-1] = strings.Replace(data[len(data)-1], "\n", "", -1)
+
+	// Check if account already exists, check on ID number
+	accountHolder, _ := getAccountMeta(data[3])
+	if accountHolder.AccountNumber == "" {
+		return "", errors.New("accounts.closeAccount: Account does not exist. " + accountHolder.AccountNumber)
+	}
+
+	// Create account
+	accountHolderObject, err := setForeignAccountDetails(accountHolder)
+	if err != nil {
+		return "", errors.New("accounts.openAccount: " + err.Error())
+	}
+	err = createUkAccount(&accountHolderObject)
+	if err != nil {
+		return "", errors.New("accounts.openAccount: " + err.Error())
+	}
+
+	return "Uk Account Created Successfully", nil
 }
 func unblockAccount(data []string) (result string, err error) {
 	// Validate string against required info/length
@@ -417,6 +498,7 @@ func FetchAccountMeta(accountNumber string) (AccountHolderDetails *AccountHolder
 	}
 
 	accountMeta, err := getAccountMeta(accountNumber)
+
 	if err != nil {
 		return nil, errors.New("accounts.fetchAccountMeta: " + err.Error())
 	}
@@ -566,7 +648,20 @@ func closeAccount(data []string) (result string, err error) {
 
 	return
 }
+func setForeignAccountDetails(data AccountHolderDetails) (accountDetails AccountDetails, err error) {
 
+	nubanGenerator := nuban.NewNUBANGenerator()
+	nuban := nubanGenerator.GenerateNUBAN()
+
+	accountDetails.AccountNumber = data.AccountNumber
+	accountDetails.BankNumber = nuban
+	accountDetails.AccountHolderName = data.FamilyName + "," + data.GivenName // Family Name, Given Name
+	accountDetails.AccountBalance = decimal.NewFromFloat(OPENING_BALANCE)
+	accountDetails.Overdraft = decimal.NewFromFloat(OPENING_OVERDRAFT)
+	accountDetails.AvailableBalance = decimal.NewFromFloat(OPENING_BALANCE + OPENING_OVERDRAFT)
+
+	return
+}
 func setAccountDetails(data []string) (accountDetails AccountDetails, err error) {
 	fmt.Println(data)
 	if data[4] == "" {
@@ -865,14 +960,19 @@ func ImageToBase64(imagePath string) (string, error) {
 
 	return encodedString, nil
 }
-func ImageToBase64FromRequest(r *http.Request) (string, error) {
+func ImageToBase64FromRequest(r *http.Request, imageName string) (string, error) {
 	// Parse the form data to get the image file
-	err := r.ParseMultipartForm(10 << 20) // 10 MB limit
+	err := r.ParseMultipartForm(2 << 20) // 2 MB limit
+
 	if err != nil {
 		return "", fmt.Errorf("error parsing form: %v", err)
 	}
 
-	file, _, err := r.FormFile("profilePicture")
+	file, _, err := r.FormFile(imageName)
+	//having a picture is optional
+	if file == nil {
+		return "", nil
+	}
 	if err != nil {
 		return "", fmt.Errorf("error retrieving file from form: %v", err)
 	}

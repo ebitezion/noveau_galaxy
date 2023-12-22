@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/ebitezion/backend-framework/internal/accounts"
+	cashpickup "github.com/ebitezion/backend-framework/internal/cash_pickup"
 	"github.com/ebitezion/backend-framework/internal/data"
 	"github.com/ebitezion/backend-framework/internal/notifications"
 	"github.com/ebitezion/backend-framework/internal/payments"
@@ -373,7 +374,7 @@ func (app *application) Notification(token string, sendersAccountNumber string, 
 	return nil
 }
 func (app *application) CashPickup(w http.ResponseWriter, r *http.Request) {
-	token, err := app.getTokenFromHeader(w, r)
+	_, err := app.getTokenFromHeader(w, r)
 	if err != nil {
 
 		// there was error
@@ -388,7 +389,7 @@ func (app *application) CashPickup(w http.ResponseWriter, r *http.Request) {
 	}
 	//for credit only  receivers account number and sender account number is required
 	//which is the number before the @ sign
-	CashPickupData := payments.CashPickup{}
+	CashPickupData := cashpickup.CashPickup{}
 	// read the incoming request body
 	err = app.readJSON(w, r, &CashPickupData)
 	if err != nil {
@@ -405,7 +406,8 @@ func (app *application) CashPickup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response, err := payments.ProcessPAIN([]string{token, "pain", "14"})
+	result, err := cashpickup.NewCashPickup(CashPickupData)
+	fmt.Println(result)
 
 	if err != nil {
 		// there was error
@@ -427,8 +429,8 @@ func (app *application) CashPickup(w http.ResponseWriter, r *http.Request) {
 
 	data := envelope{
 		"responseCode": "00",
-		"status":       "Success",
-		"message":      response + "Deposit Made Sucessfully",
+		"status":       "CashPickup Created Successfully",
+		"message":      result,
 	}
 	app.writeJSON(w, http.StatusOK, data, nil)
 }

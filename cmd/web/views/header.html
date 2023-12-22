@@ -64,7 +64,7 @@
 
             <!-- Heading -->
             <div class="sidebar-heading">
-                Interface
+                MENU
             </div>
 
             <!-- Nav Item - Pages Collapse Menu -->
@@ -107,7 +107,7 @@ payments
                     <div class="bg-white py-2 collapse-inner rounded">
                         <a class="collapse-item" href="/v1/depositPage">Deposit Initiation</a>
                         <a class="collapse-item" href="/v1/withdrawalPage">Withdrawal Initiation</a>
-                        <a class="collapse-item" href="/v1/creditPage">Credit Initiation</a>
+                        <a class="collapse-item" href="/v1/creditPage">Transfer Initiation</a>
                         <a class="collapse-item" href="/v1/allTransactionsPage">View All Transactions</a>
                        
                          <a class="collapse-item" href="/v1/cashPickupPage">Cash Pickup</a>
@@ -134,6 +134,24 @@ payments
                     </div>
                 </div>
             </li>
+             <li class="nav-item">
+                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#cashpickup"
+                    aria-expanded="true" aria-controls="collapseUtilities">
+                   <span class="material-symbols-outlined">
+shopping_cart
+</span>
+                    <span>Cash Pickup</span>
+                </a>
+                <div id="cashpickup" class="collapse" aria-labelledby="headingUtilities"
+                    data-parent="#accordionSidebar">    
+                    <div class="bg-white py-2 collapse-inner rounded">
+                         <a class="collapse-item" href="/v1/cashPickupPage">New CashPickup</a>
+                        <a class="collapse-item" href="/v1/allCashPickupPage">View All CashPickups</a>
+                          <a class="collapse-item" href="/v1/userCashPickupPage">View User CashPickups</a>
+                    
+                    </div>
+                </div>
+            </li>
             <li class="nav-item">
                 <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#echannels"
                     aria-expanded="true" aria-controls="collapseUtilities">
@@ -150,7 +168,15 @@ payments
                     </div>
                 </div>
             </li>
-
+<li class="nav-item side-link">
+                <a class="nav-link collapsed" href="/v1/currencyConversionPage"
+                    aria-expanded="true" >
+                    <span class="material-symbols-outlined">
+credit_card
+</span>
+                    <span>Currency Conversion</span>
+                </a>
+            </li>
            <li class="nav-item side-link ">
                 <a class="nav-link collapsed" href="/v1/businessPage"
                     aria-expanded="true" >
@@ -194,15 +220,7 @@ handshake
                     <span> Kyc</span>
                 </a>
             </li>
-            <li class="nav-item side-link">
-                <a class="nav-link collapsed" href="/v1/currencyConversionPage"
-                    aria-expanded="true" >
-                    <span class="material-symbols-outlined">
-credit_card
-</span>
-                    <span>Currency Conversion</span>
-                </a>
-            </li>
+            
         
                <li class="nav-item side-link">
                 <a class="nav-link collapsed" href="/v1/teamsPage"
