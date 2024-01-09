@@ -334,8 +334,7 @@ func doCreateAccountMeta(accountHolderDetails *AccountHolderDetails, accountDeta
 }
 
 func doUpdateAccountMeta(accountHolderDetails *AccountHolderDetails) (err error) {
-	fmt.Println(accountHolderDetails.AccountNumber)
-	fmt.Println(accountHolderDetails)
+
 	// Create account meta   identificationType
 	updateStatement := "UPDATE accounts_meta SET `accountHolderGivenName`=?, `accountHolderFamilyName`=?, `accountHolderDateOfBirth`=?, `accountHolderIdentificationNumber`=?, `accountHolderContactNumber1`=?, `accountHolderContactNumber2`=?, `accountHolderEmailAddress`=?, `accountHolderAddressLine1`=?, `accountHolderAddressLine2`=?, `accountHolderAddressLine3`=?, `accountHolderPostalCode`=?,  `country`=?, `accountHolderIdentificationType`=? WHERE `accountNumber`=?"
 	stmtUpdate, err := Config.Db.Prepare(updateStatement)

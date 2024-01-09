@@ -50,6 +50,12 @@ func (app *application) routes() *httprouter.Router {
 	router.HandlerFunc(http.MethodGet, "/v1/allCashPickupPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderAllCashPickupPage)))
 	router.HandlerFunc(http.MethodGet, "/v1/userCashPickupPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderUserCashPickupPage)))
 	router.HandlerFunc(http.MethodGet, "/v1/withdrawalPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderWithdrawalPage)))
+	router.HandlerFunc(http.MethodGet, "/v1/transferApprovalPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderApproveTransferPage)))
+	router.HandlerFunc(http.MethodGet, "/v1/withdrawalApprovalPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderApproveWithdrawalPage)))
+	router.HandlerFunc(http.MethodGet, "/v1/depositApprovalPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderApproveDepositPage)))
+	router.HandlerFunc(http.MethodGet, "/v1/cashPickupApprovalPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderApproveCashPickupPage)))
+	router.HandlerFunc(http.MethodGet, "/v1/beneficiariesPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderBeneficiariesPage)))
+
 	// Likewise, convert the methodNotAllowedResponse() helper to a http.Handler and set
 	// it as the custom error handler for 405 Method Not Allowed responses.
 	router.MethodNotAllowed = http.HandlerFunc(app.methodNotAllowedResponse)
@@ -93,6 +99,8 @@ func (app *application) routes() *httprouter.Router {
 	router.HandlerFunc(http.MethodPost, "/v1/accounts/update", app.AccountUpdate)
 	router.HandlerFunc(http.MethodPost, "/v1/accounts/block", app.BlockAccount)
 	router.HandlerFunc(http.MethodPost, "/v1/accounts/unblock", app.UnblockAccount)
+	router.HandlerFunc(http.MethodPost, "/v1/beneficiary", app.GetBeneficiaries)
+
 	//Currency Exchange
 	router.HandlerFunc(http.MethodGet, "/v1/availableCurrencies", app.AvailableCurrenciesHandler)
 

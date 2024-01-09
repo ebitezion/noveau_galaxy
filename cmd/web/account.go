@@ -684,6 +684,54 @@ func (app *application) BalanceEnquiry(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// GetBeneficiaries gets all the beneficiaries tied to an account
+func (app *application) GetBeneficiaries(w http.ResponseWriter, r *http.Request) {
+	_, err := app.getTokenFromHeader(w, r)
+	if err != nil {
+		// there was error
+		data := envelope{
+			"responseCode": "07",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+
+	accountNumber := r.FormValue("accountNumber")
+
+	//fetch account details
+	beneficiaries, err := accounts.GetBenefciaries(accountNumber)
+	if err != nil {
+		// there was error
+		data := envelope{
+			"responseCode": "06",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+	// Check if beneficiaries is nil and assign an empty array if true
+	if beneficiaries == nil {
+		beneficiaries = make([]data.Beneficiary, 0)
+	}
+
+	// Return a success response or an error message
+	data := envelope{
+		"responseCode": "00",
+		"status":       "Success",
+		"message":      beneficiaries,
+	}
+	err = app.writeJSON(w, http.StatusOK, data, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+}
+
 // AccountHistory retrieves the account history of a user
 func (app *application) AccountHistory(w http.ResponseWriter, r *http.Request) {
 

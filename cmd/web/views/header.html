@@ -135,6 +135,26 @@ payments
                 </div>
             </li>
              <li class="nav-item">
+                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#list"
+                    aria-expanded="true" aria-controls="collapseUtilities">
+                   <span class="material-symbols-outlined">
+check_circle
+</span>
+                    <span>Approval List</span>
+                </a>
+                <div id="list" class="collapse" aria-labelledby="headingUtilities"
+                    data-parent="#accordionSidebar">    
+                    <div class="bg-white py-2 collapse-inner rounded">
+                         <a class="collapse-item" href="/v1/depositApprovalPage">Deposit Approvals</a>
+                        <a class="collapse-item" href="/v1/withdrawalApprovalPage">Withdrawal Approvals </a>
+                              <!-- <a class="collapse-item" href="/v1/transferApprovalPage">Transafer Approvals </a> -->
+                            <a class="collapse-item" href="/v1/cashPickupApprovalPage">CashPickup Approvals </a>
+                                 <!-- <a class="collapse-item" href="/v1/outflowPage">Biodata Change Approvals </a> -->
+                    
+                    </div>
+                </div>
+            </li>
+             <li class="nav-item">
                 <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#cashpickup"
                     aria-expanded="true" aria-controls="collapseUtilities">
                    <span class="material-symbols-outlined">
@@ -147,7 +167,7 @@ shopping_cart
                     <div class="bg-white py-2 collapse-inner rounded">
                          <a class="collapse-item" href="/v1/cashPickupPage">New CashPickup</a>
                         <a class="collapse-item" href="/v1/allCashPickupPage">View All CashPickups</a>
-                          <a class="collapse-item" href="/v1/userCashPickupPage">View User CashPickups</a>
+                          <!-- <a class="collapse-item" href="/v1/userCashPickupPage">View User CashPickups</a> -->
                     
                     </div>
                 </div>
@@ -163,7 +183,7 @@ shopping_cart
                 <div id="echannels" class="collapse" aria-labelledby="headingUtilities"
                     data-parent="#accordionSidebar">    
                     <div class="bg-white py-2 collapse-inner rounded">
-                        <a class="collapse-item" href="/v1/depositPage">Beneficiaries</a>
+                        <a class="collapse-item" href="/v1/beneficiariesPage">Beneficiaries</a>
                     
                     </div>
                 </div>
@@ -195,15 +215,7 @@ edit_square
                     <span>Audit</span>
                 </a>
             </li>
-            <li class="nav-item side-link ">
-                <a class="nav-link collapsed" href="/v1/businessPage"
-                    aria-expanded="true" >
-                    <span class="material-symbols-outlined">
-work
-</span>
-                    <span>Businesses</span>
-                </a>
-            </li>
+        
             <li class="nav-item side-link">
                 <a class="nav-link collapsed" href="/v1/partnersPage"
                     aria-expanded="true" >
