@@ -40,8 +40,9 @@ func (app *application) routes() *httprouter.Router {
 	router.HandlerFunc(http.MethodPost, "/v1/api/login/external", app.AuthLogin)
 	router.HandlerFunc(http.MethodPost, "/v1/api/create/external", app.AuthLogin)
 	router.HandlerFunc(http.MethodPost, "/v1/api/create", app.AuthCreate)
-	router.HandlerFunc(http.MethodPost, "/v1/authindex", app.AuthIndex)
-
+	router.HandlerFunc(http.MethodPost, "/v1/api/authindex", app.AuthIndex)
+	router.HandlerFunc(http.MethodPost, "/v1/api/verifyToken", app.VerifyToken)
+	router.HandlerFunc(http.MethodPost, "/v1/api/generateToken", app.GenerateToken)
 	//Transactions and account management
 	router.HandlerFunc(http.MethodPost, "/v1/api/deposit", app.PaymentDepositInitiation)
 	router.HandlerFunc(http.MethodPost, "/v1/api/credit", app.PaymentCreditInitiation)

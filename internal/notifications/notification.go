@@ -11,7 +11,7 @@ type Notification struct {
 type NotificationService struct{}
 
 func SendNotification(ns NotificationService, notification Notification) {
-	emailSubject := "Notification"
+	emailSubject := "Verification Notification"
 	emailBody := notification.Message
 
 	err := ns.SendEmail(notification.User.Email, emailSubject, emailBody)
@@ -21,11 +21,4 @@ func SendNotification(ns NotificationService, notification Notification) {
 		// Handle error
 	}
 
-	// smsMessage := fmt.Sprintf("Notification: %s", notification.Message)
-	// err = ns.SendSMS(notification.User.Phone, smsMessage)
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	return
-	// 	// Handle error
-	// }
 }

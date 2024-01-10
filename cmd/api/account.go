@@ -263,22 +263,22 @@ func (app *application) AccountIndex(w http.ResponseWriter, r *http.Request) {
 
 func (app *application) AccountCreate(w http.ResponseWriter, r *http.Request) {
 
-	//_, err := app.getTokenFromHeader(w, r)
-	// if err != nil {
-	// 	// there was error
-	// 	data := envelope{
-	// 		"responseCode": "06",
-	// 		"status":       "Failed",
-	// 		"message":      err.Error(),
-	// 	}
+	_, err := app.getTokenFromHeader(w, r)
+	if err != nil {
+		// there was error
+		data := envelope{
+			"responseCode": "06",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
 
-	// 	app.writeJSON(w, http.StatusBadRequest, data, nil)
-	// 	return
-	// }
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
 
 	var req data.NewAccountRequest
 	// read the incoming request body
-	err := app.readJSON(w, r, &req)
+	err = app.readJSON(w, r, &req)
 	if err != nil {
 		app.badRequestResponse(w, r, err)
 		return

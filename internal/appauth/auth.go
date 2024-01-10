@@ -5,6 +5,7 @@ import (
 	"crypto/sha512"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"time"
 
 	"gopkg.in/redis.v3"
@@ -79,11 +80,98 @@ func ProcessAppAuth(data []string) (result string, err error) {
 			return "", err
 		}
 		return result, nil
+	case "6":
+		if len(data) < 5 {
+			return "", errors.New("appauth.ProcessAppAuth: Not all required fields present")
+		}
+		result, err = CreateUserForEchannel(data[3], data[4], data[5], data[6])
+		if err != nil {
+			return "", err
+		}
+		return result, nil
+	case "7":
+		if len(data) < 5 {
+			return "", errors.New("appauth.ProcessAppAuth: Not all required fields present")
+		}
+		result, err = VerifyEmailToken(data[3], data[4])
+		if err != nil {
+			return "", err
+		}
+	case "8":
+		if len(data) < 5 {
+			return "", errors.New("appauth.ProcessAppAuth: Not all required fields present")
+		}
+		result, err = UpdatesToken(data[3], data[4])
+		if err != nil {
+			return "", err
+		}
+		return result, nil
 	}
+
 	return "", errors.New("appauth.ProcessAppAuth: No valid option chosen")
 }
 
-func CreateUserPassword(accountNumber string, password string, userame string) (result string, err error) {
+func UpdatesToken(email string, token string) (result string, err error) {
+
+	//update account to be verified
+	updateStatement := "UPDATE accounts_auth SET `token`= ? WHERE `email`=?"
+	stmtUpdate, err := Config.Db.Prepare(updateStatement)
+	if err != nil {
+		return "", errors.New("accounts.VerifyEmailToken: " + err.Error())
+	}
+
+	// Prepare statement for updating data
+	defer stmtUpdate.Close() // Close the statement when we leave main() / the program terminates
+
+	_, err = stmtUpdate.Exec(token, email)
+	if err != nil {
+		return "", errors.New("accounts.VerifyEmailToken: " + err.Error())
+	}
+	return "Token Has Been Sent ", nil
+
+}
+func VerifyEmailToken(email string, token string) (result string, err error) {
+	//check if user exists
+	query := "SELECT COUNT(*) FROM accounts_auth WHERE token = ?;"
+	// Declare a variable to store the count.
+	var count int
+
+	// Use the context.WithTimeout() function to create a context.Context with a timeout.
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	// Use QueryRowContext() to execute the query and get the count.
+	err = Config.Db.QueryRowContext(ctx, query, token).Scan(&count)
+	if err != nil {
+		// Print the error message for debugging purposes.
+		fmt.Println("Error executing query:", err)
+		return "", err
+	}
+	fmt.Println("count", count)
+	// Check the count after iterating through all rows
+	if count == 0 {
+		return "", errors.New("appauth.VerifyEmailToken: Invalid Token")
+	}
+
+	//update account to be verified
+	updateStatement := "UPDATE accounts_auth SET `isVerified`= ? WHERE `email`=?"
+	stmtUpdate, err := Config.Db.Prepare(updateStatement)
+	if err != nil {
+		return "", errors.New("accounts.VerifyEmailToken: " + err.Error())
+	}
+
+	// Prepare statement for updating data
+	defer stmtUpdate.Close() // Close the statement when we leave main() / the program terminates
+
+	status := "True"
+	_, err = stmtUpdate.Exec(status, email)
+	if err != nil {
+		return "", errors.New("accounts.VerifyEmailToken: " + err.Error())
+	}
+	return "Token is Valid", nil
+
+}
+func CreateUserPassword(accountNumber string, password string, email string) (result string, err error) {
 	//check if account is valid
 
 	rows, err := Config.Db.Query("SELECT `accountNumber` FROM `accounts` WHERE `accountNumber` = ?", accountNumber)
@@ -108,25 +196,30 @@ func CreateUserPassword(accountNumber string, password string, userame string) (
 	hasher.Write([]byte(password))
 	hash := hex.EncodeToString(hasher.Sum(nil))
 
-	// Check for existing account
-	rows, err = Config.Db.Query("SELECT `accountNumber` FROM `accounts_auth` WHERE `accountNumber` = ?", accountNumber)
+	//check if user exists
+	query := "SELECT COUNT(*) FROM accounts_auth WHERE email = ?;"
+	// Declare a variable to store the count.
+	var value int
+
+	// Use the context.WithTimeout() function to create a context.Context with a timeout.
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	// Use QueryRowContext() to execute the query and get the count.
+	err = Config.Db.QueryRowContext(ctx, query, email).Scan(&value)
 	if err != nil {
-		return "", errors.New("appauth.CreateUserPassword: Error with select query. " + err.Error())
-	}
-	defer rows.Close()
-
-	// @TODO Must be easy way to get row count returned
-	count = 0
-	for rows.Next() {
-		count++
+		// Print the error message for debugging purposes.
+		fmt.Println("Error executing query:", err)
+		return "", err
 	}
 
-	if count > 0 {
+	// Check the count after iterating through all rows
+	if value > 0 {
 		return "", errors.New("appauth.CreateUserPassword: Account already exists")
 	}
 
 	// Prepare statement for inserting data
-	insertStatement := "INSERT INTO accounts_auth (`accountNumber`, `password`,`username`) "
+	insertStatement := "INSERT INTO accounts_auth (`accountNumber`, `password`,`email`) "
 	insertStatement += "VALUES(?, ?,?)"
 	stmtIns, err := Config.Db.Prepare(insertStatement)
 	if err != nil {
@@ -134,16 +227,64 @@ func CreateUserPassword(accountNumber string, password string, userame string) (
 	}
 	defer stmtIns.Close() // Close the statement when we leave main() / the program terminates
 
-	_, err = stmtIns.Exec(accountNumber, hash, userame)
+	_, err = stmtIns.Exec(accountNumber, hash, email)
 
 	if err != nil {
 		return "", errors.New("appauth.CreateUserPassword: Could not save account. " + err.Error())
 	}
 
-	result = "Successfully created account"
+	result = "Successfully created User"
 	return
 }
 
+func CreateUserForEchannel(password string, email string, phoneNumber string, token string) (result string, err error) {
+
+	//TEST 0~appauth~3~181ac0ae-45cb-461d-b740-15ce33e4612f~testPassword
+	// Generate hash
+	hasher := sha512.New()
+	hasher.Write([]byte(password))
+	hash := hex.EncodeToString(hasher.Sum(nil))
+
+	//check if user exists
+	query := "SELECT COUNT(*) FROM accounts_auth WHERE email = ?;"
+	// Declare a variable to store the count.
+	var count int
+
+	// Use the context.WithTimeout() function to create a context.Context with a timeout.
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	// Use QueryRowContext() to execute the query and get the count.
+	err = Config.Db.QueryRowContext(ctx, query, email).Scan(&count)
+	if err != nil {
+		// Print the error message for debugging purposes.
+		fmt.Println("Error executing query:", err)
+		return "", err
+	}
+	fmt.Println("count", count)
+	// Check the count after iterating through all rows
+	if count > 0 {
+		return "", errors.New("appauth.CreateUserPassword: Account already exists")
+	}
+
+	// Prepare statement for inserting data
+	insertStatement := "INSERT INTO accounts_auth (`password`,`email`,`phoneNumber`,`token`) "
+	insertStatement += "VALUES(?, ?,?,?)"
+	stmtIns, err := Config.Db.Prepare(insertStatement)
+	if err != nil {
+		return "", errors.New("appauth.CreateUserPassword: Error with insert. " + err.Error())
+	}
+	defer stmtIns.Close() // Close the statement when we leave main() / the program terminates
+
+	_, err = stmtIns.Exec(hash, email, phoneNumber, token)
+
+	if err != nil {
+		return "", errors.New("appauth.CreateUserPassword: Could not save account. " + err.Error())
+	}
+
+	result = "Successfully created User , Verification Token Sent."
+	return
+}
 func CreateUserPasswordExternal(password string, userame string) (result string, err error) {
 
 	// //TEST 0~appauth~3~181ac0ae-45cb-461d-b740-15ce33e4612f~testPassword
@@ -222,27 +363,28 @@ func RemoveUserPassword(user string, hashedPassword string) (result string, err 
 	result = "Successfully deleted account"
 	return
 }
-
-func CreateToken(user string, password string) (token string, err error) {
+func CreateToken(email string, password string) (token string, err error) {
 	//check if account is valid
 
 	//check if password is correct
-	rows, err := Config.Db.Query("SELECT `password` FROM `accounts_auth` WHERE `accountNumber` = ?", user)
+	rows, err := Config.Db.Query("SELECT `password` FROM `accounts_auth` WHERE `email` = ?", email)
 	if err != nil {
 		return "", errors.New("appauth.CreateToken: Error with select query. " + err.Error())
 	}
 	defer rows.Close()
 
 	count := 0
-	hashedPassword := ""
+	var hashedPassword string
 	for rows.Next() {
 		if err := rows.Scan(&hashedPassword); err != nil {
 			return "", errors.New("appauth.CreateToken: Could not retreive account details")
 		}
 		count++
 	}
+	if count == 0 {
+		return "", errors.New("appauth.CreateToken: User not found")
+	}
 
-	// Generate hash
 	hasher := sha512.New()
 	hasher.Write([]byte(password))
 	hash := hex.EncodeToString(hasher.Sum(nil))
@@ -255,7 +397,7 @@ func CreateToken(user string, password string) (token string, err error) {
 	token = newUuid.String()
 
 	// @TODO Remove all tokens for this user
-	err = Config.Redis.Set(token, user, TOKEN_TTL).Err()
+	err = Config.Redis.Set(token, email, TOKEN_TTL).Err()
 	if err != nil {
 		return "", errors.New("appauth.CreateToken: Could not set token. " + err.Error())
 	}

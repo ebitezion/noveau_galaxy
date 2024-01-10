@@ -580,13 +580,13 @@ func getSingleAccountNumberByID(userID string) (accountID string, err error) {
 
 	return
 }
-func getAuthCredentials(username string) (accountNumber string, fullname string, role string, err error) {
-	query := "SELECT `accountNumber`,`role` FROM `accounts_auth` WHERE `username` = ?"
+func getAuthCredentials(email string) (accountNumber string, fullname string, role string, err error) {
+	query := "SELECT `accountNumber`,`role` FROM `accounts_auth` WHERE `email` = ?"
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	err = Config.Db.QueryRowContext(ctx, query, username).Scan(&accountNumber, &role)
+	err = Config.Db.QueryRowContext(ctx, query, email).Scan(&accountNumber, &role)
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {

@@ -477,13 +477,13 @@ func CreateBeneficiary(beneficiary *data.Beneficiary) error {
 	return nil
 
 }
-func FetchAuthDetails(username string) (AccountNumber string, Fullname string, role string, err error) {
+func FetchAuthDetails(email string) (AccountNumber string, Fullname string, role string, err error) {
 
-	if username == "" {
+	if email == "" {
 		return "", "", "", errors.New("accounts.fetchAccountMeta: Username not present")
 	}
 
-	accountNumber, fullname, role, err := getAuthCredentials(username)
+	accountNumber, fullname, role, err := getAuthCredentials(email)
 	if err != nil {
 		return "", "", "",
 			errors.New("accounts.fetchAccountMeta: " + err.Error())

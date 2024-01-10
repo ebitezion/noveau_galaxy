@@ -23,7 +23,7 @@ func (app *application) routes() *httprouter.Router {
 
 	//RENDERED PAGES
 	router.HandlerFunc(http.MethodGet, "/v1/loginpage", app.RenderLoginPage)
-	router.HandlerFunc(http.MethodGet, "/v1/signuppage", app.AuthenticationMiddleware(app.RenderSignUpPage))
+	router.HandlerFunc(http.MethodGet, "/v1/signuppage", (app.RenderSignUpPage))
 	router.HandlerFunc(http.MethodGet, "/v1/index", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderIndexPage)))
 	router.HandlerFunc(http.MethodGet, "/v1/createAccountPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderCreateAccountPage)))
 	router.HandlerFunc(http.MethodGet, "/v1/blockAccountPage", app.AuthenticationMiddleware(http.HandlerFunc(app.RenderBlockAccountPage)))
