@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/ebitezion/backend-framework/internal/accounts"
+	cashpickup "github.com/ebitezion/backend-framework/internal/cash_pickup"
 	"github.com/ebitezion/backend-framework/internal/data"
 	"github.com/ebitezion/backend-framework/internal/ukaccountgen"
 	"github.com/ebitezion/backend-framework/internal/validator"
@@ -262,22 +263,22 @@ func (app *application) AccountIndex(w http.ResponseWriter, r *http.Request) {
 
 func (app *application) AccountCreate(w http.ResponseWriter, r *http.Request) {
 
-	//_, err := app.getTokenFromHeader(w, r)
-	// if err != nil {
-	// 	// there was error
-	// 	data := envelope{
-	// 		"responseCode": "06",
-	// 		"status":       "Failed",
-	// 		"message":      err.Error(),
-	// 	}
+	_, err := app.getTokenFromHeader(w, r)
+	if err != nil {
+		// there was error
+		data := envelope{
+			"responseCode": "06",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
 
-	// 	app.writeJSON(w, http.StatusBadRequest, data, nil)
-	// 	return
-	// }
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
 
 	var req data.NewAccountRequest
 	// read the incoming request body
-	err := app.readJSON(w, r, &req)
+	err = app.readJSON(w, r, &req)
 	if err != nil {
 		app.badRequestResponse(w, r, err)
 		return
@@ -983,4 +984,77 @@ func (app *application) saveAsJPEG(img image.Image, filename string) error {
 	}
 
 	return nil
+}
+
+func (app *application) AllCashPickup(w http.ResponseWriter, r *http.Request) {
+	_, err := app.getTokenFromHeader(w, r)
+	if err != nil {
+		// there was error
+		data := envelope{
+			"responseCode": "07",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+
+	response, err := cashpickup.GetAllCashPickups()
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	data := envelope{
+		"responseCode": "00",
+		"status":       "Success",
+		"message":      response,
+	}
+	app.writeJSON(w, http.StatusOK, data, nil)
+}
+
+func (app *application) UserCashPickup(w http.ResponseWriter, r *http.Request) {
+	_, err := app.getTokenFromHeader(w, r)
+	if err != nil {
+		// there was error
+		data := envelope{
+			"responseCode": "07",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+
+	var req data.User
+	// read the incoming request body
+	err = app.readJSON(w, r, &req)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+	// Validate the user ID
+	v := validator.New()
+	data.ValidateUser(v, &req)
+	if !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		//log to db
+
+		return
+	}
+
+	response, err := cashpickup.GetUsersCashPickups(req.AccountNumber)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	data := envelope{
+		"responseCode": "00",
+		"status":       "Success",
+		"message":      response,
+	}
+	app.writeJSON(w, http.StatusOK, data, nil)
 }

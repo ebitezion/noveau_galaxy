@@ -1,7 +1,73 @@
 {{ template "header" . }}
-<div class="container mt-50 text-center">
-    <img src="/static/img/undraw_under_construction_-46-pa.svg" class="w-50 mx-auto mb-4">
-    <h2 >Coming in version 1</h2>
-</div>
 
+<div class="container-fluid">
+	<!-- Page Heading -->
+	<div class="d-sm-flex align-items-center justify-content-between mb-4">
+		<h1 class="h3 mb-0 text-gray-800 mx-auto">Create USA Account</h1>
+	</div>
+	
+	<div class="container w-50 mt-5">
+		<div id="successAlert" class="alert alert-success mt-3" style="display: none;">
+ 		 </div>
+		<div id="failureAlert" class="alert alert-danger mt-3" style="display: none;">	
+		</div>
+		<form id="myform" >
+			<div class="mb-3">
+				<label for="accountNumber" class="form-label">Account Number</label>
+				<input type="text" class="form-control" id="accountNumber" name="accountNumber" required />
+			</div>
+
+			
+             <input type="text" class="form-control" id="initiator" name="initiator" value="{{ .AdminName }}" required style="display: none;" />
+
+	 <button onclick="submitForm()" class="btn btn-custom btn-user btn-block">Submit</button>           
+
+		</form>
+	</div>
+</div>
+<script>
+        function submitForm() {
+			event.preventDefault();
+            var formdata = new FormData(document.getElementById("myform"));
+            var storedValue = sessionStorage.getItem('token');
+            var requestOptions = {
+                method: 'POST',
+                headers: {
+                    'X-Auth-Token': storedValue,
+                },
+                body: formdata,
+            };
+
+            fetch("/v1/accounts/create/us", requestOptions)
+                .then(response => response.json()) // Parse the response as JSON
+                .then(result => {
+					console.log(result)
+					if (result.responseCode === "00") {
+                        	document.getElementById("myform").reset();
+					 // Update the success message with the message from the API
+                        document.getElementById("successAlert").innerText = result.message;
+                        // Show the success alert
+                        document.getElementById("successAlert").style.display = "block";
+                        // Hide the alert after 7 seconds
+                        setTimeout(function () {
+                            document.getElementById("successAlert").style.display = "none";
+                        }, 7000);
+				}else if(result.responseCode === "07"){
+                 window.location.href = "/v1/loginpage"
+
+            }else {
+                          document.getElementById("failureAlert").innerText = result.message;
+                        // Show the failure alert
+                        document.getElementById("failureAlert").style.display = "block";
+                        // Hide the alert after 7 seconds
+                        setTimeout(function () {
+                            document.getElementById("failureAlert").style.display = "none";
+                        }, 7000);
+                    }
+
+					
+				})
+            //     .catch(error => console.log('error', error));
+        }
+    </script>
 {{ template "footer" . }}

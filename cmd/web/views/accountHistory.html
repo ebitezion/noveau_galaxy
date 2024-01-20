@@ -51,7 +51,7 @@
             body: formdata,
         };
 
-        fetch("http://localhost:4000/v1/accountHistory", requestOptions)
+        fetch("/v1/accountHistory", requestOptions)
             .then(response => response.json()) // Parse the response as JSON
             .then(result => {
                 console.log(result);
@@ -64,8 +64,7 @@
                     result.message.forEach(function (transaction) {
                         var row = tableBody.insertRow(-1);
 
-                        row.insertCell(0).textContent = index++; // SN Column
-                      
+                        row.insertCell(0).textContent = index++; // SN Column    
                         row.insertCell(1).textContent = transaction.transaction;
                         row.insertCell(2).textContent = transaction.senderAccountNumber;
                         row.insertCell(3).textContent = transaction.senderBankNumber;
@@ -85,7 +84,7 @@
                         document.getElementById("failureAlert").style.display = "none";
                     }, 7000);
                 }else{
-                    window.location.href = "http://localhost:4000/v1/loginpage";
+                    window.location.href = "/v1/loginpage";
                 }
             })
             .catch(error => console.log('error', error));

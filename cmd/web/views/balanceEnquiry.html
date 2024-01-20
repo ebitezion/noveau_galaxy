@@ -7,7 +7,7 @@
 	</div>
       <div id="failureAlert" class="alert alert-danger mt-3" style="display: none;"></div>
     <div class="w-50 mx-auto">
-          <form class="user" id="loginForm" method="post" action="/v1/balanceEnquiry">
+          <form class="user" id="loginForm" method="post" >
     
             <div class="form-group">
                 <input type="text" class="form-control form-control-user" name="accountNumber"
@@ -47,7 +47,7 @@
         body: formdata,
     };
 
-    fetch("http://localhost:4000/v1/balanceEnquiry", requestOptions)
+    fetch("/v1/balanceEnquiry", requestOptions)
         .then(response => response.json()) // Parse the response as JSON
         .then(result => {
             console.log(result)

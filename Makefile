@@ -1,8 +1,14 @@
-RUN:
+RUN_API:
 	go run ./cmd/api
 
-BUILD:
+BUILD_API:
 	go build ./cmd/api
+
+RUN_WEB:
+	go run ./cmd/web
+
+BUILD_WEB:
+	go build ./cmd/web
 
 CREATE_ANIMALS_TABLE_MIGRATION:
 	migrate create -seq -ext=.sql -dir=./migrations create_animals_table

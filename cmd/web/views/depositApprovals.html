@@ -1,0 +1,64 @@
+{{ template "header" . }}
+<div class="container-fluid">
+	<!-- Page Heading -->
+	<div class="d-sm-flex align-items-center justify-content-between mb-4">
+		<h1 class="h3 mb-0 text-gray-800 mx-auto">Deposit Approvals</h1>
+        <div class="row">
+            <div class="col-6">
+              <a href="/static/files/output.pdf" download="output copy.pdf" class="btn btn-custom btn-user btn-block">PDF</a>
+            </div>
+             <div class="col-6">
+                 <a href="/static/files/TransactionBook.xlsx" download="TransactionBook copy.xlsx"  class="btn btn-custom btn-user ">EXCEL</a>
+             </div>
+        </div>
+        
+         
+	</div>
+     <div class="card shadow mb-4">
+                        
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
+                         <tr>
+                          <th>Transaction </th>
+                          <th>Type </th>
+                          <th>Sender Account Number</th>
+                          <th>Sender Bank Number</th>
+                          <th>Receiver Account Number</th>
+                          <th>Receiver Bank Number</th>
+                          <th>Transaction Amount</th>
+                          <th>Fee Amount</th>
+                           <th>Initator</th>
+                          <th>Timestamp</th>
+                          <th>Approve</th>
+         <th>Reject</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{ range .Transactions }}
+                          <tr>
+                              
+                              <td>{{ .Narration }}</td>
+                              <td>{{ .Type }}</td>
+                              <td>{{ .SenderAccountNumber }}</td>
+                              <td>{{ .SenderBankNumber }}</td>
+                              <td>{{ .ReceiverAccountNumber }}</td>
+                              <td>{{ .ReceiverBankNumber }}</td>
+                              <td>₦{{ .TransactionAmount }}</td>
+                              <td>₦{{ .FeeAmount }}</td>
+                              
+                                 <td>{{ .Initiator }}</td>
+                              <td>{{ .Timestamp }}</td>
+                               <td><button type="button" class="btn btn-success " data-bs-toggle="modal" data-bs-target="#accept">Approve</button></td>
+                          <td><button type="button" class="btn btn-danger " data-bs-toggle="modal" data-bs-target="#reject">Reject</button></td>
+                          </tr>
+                          {{ end }}
+                    </tbody>
+                  </table>
+                
+          </div>
+     </div>
+ 
+
+{{ template "footer" . }}

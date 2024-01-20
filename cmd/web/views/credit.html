@@ -2,7 +2,7 @@
 <div class="container-fluid">
 	<!-- Page Heading -->
 	<div class="d-sm-flex align-items-center justify-content-between mb-4">
-		<h1 class="h3 mb-0 text-gray-800 mx-auto">Credit Initiation</h1>
+		<h1 class="h3 mb-0 text-gray-800 mx-auto">Transfer Initiation</h1>
 	</div>
 		<div class="w-50 mx-auto">
 			<form class="user" id="myform" >
@@ -45,7 +45,7 @@
                 body: formdata,
             };
 
-            fetch("http://localhost:4000/v1/fullAccessTransfer", requestOptions)
+            fetch("/v1/fullAccessTransfer", requestOptions)
                 .then(response => response.json()) // Parse the response as JSON
                 .then(result => {
 					
@@ -60,7 +60,7 @@
                             document.getElementById("successAlert").style.display = "none";
                         }, 7000);
 				}else if(result.responseCode === "07"){
-                 window.location.href = "http://localhost:4000/v1/loginpage"
+                 window.location.href = "/v1/loginpage"
 
             }else {
                           document.getElementById("failureAlert").innerText = result.message;

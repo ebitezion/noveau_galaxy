@@ -26,7 +26,7 @@ func (app *application) routes() *httprouter.Router {
 	router.MethodNotAllowed = http.HandlerFunc(app.methodNotAllowedResponse)
 
 	//ACCOUNTS v1
-	 router.HandlerFunc(http.MethodGet, "/v1/healthcheck", app.healthcheckHandler)
+	router.HandlerFunc(http.MethodGet, "/v1/healthcheck", app.healthcheckHandler)
 	// router.HandlerFunc(http.MethodPost, "/v1/createAccount", app.CreateAccount)
 	// router.HandlerFunc(http.MethodPost, "/v1/accountDetails", app.AccountDetails)
 	// router.HandlerFunc(http.MethodPost, "/v1/accounts", app.RetreiveAccounts)
@@ -40,8 +40,9 @@ func (app *application) routes() *httprouter.Router {
 	router.HandlerFunc(http.MethodPost, "/v1/api/login/external", app.AuthLogin)
 	router.HandlerFunc(http.MethodPost, "/v1/api/create/external", app.AuthLogin)
 	router.HandlerFunc(http.MethodPost, "/v1/api/create", app.AuthCreate)
-	router.HandlerFunc(http.MethodPost, "/v1/authindex", app.AuthIndex)
-
+	router.HandlerFunc(http.MethodPost, "/v1/api/authindex", app.AuthIndex)
+	router.HandlerFunc(http.MethodPost, "/v1/api/verifyToken", app.VerifyToken)
+	router.HandlerFunc(http.MethodPost, "/v1/api/generateToken", app.GenerateToken)
 	//Transactions and account management
 	router.HandlerFunc(http.MethodPost, "/v1/api/deposit", app.PaymentDepositInitiation)
 	router.HandlerFunc(http.MethodPost, "/v1/api/credit", app.PaymentCreditInitiation)
@@ -55,6 +56,8 @@ func (app *application) routes() *httprouter.Router {
 	router.HandlerFunc(http.MethodGet, "/v1/api/excelTransactions", app.ExcelTransactions)
 	router.HandlerFunc(http.MethodPost, "/v1/api/proofOfAddress", app.ProofOfAddress)
 	router.HandlerFunc(http.MethodPost, "/v1/api/cashPickup", app.CashPickup)
+	router.HandlerFunc(http.MethodGet, "/v1/api/cashPickup/all", app.AllCashPickup)
+	router.HandlerFunc(http.MethodPost, "/v1/api/cashPickup/user", app.UserCashPickup)
 
 	//ACCOUNT V2
 	router.HandlerFunc(http.MethodPost, "/v1/api/accounts/create", app.AccountCreate)

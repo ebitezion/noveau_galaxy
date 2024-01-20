@@ -49,21 +49,15 @@
                                     <form class="user" id="loginForm" >
                                         
                                          <div class="form-group">
-                                            <input type="text" class="form-control form-control-user"name="username"
-                                                id="exampleInputU" placeholder="username">
+                                            <input type="text" class="form-control form-control-user"name="email"
+                                                id="exampleInputU" placeholder="email">
                                         </div>
                                         <div class="form-group">
                                             <input type="password" class="form-control form-control-user"name="password"
                                                 id="exampleInputPassword" placeholder="password">
                                         </div>
                                        
-                                        <div class="form-group">
-                                            <div class="custom-control custom-checkbox small">
-                                                <input type="checkbox" class="custom-control-input" id="customCheck">
-                                                <label class="custom-control-label" for="customCheck">Remember
-                                                    Me</label>
-                                            </div>
-                                        </div>
+                                        
                                         <button type="submit" class="btn btn-custom btn-user btn-block">Login</button>
                                      
                                         <hr>
@@ -114,7 +108,7 @@
             };
     
             // Use the fetch API to send the form data
-            fetch("http://localhost:4000/v1/login", requestOptions)
+            fetch("/v1/login", requestOptions)
             .then(response => response.json()) // Parse the response as JSON
             .then(data => {
                 // Access and manipulate the JSON properties
@@ -133,7 +127,7 @@
                     sessionStorage.setItem('token', message);
                     var storedValue = sessionStorage.getItem('token');
                   
-                    window.location.href = "http://localhost:4000/v1/index"
+                    window.location.href = "/v1/index"
                    
      
                 }else{
@@ -162,10 +156,10 @@
                 redirect: 'follow'
             };
 
-            fetch("http://localhost:4000/v1/authindex", requestOptions)
+            fetch("/v1/authindex", requestOptions)
             .then(response => {
                 if (response.status === 200) { 
-                    window.location.href = "http://localhost:4000/v1/index"; 
+                    window.location.href = "/v1/index"; 
                 } else {
                     // Handle other responses or errors here
                     console.log('API call failed with status:', response.status);

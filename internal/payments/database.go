@@ -147,7 +147,27 @@ func checkBalance(account AccountHolder) (balance decimal.Decimal, err error) {
 
 	return
 }
+func checkAccountBalanceBalance(accountNumber string) (balance decimal.Decimal, err error) {
+	rows, err := Config.Db.Query("SELECT `availableBalance` FROM `accounts` WHERE `accountNumber` = ?", accountNumber)
+	if err != nil {
+		return decimal.NewFromFloat(0.), errors.New("payments.checkBalance: " + err.Error())
+	}
+	defer rows.Close()
 
+	count := 0
+	for rows.Next() {
+		if err := rows.Scan(&balance); err != nil {
+			return decimal.NewFromFloat(0.), errors.New("payments.checkBalance: Could not retrieve account details. " + err.Error())
+		}
+		count++
+	}
+
+	if count > 1 {
+		return decimal.NewFromFloat(0.), errors.New("payments.checkBalance: More than one account found with uuid")
+	}
+
+	return
+}
 func processCreditInitiation(transaction PAINTrans, sqlTime int32, feeAmount decimal.Decimal) (err error) {
 	// Only update if account local
 	if transaction.Sender.BankNumber == "" {

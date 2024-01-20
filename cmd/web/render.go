@@ -7,8 +7,13 @@ import (
 	"os"
 
 	"github.com/ebitezion/backend-framework/internal/accounts"
+	cashpickup "github.com/ebitezion/backend-framework/internal/cash_pickup"
 )
 
+type CashPickupPageData struct {
+	Data      []cashpickup.CashPickup
+	AdminName string
+}
 type BalanceEnquiryPageData struct {
 	Data *accounts.BalanceEnquiry
 	name string
@@ -160,6 +165,115 @@ func (app *application) RenderUsAccountPage(w http.ResponseWriter, r *http.Reque
 func (app *application) RenderCashPickupPage(w http.ResponseWriter, r *http.Request) {
 	app.RenderTemplate(w, []string{"cmd/web/views/cashPickup.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, nil, "cmd/web/views/cashPickup.html", nil)
 }
+
+func (app *application) RenderAllCashPickupPage(w http.ResponseWriter, r *http.Request) {
+
+	response, err := cashpickup.GetAllCashPickups()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	FullName, err := GetAdminName(r)
+	if err != nil {
+		log.Println(err)
+	}
+	pageData := CashPickupPageData{
+		Data:      response,
+		AdminName: FullName,
+	}
+	app.RenderTemplate(w, []string{"cmd/web/views/allCashPickup.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, pageData, "cmd/web/views/allCashPickup.html", nil)
+}
+
+func (app *application) RenderApproveCashPickupPage(w http.ResponseWriter, r *http.Request) {
+
+	response, err := cashpickup.GetAllCashPickups()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	FullName, err := GetAdminName(r)
+	if err != nil {
+		log.Println(err)
+	}
+	pageData := CashPickupPageData{
+		Data:      response,
+		AdminName: FullName,
+	}
+	app.RenderTemplate(w, []string{"cmd/web/views/cashPickupApproval.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, pageData, "cmd/web/views/cashPickupApproval.html", nil)
+}
+func (app *application) RenderApproveWithdrawalPage(w http.ResponseWriter, r *http.Request) {
+
+	//get all transactions
+	accountNumber := os.Getenv("WITHDRAWAL_ACCOUNT_NUMBER")
+	fmt.Println(accountNumber)
+	data, err := accounts.ProcessAccount([]string{"", "acmt", "1012", accountNumber})
+
+	if err != nil {
+		fmt.Println(err)
+	}
+	Transactions, ok := data.([]accounts.Transaction)
+	if !ok {
+		fmt.Println("Failed to convert to []AccountDetails")
+		return
+	}
+
+	FullName, err := GetAdminName(r)
+	if err != nil {
+		log.Println(err)
+	}
+
+	pageData := AllTransactionsPageData{
+		Transactions: Transactions,
+		AdminName:    FullName,
+	}
+	app.RenderTemplate(w, []string{"cmd/web/views/withdrawalApprovals.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, pageData, "cmd/web/views/withdrawalApprovals.html", nil)
+}
+func (app *application) RenderApproveTransferPage(w http.ResponseWriter, r *http.Request) {
+
+	response, err := cashpickup.GetAllCashPickups()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	FullName, err := GetAdminName(r)
+	if err != nil {
+		log.Println(err)
+	}
+	pageData := CashPickupPageData{
+		Data:      response,
+		AdminName: FullName,
+	}
+	app.RenderTemplate(w, []string{"cmd/web/views/cashPickupApproval.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, pageData, "cmd/web/views/cashPickupApproval.html", nil)
+}
+func (app *application) RenderApproveDepositPage(w http.ResponseWriter, r *http.Request) {
+
+	accountNumber := os.Getenv("DEPOSIT_ACCOUNT_NUMBER")
+	fmt.Println(accountNumber)
+	data, err := accounts.ProcessAccount([]string{"", "acmt", "1004", accountNumber})
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	Transactions, ok := data.([]accounts.Transaction)
+	if !ok {
+		fmt.Println("Failed to convert to []AccountDetails")
+		return
+	}
+
+	FullName, err := GetAdminName(r)
+	if err != nil {
+		log.Println(err)
+	}
+	pageData := AllTransactionsPageData{
+		Transactions: Transactions,
+		AdminName:    FullName,
+	}
+	app.RenderTemplate(w, []string{"cmd/web/views/depositApprovals.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, pageData, "cmd/web/views/depositApprovals.html", nil)
+}
+func (app *application) RenderUserCashPickupPage(w http.ResponseWriter, r *http.Request) {
+	app.RenderTemplate(w, []string{"cmd/web/views/cashPickup.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, nil, "cmd/web/views/cashPickup.html", nil)
+}
 func (app *application) RenderWithdrawalPage(w http.ResponseWriter, r *http.Request) {
 
 	FullName, err := GetAdminName(r)
@@ -218,6 +332,18 @@ func (app *application) RenderInflowPage(w http.ResponseWriter, r *http.Request)
 		fmt.Println("Failed to convert to []AccountDetails")
 		return
 	}
+	//update excel sheet
+	_, err = createExcelSheet(Transactions)
+	if err != nil {
+		fmt.Println(err, "error creating excel sheet")
+		return
+	}
+	//update pdf file
+	_, err = createPdf(Transactions)
+	if err != nil {
+		fmt.Println(err, "error creating pdf sheet")
+		return
+	}
 	FullName, err := GetAdminName(r)
 	if err != nil {
 		log.Println(err)
@@ -247,6 +373,18 @@ func (app *application) RenderOutflowPage(w http.ResponseWriter, r *http.Request
 	FullName, err := GetAdminName(r)
 	if err != nil {
 		log.Println(err)
+	}
+	//update excel sheet
+	_, err = createExcelSheet(Transactions)
+	if err != nil {
+		fmt.Println(err, "error creating excel sheet")
+		return
+	}
+	//update pdf file
+	_, err = createPdf(Transactions)
+	if err != nil {
+		fmt.Println(err, "error creating pdf sheet")
+		return
 	}
 
 	pageData := AllTransactionsPageData{
@@ -287,4 +425,15 @@ func GetAdminName(r *http.Request) (string, error) {
 	Fullname := session.Values["fullname"].(string)
 
 	return Fullname, nil
+}
+func (app *application) RenderBeneficiariesPage(w http.ResponseWriter, r *http.Request) {
+
+	FullName, err := GetAdminName(r)
+	if err != nil {
+		log.Println(err)
+	}
+	pageData := AllTransactionsPageData{
+		AdminName: FullName,
+	}
+	app.RenderTemplate(w, []string{"cmd/web/views/viewBeneficiaries.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, pageData, "cmd/web/views/viewBeneficiaries.html", nil)
 }

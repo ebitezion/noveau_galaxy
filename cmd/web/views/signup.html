@@ -52,8 +52,8 @@
                                             placeholder="Account Number">
                                     </div>
                                     <div class="col-sm-6">
-                                        <input type="text" class="form-control form-control-user" id="exampleLastName"  name="username"
-                                            placeholder="Username">
+                                        <input type="text" class="form-control form-control-user" id="exampleLastName"  name="email"
+                                            placeholder="email">
                                     </div>
                                 </div>
                                  <div class="form-group row">
@@ -111,7 +111,7 @@
                 body: formdata,
             };
 
-            fetch("http://localhost:4000/v1/create", requestOptions)
+            fetch("/v1/create", requestOptions)
                 .then(response => response.json()) // Parse the response as JSON
                 .then(result => {
                    

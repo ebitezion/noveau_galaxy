@@ -18,6 +18,7 @@ import (
 
 	"github.com/360EntSecGroup-Skylar/excelize"
 	"github.com/ebitezion/backend-framework/internal/accounts"
+	"github.com/ebitezion/backend-framework/internal/notifications"
 	"github.com/ebitezion/backend-framework/internal/validator"
 	"github.com/julienschmidt/httprouter"
 	"github.com/jung-kurt/gofpdf"
@@ -486,4 +487,58 @@ func getFieldValue(transaction accounts.Transaction, field string) interface{} {
 	r := reflect.ValueOf(transaction)
 	f := reflect.Indirect(r).FieldByName(field)
 	return f.Interface()
+}
+
+// this function is how to use the notification package
+func (app *application) Notification(token string, sendersAccountNumber string, receiversAccountNumber string, amount string) error {
+	sender, err := accounts.FetchAccountMeta(sendersAccountNumber)
+	if err != nil {
+		return err
+	}
+
+	receiver, err := accounts.FetchAccountMeta(receiversAccountNumber)
+	if err != nil {
+		return err
+	}
+
+	users := [2]*accounts.AccountHolderDetails{sender, receiver}
+
+	for i := range users {
+
+		ns := notifications.NotificationService{}
+		User := notifications.User{
+			ID:       1,
+			Username: "adeoluwa",
+			Email:    "akanbiadenugba699@gmail.com",
+			Phone:    users[i].ContactNumber1,
+		}
+
+		notification := notifications.Notification{
+			User:    User,
+			Message: fmt.Sprintf("Amount of %s was transfered from %s to %s", amount, sender.AccountNumber, receiver.AccountNumber),
+		}
+		notifications.SendNotification(ns, notification)
+	}
+
+	return nil
+}
+
+// this function is how to use the notification package
+func (app *application) VerificationNotification(token int, email string) error {
+
+	ns := notifications.NotificationService{}
+	User := notifications.User{
+		ID:       1,
+		Username: "adeoluwa",
+		Email:    "akanbiadenugba699@gmail.com",
+		Phone:    "08088974888",
+	}
+	fmt.Println("hit")
+	notification := notifications.Notification{
+		User:    User,
+		Message: fmt.Sprintf("Your verication token is %d", token),
+	}
+	notifications.SendNotification(ns, notification)
+
+	return nil
 }

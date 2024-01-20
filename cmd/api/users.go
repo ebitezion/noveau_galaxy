@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 
-	"github.com/ebitezion/backend-framework/internal/accounts"
 	"github.com/ebitezion/backend-framework/internal/appauth"
 	"github.com/ebitezion/backend-framework/internal/data"
 	"github.com/ebitezion/backend-framework/internal/validator"
@@ -91,21 +91,8 @@ func (app *application) AuthLogin(w http.ResponseWriter, r *http.Request) {
 
 		return
 	}
-	accountNumber, _, _, err := accounts.FetchAuthDetails(AuthLoginData.Username)
 
-	if err != nil {
-		//there was error
-		data := envelope{
-			"responseCode": "06",
-			"status":       "Failed",
-			"message":      err.Error(),
-		}
-
-		app.writeJSON(w, http.StatusBadRequest, data, nil)
-		return
-	}
-
-	response, err := appauth.ProcessAppAuth([]string{"0", "appauth", "2", accountNumber, AuthLoginData.Password})
+	response, err := appauth.ProcessAppAuth([]string{"0", "appauth", "2", AuthLoginData.Email, AuthLoginData.Password})
 	if err != nil {
 		//there was error
 		data := envelope{
@@ -145,21 +132,8 @@ func (app *application) AuthLoginExternal(w http.ResponseWriter, r *http.Request
 
 		return
 	}
-	accountNumber, _, _, err := accounts.FetchAuthDetails(AuthLoginData.Username)
 
-	if err != nil {
-		//there was error
-		data := envelope{
-			"responseCode": "06",
-			"status":       "Failed",
-			"message":      err.Error(),
-		}
-
-		app.writeJSON(w, http.StatusBadRequest, data, nil)
-		return
-	}
-
-	response, err := appauth.ProcessAppAuth([]string{"0", "appauth", "2", accountNumber, AuthLoginData.Password})
+	response, err := appauth.ProcessAppAuth([]string{"0", "appauth", "2", AuthLoginData.Email, AuthLoginData.Password})
 	if err != nil {
 		//there was error
 		data := envelope{
@@ -200,7 +174,7 @@ func (app *application) AuthCreateExternal(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	response, err := appauth.ProcessAppAuth([]string{"0", "appauth", "5", AuthCreateData.Password, AuthCreateData.Username})
+	response, err := appauth.ProcessAppAuth([]string{"0", "appauth", "5", AuthCreateData.Password, AuthCreateData.Email})
 
 	if err != nil {
 		//there was error
@@ -240,8 +214,20 @@ func (app *application) AuthCreate(w http.ResponseWriter, r *http.Request) {
 
 		return
 	}
+	//generate verification Token
+	token, err := app.generateRandomNumber(6)
+	if err != nil {
+		data := envelope{
+			"responseCode": "06",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
 
-	response, err := appauth.ProcessAppAuth([]string{"0", "appauth", "3", AuthCreateData.AccountNumber, AuthCreateData.Password, AuthCreateData.Username})
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+	tokenstr := strconv.Itoa(token)
+	response, err := appauth.ProcessAppAuth([]string{"0", "appauth", "6", AuthCreateData.Password, AuthCreateData.Email, AuthCreateData.Phone, tokenstr})
 
 	if err != nil {
 		//there was error
@@ -254,7 +240,11 @@ func (app *application) AuthCreate(w http.ResponseWriter, r *http.Request) {
 		app.writeJSON(w, http.StatusBadRequest, data, nil)
 		return
 	}
-	app.logger.Println(response)
+	//send notification
+	err = app.VerificationNotification(token, AuthCreateData.Email)
+	if err != nil {
+		fmt.Println(err)
+	}
 	data := envelope{
 		"responseCode": "00",
 		"status":       "Success",
@@ -295,6 +285,103 @@ func (app *application) AuthRemove(w http.ResponseWriter, r *http.Request) {
 		app.writeJSON(w, http.StatusBadRequest, data, nil)
 	}
 	app.logger.Println(response)
+	data := envelope{
+		"responseCode": "00",
+		"status":       "Success",
+		"message":      response,
+	}
+	app.writeJSON(w, http.StatusOK, data, nil)
+
+}
+
+func (app *application) VerifyToken(w http.ResponseWriter, r *http.Request) {
+	Token := data.VerifyToken{}
+	// read the incoming request body
+	err := app.readJSON(w, r, &Token)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+	// Validate the user ID
+	v := validator.New()
+	data.ValidateTokenData(v, &Token)
+	if !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		//log to db
+
+		return
+	}
+
+	response, err := appauth.ProcessAppAuth([]string{"0", "appauth", "7", Token.Email, Token.Token})
+
+	if err != nil {
+		//there was error
+		data := envelope{
+			"responseCode": "06",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+
+	data := envelope{
+		"responseCode": "00",
+		"status":       "Success",
+		"message":      response,
+	}
+	app.writeJSON(w, http.StatusOK, data, nil)
+}
+func (app *application) GenerateToken(w http.ResponseWriter, r *http.Request) {
+	Email := data.Email{}
+	// read the incoming request body
+	err := app.readJSON(w, r, &Email)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+	// Validate the user ID
+	v := validator.New()
+	data.ValidateEmail(v, &Email)
+	if !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		//log to db
+
+		return
+	}
+
+	//generate verification Token
+	token, err := app.generateRandomNumber(6)
+	if err != nil {
+		data := envelope{
+			"responseCode": "06",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+	tokenstr := strconv.Itoa(token)
+	response, err := appauth.ProcessAppAuth([]string{"0", "appauth", "8", Email.Email, tokenstr})
+
+	if err != nil {
+		//there was error
+		data := envelope{
+			"responseCode": "06",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+	//send notification
+	err = app.VerificationNotification(token, Email.Email)
+	if err != nil {
+		fmt.Println(err)
+	}
 	data := envelope{
 		"responseCode": "00",
 		"status":       "Success",

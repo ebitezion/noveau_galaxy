@@ -5,9 +5,8 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/ebitezion/backend-framework/internal/accounts"
+	cashpickup "github.com/ebitezion/backend-framework/internal/cash_pickup"
 	"github.com/ebitezion/backend-framework/internal/data"
-	"github.com/ebitezion/backend-framework/internal/notifications"
 	"github.com/ebitezion/backend-framework/internal/payments"
 	"github.com/ebitezion/backend-framework/internal/validator"
 )
@@ -339,41 +338,8 @@ func (app *application) BatchTransaction() {
 
 }
 
-// this function is how to use the notification package
-func (app *application) Notification(token string, sendersAccountNumber string, receiversAccountNumber string, amount string) error {
-	sender, err := accounts.FetchAccountMeta(sendersAccountNumber)
-	if err != nil {
-		return err
-	}
-
-	receiver, err := accounts.FetchAccountMeta(receiversAccountNumber)
-	if err != nil {
-		return err
-	}
-
-	users := [2]*accounts.AccountHolderDetails{sender, receiver}
-
-	for i := range users {
-
-		ns := notifications.NotificationService{}
-		User := notifications.User{
-			ID:       1,
-			Username: "adeoluwa",
-			Email:    "akanbiadenugba699@gmail.com",
-			Phone:    users[i].ContactNumber1,
-		}
-
-		notification := notifications.Notification{
-			User:    User,
-			Message: fmt.Sprintf("Amount of %s was transfered from %s to %s", amount, sender.AccountNumber, receiver.AccountNumber),
-		}
-		notifications.SendNotification(ns, notification)
-	}
-
-	return nil
-}
 func (app *application) CashPickup(w http.ResponseWriter, r *http.Request) {
-	token, err := app.getTokenFromHeader(w, r)
+	_, err := app.getTokenFromHeader(w, r)
 	if err != nil {
 
 		// there was error
@@ -388,7 +354,7 @@ func (app *application) CashPickup(w http.ResponseWriter, r *http.Request) {
 	}
 	//for credit only  receivers account number and sender account number is required
 	//which is the number before the @ sign
-	CashPickupData := payments.CashPickup{}
+	CashPickupData := cashpickup.CashPickup{}
 	// read the incoming request body
 	err = app.readJSON(w, r, &CashPickupData)
 	if err != nil {
@@ -405,7 +371,8 @@ func (app *application) CashPickup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response, err := payments.ProcessPAIN([]string{token, "pain", "14"})
+	result, err := cashpickup.NewCashPickup(CashPickupData)
+	fmt.Println(result)
 
 	if err != nil {
 		// there was error
@@ -427,8 +394,8 @@ func (app *application) CashPickup(w http.ResponseWriter, r *http.Request) {
 
 	data := envelope{
 		"responseCode": "00",
-		"status":       "Success",
-		"message":      response + "Deposit Made Sucessfully",
+		"status":       "CashPickup Created Successfully",
+		"message":      result,
 	}
 	app.writeJSON(w, http.StatusOK, data, nil)
 }

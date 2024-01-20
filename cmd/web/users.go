@@ -179,10 +179,9 @@ func (app *application) AuthIndex(w http.ResponseWriter, r *http.Request) {
 func (app *application) AuthLogin(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Get token")
 	password := r.FormValue("password")
-	username := r.FormValue("username")
+	email := r.FormValue("email")
 	//get accountnumber
-	accountNumber, fullname, role, err := accounts.FetchAuthDetails(username)
-	fmt.Println(role)
+	accountNumber, fullname, _, err := accounts.FetchAuthDetails(email)
 	if err != nil {
 		//there was error
 		data := envelope{
@@ -196,7 +195,7 @@ func (app *application) AuthLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//get token
-	token, err := appauth.ProcessAppAuth([]string{"0", "appauth", "2", accountNumber, password})
+	token, err := appauth.ProcessAppAuth([]string{"0", "appauth", "2", email, password})
 	if err != nil {
 		//there was error
 		data := envelope{
@@ -241,9 +240,9 @@ func (app *application) AuthCreate(w http.ResponseWriter, r *http.Request) {
 
 	accountNumber := r.FormValue("accountNumber")
 	password := r.FormValue("password")
-	username := r.FormValue("username")
+	email := r.FormValue("email")
 
-	response, err := appauth.ProcessAppAuth([]string{"0", "appauth", "3", accountNumber, password, username})
+	response, err := appauth.ProcessAppAuth([]string{"0", "appauth", "3", accountNumber, password, email})
 
 	if err != nil {
 		//there was error

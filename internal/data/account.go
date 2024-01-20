@@ -24,18 +24,21 @@ type NewAccountRequest struct {
 	Image                           string `json:"image"`
 	Country                         string `json:"country"`
 }
-
+type VerifyToken struct {
+	Token string `json:"token"`
+	Email string `json:"email"`
+}
 type AccountID struct {
 	AccountID string `json:"accountID"`
 }
 type AuthLoginData struct {
-	Username string `json:"username"`
+	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 type AuthCreateData struct {
-	Username      string `json:"username"`
-	AccountNumber string `json:"accountNumber"`
-	Password      string `json:"password"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
+	Phone    string `json:"phoneNumber"`
 }
 type PaymentInitiationData struct {
 	SendersAccountNumber   string `json:"sendersAccountNumber"`
@@ -86,6 +89,9 @@ type ProofOfAddress struct {
 }
 type User struct {
 	AccountNumber string `json:"accountNumber"`
+}
+type Email struct {
+	Email string `json:"email"`
 }
 type Beneficiary struct {
 	UserAccountNumber string `json:"userAccountNumber,omitempty"`

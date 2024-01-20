@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/ebitezion/backend-framework/internal/accounts"
+	cashpickup "github.com/ebitezion/backend-framework/internal/cash_pickup"
 	"github.com/ebitezion/backend-framework/internal/notifications"
 	"github.com/ebitezion/backend-framework/internal/payments"
 	"github.com/ebitezion/backend-framework/internal/rbac_2"
@@ -35,8 +36,8 @@ func (app *application) FullAccessTransferInitiation(w http.ResponseWriter, r *h
 	receiversDetails := receiversAccountNumber + "@"
 	amount := r.FormValue("Amount")
 	initiator := r.FormValue("initiator")
-
-	response, err := payments.ProcessPAIN([]string{token, "pain", "13", sendersDetails, receiversDetails, amount, "CR", initiator})
+	narration := fmt.Sprintf("INTERNAL TRANSFER FROM %s TO %s", sendersAccountNumber, receiversAccountNumber)
+	response, err := payments.ProcessPAIN([]string{token, "pain", "13", sendersDetails, receiversDetails, amount, narration, initiator})
 
 	if err != nil {
 		// there was error
@@ -88,8 +89,8 @@ func (app *application) FullAccessDepositInitiation(w http.ResponseWriter, r *ht
 	receiversDetails := receiversAccountNumber + "@"
 	amount := r.FormValue("Amount")
 	initiator := r.FormValue("initiator")
-
-	response, err := payments.ProcessPAIN([]string{token, "pain", "14", sendersDetails, receiversDetails, amount, "CR", initiator})
+	narration := fmt.Sprintf("INTERNAL TRANSFER FROM %s TO %s", sendersAccountNumber, receiversAccountNumber)
+	response, err := payments.ProcessPAIN([]string{token, "pain", "14", sendersDetails, receiversDetails, amount, narration, initiator})
 
 	if err != nil {
 		// there was error
@@ -141,8 +142,8 @@ func (app *application) FullAccessWithdrawalInitiation(w http.ResponseWriter, r 
 	receiversDetails := receiversAccountNumber + "@"
 	amount := r.FormValue("Amount")
 	initiator := r.FormValue("initiator")
-
-	response, err := payments.ProcessPAIN([]string{token, "pain", "14", sendersDetails, receiversDetails, amount, "DR", initiator})
+	narration := fmt.Sprintf("INTERNAL TRANSFER FROM %s TO %s", sendersAccountNumber, receiversAccountNumber)
+	response, err := payments.ProcessPAIN([]string{token, "pain", "14", sendersDetails, receiversDetails, amount, narration, initiator})
 
 	if err != nil {
 		// there was error
@@ -339,4 +340,94 @@ func Notification(token string, sendersAccountNumber string, receiversAccountNum
 	}
 
 	return nil
+}
+
+func (app *application) CashPickup(w http.ResponseWriter, r *http.Request) {
+	_, err := app.getTokenFromHeader(w, r)
+	if err != nil {
+
+		// there was error
+		data := envelope{
+			"responseCode": "07",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+	fmt.Println("adeeeee")
+	err = r.ParseMultipartForm(10 << 20)
+
+	if err != nil {
+		// there was error
+		data := envelope{
+			"responseCode": "06",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+
+	profileImage, err := accounts.ImageToBase64FromRequest(r, "image")
+	if err != nil {
+		//there was error
+		data := envelope{
+			"responseCode": "06",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+
+	// Create a CashPickup instance and initialize the data
+	cashPickupData := cashpickup.CashPickup{
+		SendersAccountNumber: r.FormValue("sendersAccountNumber"),
+		FirstName:            r.FormValue("firstName"),
+		LastName:             r.FormValue("lastName"),
+		Sex:                  r.FormValue("sex"),
+		Currency:             r.FormValue("currency"),
+		Reason:               r.FormValue("reason"),
+		Amount:               r.FormValue("amount"),
+		BVN:                  r.FormValue("bvn"),
+		NIN:                  r.FormValue("nin"),
+		DOB:                  r.FormValue("dob"),
+		Image:                profileImage,
+		Address:              r.FormValue("address"),
+		State:                r.FormValue("state"),
+		Email:                r.FormValue("email"),
+		Country:              r.FormValue("country"),
+		Phone:                r.FormValue("phone"),
+	}
+
+	result, err := cashpickup.NewCashPickup(cashPickupData)
+
+	if err != nil {
+		// there was error
+		data := envelope{
+			"responseCode": "06",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+
+	// // //send notification
+	// // err = app.Notification(token, sendersAccountNumber, receiversAccountNumber, amount)
+	// // if err != nil {
+	// // 	fmt.Println(err)
+	// // }
+
+	data := envelope{
+		"responseCode": "00",
+		"status":       "CashPickup Created Successfully",
+		"message":      result,
+	}
+	app.writeJSON(w, http.StatusOK, data, nil)
 }
