@@ -89,5 +89,12 @@ func (app *application) routes() *httprouter.Router {
 	//Currency Exchange
 	router.HandlerFunc(http.MethodGet, "/v1/availableCurrencies", app.AvailableCurrenciesHandler)
 
+	//token
+	router.HandlerFunc(http.MethodPost, "/v1/users", app.registerUserHandler)
+	//router.HandlerFunc(http.MethodPut, "/v1/users/activated", app.activateUserHandler)
+	router.HandlerFunc(http.MethodPost, "/v1/tokens/activation", app.createActivationTokenHandler)
+	//authorize our API with this
+	router.HandlerFunc(http.MethodPost, "/v1/tokens/authentication", app.createAuthenticationTokenHandler)
+
 	return router
 }

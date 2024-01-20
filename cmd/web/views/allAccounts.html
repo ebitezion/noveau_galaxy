@@ -35,7 +35,7 @@
                                                 
                                             </td>
                                             <div class="modal fade" id="tag{{ .AccountNumber }}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                                            <div class="modal-dialog modal-dialog-centered modal-xl">
+                                                <div class="modal-dialog modal-dialog-centered modal-xl">
                                                 <div class="modal-content">
                                                     <div class="modal-header">
                                                         <h1 class="modal-title fs-5" id="exampleModalLabel"></h1>
@@ -185,7 +185,7 @@
                             document.getElementById("successAlert").style.display = "none";
                         }, 7000);
 				}else if(result.responseCode === "07"){
-                 window.location.href = "http://localhost:4000/v1/loginpage"}
+                 window.location.href = "http://localhost:4000/v1/loginpage"}       
                 else {
                           document.getElementById("failureAlert").innerText = result.message;
                         // Show the failure alert

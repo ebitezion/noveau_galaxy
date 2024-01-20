@@ -17,6 +17,7 @@ import (
 	"github.com/ebitezion/backend-framework/internal/appauth"
 	"github.com/ebitezion/backend-framework/internal/configuration"
 	"github.com/ebitezion/backend-framework/internal/data"
+	"github.com/ebitezion/backend-framework/internal/mailer"
 	"github.com/ebitezion/backend-framework/internal/payments"
 	"github.com/gorilla/sessions"
 	"github.com/joho/godotenv"
@@ -48,6 +49,7 @@ type application struct {
 	models    data.Models
 	templates map[string]*template.Template
 	mu        sync.Mutex
+	mailer    mailer.Mailer
 }
 
 // @TODO change it to being stored on redis

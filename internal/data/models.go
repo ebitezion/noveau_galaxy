@@ -52,13 +52,18 @@ const (
 
 type Models struct {
 	AccountModel *AccountModel
+	UserModel    *UserModel
+	Tokens       *TokenModel
+	Permissions  *PermissionModel
 }
 
 // For ease of use, we also add a New() method which returns a Models struct containing
 // the intitialized savings_accountModel.
 func NewModels(db *sql.DB) Models {
 	return Models{
-
+		UserModel:    &UserModel{DB: db},
 		AccountModel: &AccountModel{DB: db},
+		Tokens:       &TokenModel{DB: db},
+		Permissions:  &PermissionModel{DB: db},
 	}
 }
