@@ -116,7 +116,3 @@ func ValidateTokenData(v *validator.Validator, data *VerifyToken) {
 }
 
 // ValidateAuthCreateData validates a given AuthCreateData struct
-func ValidateEmail(v *validator.Validator, data *Email) {
-	// General validation
-
-}

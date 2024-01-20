@@ -343,7 +343,7 @@ func (app *application) GenerateToken(w http.ResponseWriter, r *http.Request) {
 	}
 	// Validate the user ID
 	v := validator.New()
-	data.ValidateEmail(v, &Email)
+	data.ValidateEmail(v, Email.Email)
 	if !v.Valid() {
 		app.failedValidationResponse(w, r, v.Errors)
 		//log to db
