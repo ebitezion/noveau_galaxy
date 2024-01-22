@@ -542,3 +542,31 @@ func (app *application) VerificationNotification(token int, email string) error 
 
 	return nil
 }
+
+// The background() helper accepts an arbitrary function as a parameter.
+func (app *application) background(fn func()) {
+	// Launch a background goroutine.
+	go func() {
+		// Recover any panic.
+		defer func() {
+			if err := recover(); err != nil {
+				app.logger.Println(fmt.Errorf("%s", err), nil)
+			}
+		}()
+		// Execute the arbitrary function that we passed as the parameter.
+		fn()
+	}()
+}
+
+func (app *application) exampleHandler(w http.ResponseWriter, r *http.Request) {
+	user := app.contextGetUser(r)
+	if user.IsAnonymous() {
+		app.authenticationRequiredResponse(w, r)
+		return
+	}
+	if !user.Activated {
+		app.inactiveAccountResponse(w, r)
+		return
+	}
+	// The rest of the handler logic goes here...
+}

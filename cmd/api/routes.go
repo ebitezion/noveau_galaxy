@@ -26,7 +26,7 @@ func (app *application) routes() *httprouter.Router {
 	router.MethodNotAllowed = http.HandlerFunc(app.methodNotAllowedResponse)
 
 	//ACCOUNTS v1
-	router.HandlerFunc(http.MethodGet, "/v1/healthcheck", app.healthcheckHandler)
+	// router.HandlerFunc(http.MethodGet, "/v1/healthcheck", app.healthcheckHandler)
 	// router.HandlerFunc(http.MethodPost, "/v1/createAccount", app.CreateAccount)
 	// router.HandlerFunc(http.MethodPost, "/v1/accountDetails", app.AccountDetails)
 	// router.HandlerFunc(http.MethodPost, "/v1/accounts", app.RetreiveAccounts)
@@ -70,6 +70,13 @@ func (app *application) routes() *httprouter.Router {
 
 	//Currency Exchange
 	router.HandlerFunc(http.MethodGet, "/v1/availableCurrencies", app.AvailableCurrenciesHandler)
+
+	//Token
+	router.HandlerFunc(http.MethodPost, "/v1/users", app.registerUserHandler)
+	router.HandlerFunc(http.MethodPost, "/v1/tokens/activation", app.createActivationTokenHandler)
+	//authorize our API with this
+	router.HandlerFunc(http.MethodPost, "/v1/tokens/authentication", app.createAuthenticationTokenHandler)
+	router.HandlerFunc(http.MethodGet, "/v1/api/healthcheck", app.requirePermission("account:read", app.healthcheckHandler))
 
 	return router
 }

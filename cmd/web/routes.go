@@ -110,6 +110,7 @@ func (app *application) routes() *httprouter.Router {
 	router.HandlerFunc(http.MethodPost, "/v1/tokens/activation", app.createActivationTokenHandler)
 	//authorize our API with this
 	router.HandlerFunc(http.MethodPost, "/v1/tokens/authentication", app.createAuthenticationTokenHandler)
+	router.HandlerFunc(http.MethodGet, "/v1/healthcheck", app.requirePermission("account:read", app.healthcheckHandler))
 
 	return router
 }

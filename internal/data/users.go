@@ -14,14 +14,15 @@ import (
 )
 
 type Users struct {
-	ID        int64    `json:"id"`
-	CreatedAt string   `json:"-"`
-	Name      string   `json:"name"`
-	Username  string   `json:"username"`
-	Email     string   `json:"email"`
-	Password  password `json:"-"`
-	Activated bool     `json:"activated"`
-	Version   int      `json:"-"`
+	ID          int64    `json:"id"`
+	CreatedAt   string   `json:"-"`
+	Name        string   `json:"name"`
+	Username    string   `json:"username"`
+	Email       string   `json:"email"`
+	Password    password `json:"-"`
+	Activated   bool     `json:"activated"`
+	Version     int      `json:"-"`
+	PhoneNumber string   `json:"-"`
 }
 
 // Declare a new AnonymousUser variable.
@@ -115,7 +116,7 @@ func ValidateUsers(v *validator.Validator, user *Users) {
 // // RETURNING clause to read them into the Users struct after the insert.
 // func (m UserModel) Insert(user *Users) error {
 // 	query := `
-// 	INSERT INTO users (name, email, password_hash, activated)
+// 	INSERT INTO accounts_auth (name, email, password_hash, activated)
 // 	VALUES (?, ?, ?, ?)
 // 	RETURNING id, created_at, version`
 // 	args := []interface{}{user.Name, user.Email, user.Password.hash, user.Activated}
@@ -139,9 +140,9 @@ func ValidateUsers(v *validator.Validator, user *Users) {
 
 func (m UserModel) Insert(user *Users) error {
 	insertQuery := `
-	INSERT INTO users (name,username, email, password_hash, activated)
-	VALUES (?, ?, ? ,?,?)`
-	args := []interface{}{user.Name, user.Username, user.Email, user.Password.hash, user.Activated}
+	INSERT INTO accounts_auth (name,username, email, password, activated,phoneNumber)
+	VALUES (?, ?, ? ,?,?,?)`
+	args := []interface{}{user.Name, user.Username, user.Email, user.Password.hash, user.Activated, user.PhoneNumber}
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
@@ -165,7 +166,7 @@ func (m UserModel) Insert(user *Users) error {
 	// // Use QueryRowContext to retrieve other fields
 	// selectQuery := `
 	// SELECT id, created_at, version
-	// FROM users
+	// FROM accounts_auth
 	// WHERE id = ?`
 	// err = m.DB.QueryRowContext(ctx, selectQuery, lastInsertID).Scan(&user.ID, &user.CreatedAt, &user.Version)
 	// if err != nil {
@@ -190,8 +191,8 @@ func (m UserModel) Insert(user *Users) error {
 // version
 func (m UserModel) GetByEmail(email string) (*Users, error) {
 	query := `
-	SELECT id, name, username, email, activated, password_hash, created_at, version
-	FROM users
+	SELECT id, name, username, email, activated, password, timestamp, version
+	FROM accounts_auth
 	WHERE email = ?`
 	var user Users
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
@@ -224,7 +225,7 @@ func (m UserModel) GetByEmail(email string) (*Users, error) {
 // record originally.
 func (m UserModel) Update(user *Users) error {
 	query := `
-	UPDATE users
+	UPDATE accounts_auth
 	SET name = ?, username = ?,email = ?, password_hash = ?, activated = ?, version = version + 1
 	WHERE id = ? AND version = ?
 	RETURNING version`
@@ -260,10 +261,10 @@ func (m UserModel) GetForToken(tokenScope, tokenPlaintext string) (*Users, error
 	tokenHash := sha256.Sum256([]byte(tokenPlaintext))
 	// Set up the SQL query.
 	query := `
-	SELECT users.id, users.created_at, users.name, users.username, users.email, users.password_hash, users.activated, users.version
-	FROM users
+	SELECT accounts_auth.id, accounts_auth.created_at, accounts_auth.name, accounts_auth.username, accounts_auth.email, accounts_auth.password_hash, accounts_auth.activated, accounts_auth.version
+	FROM accounts_auth
 	INNER JOIN tokens
-	ON users.id = tokens.user_id
+	ON accounts_auth.id = tokens.user_id
 	WHERE tokens.hash = ?
 	AND tokens.scope = ?
 	AND tokens.expiry > ?`
