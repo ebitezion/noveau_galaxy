@@ -106,6 +106,7 @@ func (app *application) routes() *httprouter.Router {
 
 	//token
 	router.HandlerFunc(http.MethodPost, "/v1/users", app.registerUserHandler)
+	router.HandlerFunc(http.MethodPost, "/v1/users/addPriviledge", app.addPriviledge)
 	//router.HandlerFunc(http.MethodPut, "/v1/users/activated", app.activateUserHandler)
 	router.HandlerFunc(http.MethodPost, "/v1/tokens/activation", app.createActivationTokenHandler)
 	//authorize our API with this

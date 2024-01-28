@@ -477,19 +477,19 @@ func CreateBeneficiary(beneficiary *data.Beneficiary) error {
 	return nil
 
 }
-func FetchAuthDetails(email string) (AccountNumber string, Fullname string, role string, err error) {
+func FetchAuthDetails(email string) (Id string, AccountNumber string, Fullname string, role string, err error) {
 
 	if email == "" {
-		return "", "", "", errors.New("accounts.fetchAccountMeta: Email not present")
+		return "", "", "", "", errors.New("accounts.fetchAccountMeta: Email not present")
 	}
 
-	accountNumber, fullname, role, err := getAuthCredentials(email)
+	id, accountNumber, fullname, role, err := getAuthCredentials(email)
 	if err != nil {
-		return "", "", "",
+		return "", "", "", "",
 			errors.New("accounts.fetchAccountMeta: " + err.Error())
 	}
 
-	return accountNumber, fullname, role, nil
+	return id, accountNumber, fullname, role, nil
 }
 func FetchAccountMeta(accountNumber string) (AccountHolderDetails *AccountHolderDetails, err error) {
 
@@ -564,7 +564,7 @@ func openAccount(data []string) (result string, err error) {
 
 	// Test: acmt~1~Kyle~Redelinghuys~19000101~190001011234098~1112223456~~email@domain.com~Physical Address 1~~~1000
 	// Check if account already exists, check on ID number
-	accountHolder, _ := getAccountMeta(data[6])
+	accountHolder, _ := getAccountMetaByIdentificationNumber(data[6])
 
 	if accountHolder.AccountNumber != "" {
 		return "", errors.New("accounts.openAccount: Account already open. " + accountHolder.AccountNumber)
@@ -579,6 +579,10 @@ func openAccount(data []string) (result string, err error) {
 		return "", errors.New("accounts.openAccount: " + err.Error())
 	}
 	accountHolderDetailsObject, err := setAccountHolderDetails(data)
+	if err != nil {
+		return "", errors.New("accounts.openAccount: " + err.Error())
+	}
+	err = updateAccountNumber(accountHolderDetailsObject.EmailAddress, accountHolderDetailsObject.AccountNumber)
 	if err != nil {
 		return "", errors.New("accounts.openAccount: " + err.Error())
 	}

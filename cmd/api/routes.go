@@ -49,7 +49,7 @@ func (app *application) routes() *httprouter.Router {
 	router.HandlerFunc(http.MethodPost, "/v1/api/debit", app.PaymentDebitInitiation)
 	router.HandlerFunc(http.MethodPost, "/v1/api/fullAccessTransfer", app.FullAccessTransferInitiation)
 	router.HandlerFunc(http.MethodPost, "/v1/api/fullAccessDeposit", app.FullAccessDepositInitiation)
-	router.HandlerFunc(http.MethodPost, "/v1/api/balanceEnquiry", app.BalanceEnquiry)
+	router.HandlerFunc(http.MethodPost, "/v1/api/balanceEnquiry", app.requirePermission("account:write", app.BalanceEnquiry))
 	router.HandlerFunc(http.MethodPost, "/v1/api/accountHistory", app.AccountHistory)
 	router.HandlerFunc(http.MethodGet, "/v1/api/allTransactions", app.AllTransactions)
 	router.HandlerFunc(http.MethodGet, "/v1/api/pdfTransactions", app.PdfTransactions)

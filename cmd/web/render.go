@@ -8,6 +8,7 @@ import (
 
 	"github.com/ebitezion/backend-framework/internal/accounts"
 	cashpickup "github.com/ebitezion/backend-framework/internal/cash_pickup"
+	"github.com/ebitezion/backend-framework/internal/data"
 )
 
 type CashPickupPageData struct {
@@ -28,6 +29,11 @@ type AllTransactionsPageData struct {
 }
 type PageData struct {
 	AdminName string
+}
+type RolePageData struct {
+	Permissions []data.UserPermissions
+	AdminName   string
+	Id          string
 }
 
 // RenderIndexPage renders a HTML page
@@ -145,7 +151,27 @@ func (app *application) RenderTeamsPage(w http.ResponseWriter, r *http.Request) 
 	app.RenderTemplate(w, []string{"cmd/web/views/teams.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, nil, "cmd/web/views/teams.html", nil)
 }
 func (app *application) RenderRolesPage(w http.ResponseWriter, r *http.Request) {
-	app.RenderTemplate(w, []string{"cmd/web/views/roles.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, nil, "cmd/web/views/roles.html", nil)
+	Permissions, err := app.models.Permissions.GetAllPermissions()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	FullName, err := GetAdminName(r)
+	if err != nil {
+		log.Println(err)
+	}
+	Id, err := GetAdminId(r)
+	if err != nil {
+		log.Println(err)
+	}
+
+	pageData := RolePageData{
+		Permissions: Permissions,
+		AdminName:   FullName,
+		Id:          Id,
+	}
+
+	app.RenderTemplate(w, []string{"cmd/web/views/roles.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, pageData, "cmd/web/views/roles.html", nil)
 }
 func (app *application) RenderSystemLogsPage(w http.ResponseWriter, r *http.Request) {
 	app.RenderTemplate(w, []string{"cmd/web/views/systemLogs.html", "cmd/web/views/header.html", "cmd/web/views/footer.html"}, nil, "cmd/web/views/systemLogs.html", nil)
@@ -423,6 +449,15 @@ func GetAdminName(r *http.Request) (string, error) {
 		return "", err
 	}
 	Fullname := session.Values["fullname"].(string)
+
+	return Fullname, nil
+}
+func GetAdminId(r *http.Request) (string, error) {
+	session, err := store.Get(r, "JwtToken")
+	if err != nil {
+		return "", err
+	}
+	Fullname := session.Values["id"].(string)
 
 	return Fullname, nil
 }

@@ -261,7 +261,7 @@ func (m UserModel) GetForToken(tokenScope, tokenPlaintext string) (*Users, error
 	tokenHash := sha256.Sum256([]byte(tokenPlaintext))
 	// Set up the SQL query.
 	query := `
-	SELECT accounts_auth.id, accounts_auth.created_at, accounts_auth.name, accounts_auth.username, accounts_auth.email, accounts_auth.password_hash, accounts_auth.activated, accounts_auth.version
+	SELECT accounts_auth.id, accounts_auth.timestamp, accounts_auth.name, accounts_auth.username, accounts_auth.email, accounts_auth.password, accounts_auth.activated, accounts_auth.version
 	FROM accounts_auth
 	INNER JOIN tokens
 	ON accounts_auth.id = tokens.user_id

@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/ebitezion/backend-framework/internal/appauth"
 	"github.com/ebitezion/backend-framework/internal/data"
 	"github.com/ebitezion/backend-framework/internal/validator"
 )
@@ -122,6 +123,19 @@ func (app *application) createAuthenticationTokenHandler(w http.ResponseWriter, 
 		app.serverErrorResponse(w, r, err)
 		return
 	}
+	_, err = appauth.ProcessAppAuth([]string{"0", "appauth", "9", input.Email, token.Plaintext})
+	if err != nil {
+		//there was error
+		data := envelope{
+			"responseCode": "06",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+
 	// Encode the token to JSON and send it in the response along with a 201 Created
 	// status code.
 	err = app.writeJSON(w, http.StatusCreated, envelope{"authentication_token": token}, nil)

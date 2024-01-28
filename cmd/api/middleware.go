@@ -176,6 +176,7 @@ func (app *application) authenticate(next http.Handler) http.Handler {
 		}
 		// Call the contextSetUser() helper to add the user information to the request
 		// context.
+
 		r = app.contextSetUser(r, user)
 		// Call the next handler in the chain.
 		next.ServeHTTP(w, r)
@@ -218,7 +219,9 @@ func (app *application) requirePermission(code string, next http.HandlerFunc) ht
 		// Retrieve the user from the request context.
 		user := app.contextGetUser(r)
 		// Get the slice of permissions for the buser.
+
 		permissions, err := app.models.Permissions.GetAllForUser(user.ID)
+
 		if err != nil {
 			app.serverErrorResponse(w, r, err)
 			return

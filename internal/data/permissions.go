@@ -3,13 +3,20 @@ package data
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"time"
+
+	"github.com/go-sql-driver/mysql"
 )
 
 // Define a Permissions slice, which we will use to will hold the permission codes (like
-// "movies:read" and "movies:write") for a single user.
-// "movies:read" and "movies:write") for a single user.
+// "account:read" and "account:write") for a single user.
+// "account:read" and "account:write") for a single user.
 type Permissions []string
+type UserPermissions struct {
+	ID         string
+	Permission string
+}
 
 // Add a helper method to check whether the Permissions slice contains a specific
 // permission code.
@@ -36,8 +43,8 @@ func (m PermissionModel) GetAllForUser(userID int64) (Permissions, error) {
 	SELECT permissions.code
 	FROM permissions
 	INNER JOIN users_permissions ON users_permissions.permission_id = permissions.id
-	INNER JOIN users ON users_permissions.user_id = users.id
-	WHERE users.id = ?`
+	INNER JOIN accounts_auth ON users_permissions.user_id = accounts_auth.id
+	WHERE accounts_auth.id = ?`
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 	rows, err := m.DB.QueryContext(ctx, query, userID)
@@ -54,6 +61,7 @@ func (m PermissionModel) GetAllForUser(userID int64) (Permissions, error) {
 		}
 		permissions = append(permissions, permission)
 	}
+
 	if err = rows.Err(); err != nil {
 		return nil, err
 	}
@@ -63,31 +71,56 @@ func (m PermissionModel) GetAllForUser(userID int64) (Permissions, error) {
 // Add the provided permission codes for a specific user. Notice that we're using a
 // variadic parameter for the codes so that we can assign multiple permissions in a
 // single call.
-func (m PermissionModel) AddForUser(userID int64, codes string) error {
-	// Query to retrieve permission id
-	query := `
-        SELECT id FROM permissions WHERE code = ?
-    `
 
-	var permissionID int
+func (m PermissionModel) AddForUser(userID int64, codes string) error {
+
+	query := `
+        INSERT INTO users_permissions
+        SELECT ?, permissions.id FROM permissions WHERE permissions.code IN (?)
+    `
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	// Scan the result into permissionID
-	err := m.DB.QueryRowContext(ctx, query, codes).Scan(&permissionID)
+	_, err := m.DB.ExecContext(ctx, query, userID, codes)
+
 	if err != nil {
+		// Check if the error is a MySQL duplicate entry error
+		if mysqlErr, ok := err.(*mysql.MySQLError); ok && mysqlErr.Number == 1062 {
+			// Duplicate entry error, return a custom error
+			return errors.New("User already Has This Priviledge")
+		}
+
+		// Return the original error for other types of errors
 		return err
 	}
 
-	// Query to insert into users_permissions
-	query = `
-        INSERT INTO users_permissions (permission_id, user_id) VALUES (?, ?)
-    `
+	return nil
+}
+func (m PermissionModel) GetAllPermissions() ([]UserPermissions, error) {
+	query := `
+	SELECT id, code
+	FROM permissions
+	`
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	rows, err := m.DB.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
 
-	// Arguments for the query
-	args := []interface{}{permissionID, userID}
+	var permissions []UserPermissions
+	for rows.Next() {
+		var permission UserPermissions
+		err := rows.Scan(&permission.ID, &permission.Permission)
+		if err != nil {
+			return nil, err
+		}
+		permissions = append(permissions, permission)
+	}
 
-	// Use the existing context for the ExecContext call
-	_, err = m.DB.ExecContext(ctx, query, args...)
-	return err
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return permissions, nil
 }

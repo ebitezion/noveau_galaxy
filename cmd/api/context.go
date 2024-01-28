@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
 	"github.com/ebitezion/backend-framework/internal/data"
@@ -31,7 +30,7 @@ func (app *application) contextSetUser(r *http.Request, user *data.Users) *http.
 //	it's OK to panic in those circumstances.
 func (app *application) contextGetUser(r *http.Request) *data.Users {
 	user, ok := r.Context().Value(userContextKey).(*data.Users)
-	fmt.Println(r)
+
 	if !ok {
 		panic("missing user value in request context")
 	}

@@ -105,10 +105,29 @@ func ProcessAppAuth(data []string) (result string, err error) {
 		if err != nil {
 			return "", err
 		}
+	case "9":
+		if len(data) < 5 {
+			return "", errors.New("appauth.ProcessAppAuth: Not all required fields present")
+		}
+		result, err = SetToken(data[3], data[4])
+		if err != nil {
+			return "", err
+		}
 		return result, nil
 	}
 
 	return "", errors.New("appauth.ProcessAppAuth: No valid option chosen")
+}
+
+func SetToken(email string, token string) (result string, err error) {
+
+	// @TODO Remove all tokens for this user
+	err = Config.Redis.Set(token, email, TOKEN_TTL).Err()
+	if err != nil {
+		return "", errors.New("appauth.CreateToken: Could not set token. " + err.Error())
+	}
+
+	return "Success", nil
 }
 
 func UpdatesToken(email string, token string) (result string, err error) {

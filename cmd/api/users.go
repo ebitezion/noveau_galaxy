@@ -101,7 +101,9 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 	// 		// Importantly, if there is an error sending the email then we use the
 	// 		// app.logger.PrintError() helper to manage it, instead of the
 	// 		// app.serverErrorResponse() helper like before.
-	// 		app.logger.Println(err, nil)
+
+	// 		app.logger.Println(err)
+
 	// 	}
 	// })
 	// Write a JSON response containing the user data along with a 201 Created status

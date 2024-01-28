@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/ebitezion/backend-framework/internal/accounts"
@@ -112,6 +113,64 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		app.serverErrorResponse(w, r, err)
 	}
 }
+func (app *application) addPriviledge(w http.ResponseWriter, r *http.Request) {
+
+	accountNumber := r.FormValue("accountNumber")
+	priviledge := r.FormValue("priviledge")
+	id := r.FormValue("id")
+
+	Idstring, err := strconv.Atoi(id)
+	if err != nil {
+		//there was error
+		data := envelope{
+			"responseCode": "06",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+
+	}
+
+	//validate data
+	if accountNumber == "" || priviledge == "" || id == "" {
+		//there was error
+		data := envelope{
+			"responseCode": "06",
+			"status":       "Failed",
+			"message":      "Invalid Input fields",
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+
+	// Add the "accounts:read" permission for the new user.
+	err = app.models.Permissions.AddForUser(int64(Idstring), priviledge)
+	if err != nil {
+		//there was error
+		data := envelope{
+			"responseCode": "06",
+			"status":       "Failed",
+			"message":      err.Error(),
+		}
+
+		app.writeJSON(w, http.StatusBadRequest, data, nil)
+		return
+	}
+
+	// Write a JSON response containing the user data along with a 201 Created status
+	// code.
+
+	data := envelope{
+		"responseCode": "00",
+		"status":       "Success",
+		"message":      "Priviledge Added Successfully",
+	}
+	app.writeJSON(w, http.StatusOK, data, nil)
+
+}
 
 func (app *application) getTokenFromHeader(w http.ResponseWriter, r *http.Request) (token string, err error) {
 	// Get token from header
@@ -181,7 +240,7 @@ func (app *application) AuthLogin(w http.ResponseWriter, r *http.Request) {
 	password := r.FormValue("password")
 	email := r.FormValue("email")
 	//get accountnumber
-	accountNumber, fullname, _, err := accounts.FetchAuthDetails(email)
+	id, accountNumber, fullname, _, err := accounts.FetchAuthDetails(email)
 	if err != nil {
 		//there was error
 		data := envelope{
@@ -209,7 +268,7 @@ func (app *application) AuthLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//set jwt token
-	err = app.SetJwtSession(w, r, accountNumber, fullname)
+	err = app.SetJwtSession(w, r, accountNumber, fullname, id)
 	if err != nil {
 		//there was error
 		data := envelope{
@@ -295,7 +354,7 @@ func (app *application) AuthRemove(w http.ResponseWriter, r *http.Request) {
 
 		app.writeJSON(w, http.StatusBadRequest, data, nil)
 	}
-	app.logger.Println(response)
+
 	data := envelope{
 		"responseCode": "00",
 		"status":       "Success",

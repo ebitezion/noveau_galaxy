@@ -218,6 +218,33 @@ func doCreateSpecialAccountProfile(accountDetails *SpecialAccountDetails) (err e
 	}
 	return
 }
+func updateAccountNumber(Email string, AccountNumber string) (err error) {
+	// Create account
+	updateStatement := "UPDATE accounts_auth SET `accountNumber`=? WHERE `email`=?"
+	stmtUpdate, err := Config.Db.Prepare(updateStatement)
+	if err != nil {
+		return errors.New("accounts.doUpdateAccount: " + err.Error())
+	}
+	defer stmtUpdate.Close() // Close the statement when we leave the function
+
+	// Prepare statement for updating data
+	result, err := stmtUpdate.Exec(AccountNumber, Email)
+	if err != nil {
+		return errors.New("accounts.doUpdateAccount: " + err.Error())
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return errors.New("accounts.doUpdateAccount: unable to get rows affected: " + err.Error())
+	}
+
+	if rowsAffected == 0 {
+		return errors.New("accounts.doUpdateAccount: User with Email Provided Not Created yet")
+	}
+
+	return nil
+}
+
 func doBlockAccount(AccountNumber string) (err error) {
 	status := BlockedStatus
 	// Create account
@@ -432,6 +459,34 @@ func getAccountMeta(id string) (accountDetails AccountHolderDetails, err error) 
 
 	return
 }
+func getAccountMetaByIdentificationNumber(id string) (accountDetails AccountHolderDetails, err error) {
+	rows, err := Config.Db.Query("SELECT `accountNumber`, `bankNumber`, `accountHolderGivenName`, `accountHolderFamilyName`, `accountHolderDateOfBirth`, `accountHolderIdentificationNumber`, `accountHolderContactNumber1`, `accountHolderContactNumber2`, `accountHolderEmailAddress`, `accountHolderAddressLine1`, `accountHolderAddressLine2`, `accountHolderAddressLine3`, `accountHolderPostalCode` FROM `accounts_meta` WHERE `accountHolderIdentificationNumber` = ?", id)
+	if err != nil {
+		return AccountHolderDetails{}, errors.New("accounts.getAccountMeta: " + err.Error())
+	}
+	defer rows.Close()
+
+	count := 0
+	for rows.Next() {
+		if err := rows.Scan(&accountDetails.AccountNumber, &accountDetails.BankNumber, &accountDetails.GivenName, &accountDetails.FamilyName, &accountDetails.DateOfBirth, &accountDetails.IdentificationNumber, &accountDetails.ContactNumber1, &accountDetails.ContactNumber2, &accountDetails.EmailAddress, &accountDetails.AddressLine1, &accountDetails.AddressLine2,
+			&accountDetails.AddressLine3, &accountDetails.PostalCode); err != nil {
+			//@TODO Throw error
+			break
+		}
+		count++
+	}
+
+	if count == 0 {
+		return AccountHolderDetails{}, errors.New("accounts.getAccountMeta: Account not found")
+	}
+
+	if count > 1 {
+		//@TODO: Allow user to have multiple accounts
+		return AccountHolderDetails{}, errors.New("accounts.getAccountMeta: More than one account found")
+	}
+
+	return
+}
 func getAllTransactions() ([]Transaction, error) {
 	query := "SELECT transaction, type, senderAccountNumber, senderBankNumber, receiverAccountNumber, receiverBankNumber, transactionAmount, feeAmount, timestamp,narration,initiator FROM transactions "
 
@@ -580,19 +635,19 @@ func getSingleAccountNumberByID(userID string) (accountID string, err error) {
 
 	return
 }
-func getAuthCredentials(email string) (accountNumber string, fullname string, role string, err error) {
-	query := "SELECT `accountNumber`,`role` FROM `accounts_auth` WHERE `email` = ?"
+func getAuthCredentials(email string) (id string, accountNumber string, fullname string, role string, err error) {
+	query := "SELECT id,`accountNumber`,`role` FROM `accounts_auth` WHERE `email` = ?"
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	err = Config.Db.QueryRowContext(ctx, query, email).Scan(&accountNumber, &role)
+	err = Config.Db.QueryRowContext(ctx, query, email).Scan(&id, &accountNumber, &role)
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return "", "", "", errors.New("accounts.getSingleAccountNumberByUsername: Account not found")
+			return "", "", "", "", errors.New("accounts.getSingleAccountNumberByUsername: Account not found")
 		}
-		return "", "", "", err
+		return "", "", "", "", err
 	}
 
 	query = "SELECT `accountHolderName` FROM `accounts` WHERE `accountNumber` = ?"
@@ -604,12 +659,12 @@ func getAuthCredentials(email string) (accountNumber string, fullname string, ro
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return "", "", "", errors.New("accounts.getSingleAccountNumberByUsername: Account not found")
+			return "", "", "", "", errors.New("accounts.getSingleAccountNumberByUsername: Account not found")
 		}
-		return "", "", "", err
+		return "", "", "", "", err
 	}
 
-	return accountNumber, fullname, role, nil
+	return id, accountNumber, fullname, role, nil
 }
 
 func GetBalanceDetails(accountNumber string) (BalanceEnquiry, error) {

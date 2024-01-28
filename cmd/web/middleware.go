@@ -67,7 +67,7 @@ func (app *application) AuthenticationMiddleware(next http.HandlerFunc) http.Han
 
 }
 
-func (app *application) SetJwtSession(w http.ResponseWriter, r *http.Request, accountNumber string, fullname string) error {
+func (app *application) SetJwtSession(w http.ResponseWriter, r *http.Request, accountNumber string, fullname string, id string) error {
 
 	token, err := app.generateToken(accountNumber)
 	if err != nil {
@@ -86,6 +86,7 @@ func (app *application) SetJwtSession(w http.ResponseWriter, r *http.Request, ac
 
 	session.Values["token"] = token
 	session.Values["fullname"] = fullname
+	session.Values["id"] = id
 	session.Options = &sessions.Options{
 		MaxAge:   24 * 3600,
 		HttpOnly: true,
