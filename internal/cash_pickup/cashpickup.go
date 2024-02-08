@@ -23,7 +23,6 @@ type CashPickup struct {
 	Reason               string          `json:"reason"`
 	Amount               string          `json:"amount"`
 	Charge               decimal.Decimal `json:"charge"`
-	Timestamp            string          `json:"timestamp"`
 	BVN                  string          `json:"bvn"`
 	NIN                  string          `json:"nin"`
 	DOB                  string          `json:"dob"`
@@ -34,6 +33,7 @@ type CashPickup struct {
 	Country              string          `json:"country"`
 	Phone                string          `json:"phone"`
 	ReferenceNumber      string          `json:"referenceNumber"`
+	Timestamp            string          `json:"timestamp"`
 	UpdatedAt            string          `json:"updated_at"`
 }
 
@@ -69,6 +69,11 @@ func NewCashPickup(cashPickupData CashPickup) (result string, err error) {
 	}
 	cashPickupData.ReferenceNumber = strconv.Itoa(reference)
 	cashPickupData.Status = "pending"
+	charge, err := decimal.NewFromString("50.00")
+	if err != nil {
+		return "", errors.New("payments.painNewCashPickup: Conversion Error")
+	}
+	cashPickupData.Charge = charge
 
 	err = saveCashPickup(cashPickupData)
 	if err != nil {

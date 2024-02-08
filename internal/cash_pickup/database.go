@@ -62,8 +62,8 @@ func checkAccountBalanceBalance(accountNumber string) (balance decimal.Decimal, 
 }
 func saveCashPickup(data CashPickup) (err error) {
 	// Prepare statement for inserting data
-	insertStatement := "INSERT INTO cash_pickup (`sendersAccountNumber`, `firstName`, `lastName`, `currency`, `reason`, `amount`, `charge`,`bvn`,`nin`,`dob`,`email`,`address`,`image`,`state`,`reference_number`,`sex`,`country`,`phone`) "
-	insertStatement += "VALUES(?, ?, ?, ?, ?, ?, ?, ?,?,?,?,?,?,?,?,?,?,?)"
+	insertStatement := "INSERT INTO cash_pickup (`sendersAccountNumber`, `firstName`, `lastName`, `currency`, `reason`, `amount`, `charge`,`bvn`,`nin`,`dob`,`email`,`address`,`image`,`state`,`reference_number`,`sex`,`country`,`phone`,`status`) "
+	insertStatement += "VALUES(?, ?, ?, ?, ?, ?, ?, ?,?,?,?,?,?,?,?,?,?,?,?)"
 	stmtIns, err := Config.Db.Prepare(insertStatement)
 	if err != nil {
 		return errors.New("payments.savePainTransaction: " + err.Error())
@@ -77,7 +77,7 @@ func saveCashPickup(data CashPickup) (err error) {
 		return errors.New("Could not convert transaction amount to decimal. " + err.Error())
 	}
 	feeAmount := data.Charge.Mul(transactionAmountDecimal)
-	_, err = stmtIns.Exec(data.SendersAccountNumber, data.FirstName, data.LastName, data.Currency, data.Reason, data.Amount, feeAmount, data.BVN, data.NIN, data.DOB, data.Email, data.Address, data.Image, data.State, data.ReferenceNumber, data.Sex, data.Country, data.Phone)
+	_, err = stmtIns.Exec(data.SendersAccountNumber, data.FirstName, data.LastName, data.Currency, data.Reason, data.Amount, feeAmount, data.BVN, data.NIN, data.DOB, data.Email, data.Address, data.Image, data.State, data.ReferenceNumber, data.Sex, data.Country, data.Phone, data.Status)
 
 	if err != nil {
 		return errors.New("payments.savePainTransaction: " + err.Error())
