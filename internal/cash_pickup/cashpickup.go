@@ -68,6 +68,7 @@ func NewCashPickup(cashPickupData CashPickup) (result string, err error) {
 		return "", errors.New("payments.painNewCashPickup: Reference Error")
 	}
 	cashPickupData.ReferenceNumber = strconv.Itoa(reference)
+	cashPickupData.Status = "pending"
 
 	err = saveCashPickup(cashPickupData)
 	if err != nil {

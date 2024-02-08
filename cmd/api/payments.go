@@ -372,7 +372,6 @@ func (app *application) CashPickup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	result, err := cashpickup.NewCashPickup(CashPickupData)
-	fmt.Println(result)
 
 	if err != nil {
 		// there was error
@@ -393,9 +392,9 @@ func (app *application) CashPickup(w http.ResponseWriter, r *http.Request) {
 	// }
 
 	data := envelope{
-		"responseCode": "00",
-		"status":       "CashPickup Created Successfully",
-		"message":      result,
+		"responseCode":     "00",
+		"status":           "CashPickup Created Successfully",
+		"reference_number": result,
 	}
 	app.writeJSON(w, http.StatusOK, data, nil)
 }
